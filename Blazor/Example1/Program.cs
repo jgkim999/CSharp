@@ -6,20 +6,29 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 
+var configuration = new ConfigurationBuilder()
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("appsettings.json")
+    .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", true)
+    .Build();
+
 Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-            .Enrich.FromLogContext()
-            .WriteTo.Console()
-            .WriteTo.File("logs/rumble-.txt", rollingInterval: RollingInterval.Hour)
-            //.WriteTo.File(
-            //   System.IO.Path.Combine(path1: Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Application", "diagnostics.txt"),
-            //   rollingInterval: RollingInterval.Day,
-            //   fileSizeLimitBytes: 10 * 1024 * 1024,
-            //   retainedFileCountLimit: 2,
-            //   rollOnFileSizeLimit: true,
-            //   shared: true,
-            //   flushToDiskInterval: TimeSpan.FromSeconds(1))
-            .CreateLogger();
+    .ReadFrom.Configuration(configuration)
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    /*
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/rumble-.txt", rollingInterval: RollingInterval.Hour)
+    .WriteTo.File(
+       System.IO.Path.Combine(path1: Environment.GetEnvironmentVariable("HOME"), "LogFiles", "Application", "diagnostics.txt"),
+       rollingInterval: RollingInterval.Day,
+       fileSizeLimitBytes: 10 * 1024 * 1024,
+       retainedFileCountLimit: 2,
+       rollOnFileSizeLimit: true,
+       shared: true,
+       flushToDiskInterval: TimeSpan.FromSeconds(1))
+    */
+    .CreateLogger();
 
 //new LoggerConfiguration()
 //.MinimumLevel.Debug()
