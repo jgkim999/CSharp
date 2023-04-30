@@ -12,7 +12,20 @@ builder.Host.UseSerilog((ctx, lc) => lc
 // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
 
 // Add services to the container.
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(options =>
+{
+    // options
+    // https://learn.microsoft.com/ko-kr/aspnet/core/grpc/configuration?view=aspnetcore-7.0
+    options.EnableDetailedErrors = true;
+    options.MaxReceiveMessageSize = 2 * 1024 * 1024; // 2 MB
+    options.MaxSendMessageSize = 5 * 1024 * 1024; // 5 MB
+    // iterceptor
+    // https://learn.microsoft.com/ko-kr/aspnet/core/grpc/interceptors?view=aspnetcore-7.0
+    options.Interceptors.Add<ServerLoggerInterceptor>();
+});
+
+builder.Services.AddSingleton<ServerLoggerInterceptor>();
+
 // https://learn.microsoft.com/ko-kr/aspnet/core/grpc/test-tools?view=aspnetcore-7.0
 builder.Services.AddGrpcReflection();
 
