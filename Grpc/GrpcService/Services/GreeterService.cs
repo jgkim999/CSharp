@@ -1,5 +1,4 @@
 using Grpc.Core;
-using GrpcService;
 
 namespace GrpcService.Services
 {
@@ -13,6 +12,9 @@ namespace GrpcService.Services
 
         public override Task<HelloReply> SayHello(HelloRequest request, ServerCallContext context)
         {
+            var userAgent = context.RequestHeaders.GetValue("user-agent");
+            string logMessage = $"FROM:{context.Peer} TO:{context.Host} user-agent:{userAgent} Status:{context.Status} Message: Saying hello to {request.Name}";
+            _logger.LogInformation(logMessage);
             return Task.FromResult(new HelloReply
             {
                 Message = "Hello " + request.Name
