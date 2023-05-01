@@ -1,9 +1,9 @@
 ﻿using Grpc.Core;
-using static GrpcService.ExampleService;
+using static GrpcService.Example;
 
 namespace GrpcService.Services
 {
-    public class ExampleService : ExampleServiceBase
+    public class ExampleService : ExampleBase
     {
         private readonly ILogger<ExampleService> _logger;
 

@@ -21,6 +21,8 @@ namespace GrpcService.Services
         {
             try
             {
+                string logMessage = $"AsyncClientStreamingCall. Method:{context.Method} Host:{context.Host}";
+                _logger.LogInformation(logMessage);
                 return continuation(context);
             }
             catch (Exception ex)
@@ -36,6 +38,8 @@ namespace GrpcService.Services
         {
             try
             {
+                string logMessage = $"AsyncDuplexStreamingCall. Method:{context.Method} Host:{context.Host}";
+                _logger.LogInformation(logMessage);
                 return continuation(context);
             }
             catch (Exception ex)
@@ -52,6 +56,8 @@ namespace GrpcService.Services
         {
             try
             {
+                string logMessage = $"AsyncServerStreamingCall. Method:{context.Method} Host:{context.Host}";
+                _logger.LogInformation(logMessage);
                 return continuation(request, context);
             }
             catch (Exception ex)
@@ -68,6 +74,8 @@ namespace GrpcService.Services
         {
             try
             {
+                string logMessage = $"AsyncUnaryCall. Method:{context.Method} Host:{context.Host}";
+                _logger.LogInformation(logMessage);
                 return continuation(request, context);
             }
             catch (Exception ex)
@@ -84,6 +92,8 @@ namespace GrpcService.Services
         {
             try
             {
+                string logMessage = $"BlockingUnaryCall. Method:{context.Method} Host:{context.Host}";
+                _logger.LogInformation(logMessage);
                 return continuation(request, context);
             }
             catch (Exception ex)
@@ -100,6 +110,9 @@ namespace GrpcService.Services
         {
             try
             {
+                var userAgent = context.RequestHeaders.GetValue("user-agent");
+                string logMessage = $"Starting receiving call. Type:{MethodType.ClientStreaming} Method:{context.Method} Peer:{context.Peer} Host:{context.Host} user-agent:{userAgent} Status:{context.Status}";
+                _logger.LogInformation(logMessage);
                 return await continuation(requestStream, context);
             }
             catch (Exception ex)
@@ -117,6 +130,9 @@ namespace GrpcService.Services
         {
             try
             {
+                var userAgent = context.RequestHeaders.GetValue("user-agent");
+                string logMessage = $"Starting receiving call. Type:{MethodType.DuplexStreaming} Method:{context.Method} Peer:{context.Peer} Host:{context.Host} user-agent:{userAgent} Status:{context.Status}";
+                _logger.LogInformation(logMessage);
                 await continuation(requestStream, responseStream, context);
             }
             catch (Exception ex)
@@ -134,6 +150,9 @@ namespace GrpcService.Services
         {
             try
             {
+                var userAgent = context.RequestHeaders.GetValue("user-agent");
+                string logMessage = $"Starting receiving call. Type:{MethodType.ServerStreaming} Method:{context.Method} Peer:{context.Peer} Host:{context.Host} user-agent:{userAgent} Status:{context.Status}";
+                _logger.LogInformation(logMessage);
                 await continuation(request, responseStream, context);
             }
             catch (Exception ex)
@@ -148,11 +167,11 @@ namespace GrpcService.Services
             ServerCallContext context,
             UnaryServerMethod<TRequest, TResponse> continuation)
         {
-            _logger.LogInformation(
-                $"Starting receiving call. Type: {MethodType.Unary}. " +
-                $"Method: {context.Method}.");
             try
             {
+                var userAgent = context.RequestHeaders.GetValue("user-agent");
+                string logMessage = $"Starting receiving call. Type:{MethodType.Unary} Method:{context.Method} Peer:{context.Peer} Host:{context.Host} user-agent:{userAgent} Status:{context.Status}";
+                _logger.LogInformation(logMessage);
                 return await continuation(request, context);
             }
             catch (Exception ex)
