@@ -1,4 +1,5 @@
 using GrpcService.Services;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 
 internal class Program
@@ -43,7 +44,11 @@ internal class Program
             // https://learn.microsoft.com/ko-kr/aspnet/core/grpc/interceptors?view=aspnetcore-7.0
             options.Interceptors.Add<ServerLoggerInterceptor>();
         });
-
+        // gRPC 상태 검사 설정
+        // https://learn.microsoft.com/ko-kr/aspnet/core/grpc/health-checks?view=aspnetcore-7.0
+        builder.Services.AddGrpcHealthChecks()
+            .AddCheck("Sample", () => HealthCheckResult.Healthy());
+        // // iterceptor
         builder.Services.AddSingleton<ServerLoggerInterceptor>();
 
         // https://learn.microsoft.com/ko-kr/aspnet/core/grpc/test-tools?view=aspnetcore-7.0
@@ -58,6 +63,10 @@ internal class Program
         // GreeterService inherits from the GreeterBase type, which is generated from the Greeter service in the .proto file. The service is made accessible to clients in Program.cs:
         app.MapGrpcService<GreeterService>();
         app.MapGrpcService<ExampleService>();
+        // gRPC 상태 검사 설정
+        // https://learn.microsoft.com/ko-kr/aspnet/core/grpc/health-checks?view=aspnetcore-7.0
+        app.MapGrpcHealthChecksService();
+
         app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
         // https://learn.microsoft.com/ko-kr/aspnet/core/grpc/test-tools?view=aspnetcore-7.0
         IWebHostEnvironment env = app.Environment;
