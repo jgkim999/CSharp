@@ -25,20 +25,19 @@ public class WeatherForecastController : ControllerBase
     [HttpGet(Name = "GetWeatherForecast")]
     public async Task<IEnumerable<WeatherForecast>> Get()
     {
-        List<WeatherForecast>? weatherForecast = await _cacheService.GetAsync<List<WeatherForecast>>("WeatherForecast");
-        if (weatherForecast is not null)
-        {
-            return weatherForecast;
-        }
-
-        var weather = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        List<WeatherForecast>? weatherForecast = await _cacheService.GetAsync<List<WeatherForecast>>(
+            "WeatherForecast",
+            async () =>
             {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToList();
-        await _cacheService.SetAsync("WeatherForecast", weather);
-        return weather;
+                var weathers = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+                    {
+                        Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                        TemperatureC = Random.Shared.Next(-20, 55),
+                        Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+                    })
+                    .ToList();
+                return weathers;
+            });
+        return weatherForecast;
     }
 }

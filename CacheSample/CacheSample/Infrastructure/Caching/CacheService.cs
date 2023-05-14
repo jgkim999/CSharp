@@ -26,6 +26,17 @@ public class CacheService : ICacheService
         return value;
     }
 
+    public async Task<T?> GetAsync<T>(string key, Func<Task<T>> factory, CancellationToken cancellationToken = default)
+        where T : class
+    {
+        T? cacheValue = await GetAsync<T>(key, cancellationToken);
+        if (cacheValue is not null)
+            return cacheValue;
+        cacheValue = await factory();
+        await SetAsync(key, cacheValue, cancellationToken);
+        return cacheValue;
+    }
+
     public async Task SetAsync<T>(string key, T value, CancellationToken cancellationToken = default) where T : class
     {
         string jsonString = JsonSerializer.Serialize(value);
