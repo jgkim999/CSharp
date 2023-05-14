@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace WebApplication1.Ping;
+namespace WebApplication1.Handler;
 
 public class Ping : IRequest<DateTime>
 {
