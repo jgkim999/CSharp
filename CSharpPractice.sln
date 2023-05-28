@@ -33,6 +33,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MediatR", "MediatR", "{1987
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UlidPractice", "ThirdPartyPractice\UlidPractice\UlidPractice.csproj", "{BAC436E6-93E2-452B-B93C-CCA80704ABDB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestSharpPractice", "ThirdPartyPractice\RestSharpPractice\RestSharpPractice.csproj", "{176E0B18-325C-412C-96DF-8AA5B35783C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{BAC436E6-93E2-452B-B93C-CCA80704ABDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAC436E6-93E2-452B-B93C-CCA80704ABDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BAC436E6-93E2-452B-B93C-CCA80704ABDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{176E0B18-325C-412C-96DF-8AA5B35783C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{176E0B18-325C-412C-96DF-8AA5B35783C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{176E0B18-325C-412C-96DF-8AA5B35783C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{176E0B18-325C-412C-96DF-8AA5B35783C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,6 +99,7 @@ Global
 		{ED6FB5E2-5270-4F51-A81F-40C57FF891FB} = {19870FDA-9146-4C3F-9905-944614F32388}
 		{19870FDA-9146-4C3F-9905-944614F32388} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
 		{BAC436E6-93E2-452B-B93C-CCA80704ABDB} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
+		{176E0B18-325C-412C-96DF-8AA5B35783C6} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F7FF159F-452B-4843-BF53-F1A69306BB41}
