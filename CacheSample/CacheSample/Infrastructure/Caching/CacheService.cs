@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
 using CacheSample.Application.Abstractions.Caching;
+using LanguageExt;
 using Microsoft.Extensions.Caching.Distributed;
+using System.Collections.Concurrent;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace CacheSample.Infrastructure.Caching;
 
@@ -16,7 +16,7 @@ public class CacheService : ICacheService
         _distributedCache = distributedCache;
     }
 
-    public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default)
+    public async Task<Option<T>> GetAsync<T>(string key, CancellationToken cancellationToken = default)
         where T : class
     {
         string? cacheValue = await _distributedCache.GetStringAsync(key, cancellationToken);
@@ -26,22 +26,36 @@ public class CacheService : ICacheService
         return value;
     }
 
-    public async Task<T?> GetAsync<T>(string key, Func<Task<T>> factory, CancellationToken cancellationToken = default)
+    public async Task<Option<T>> GetAsync<T>(string key, Func<Task<T>> factory, int absoluteExpirationRelativeToNow = 60, CancellationToken cancellationToken = default)
         where T : class
     {
-        T? cacheValue = await GetAsync<T>(key, cancellationToken);
-        if (cacheValue is not null)
+        var cacheValue = await GetAsync<T>(key, cancellationToken);
+        if (cacheValue.IsSome)
             return cacheValue;
         cacheValue = await factory();
-        await SetAsync(key, cacheValue, cancellationToken);
+        if (cacheValue.IsSome)
+        {
+            await SetAsync(
+                key,
+                cacheValue,
+                new DistributedCacheEntryOptions()
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(absoluteExpirationRelativeToNow)
+                },
+                cancellationToken);
+        }
         return cacheValue;
     }
 
-    public async Task SetAsync<T>(string key, T value, CancellationToken cancellationToken = default) where T : class
+    public async Task SetAsync<T>(string key, Option<T> value, DistributedCacheEntryOptions option, CancellationToken cancellationToken = default) where T : class
     {
-        string jsonString = JsonSerializer.Serialize(value);
-        await _distributedCache.SetStringAsync(key, jsonString, cancellationToken);
-        CacheKeys.TryAdd(key, false);
+        await value.IfSomeAsync(
+            item =>
+            {
+                string jsonString = JsonSerializer.Serialize(item);
+                _distributedCache.SetStringAsync(key, jsonString, option, cancellationToken);
+                CacheKeys.TryAdd(key, false);
+            });
     }
 
     public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)

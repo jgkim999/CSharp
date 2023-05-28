@@ -1,4 +1,5 @@
 using CacheSample.Application.Abstractions.Caching;
+using LanguageExt;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CacheSample.Controllers;
@@ -25,19 +26,18 @@ public class WeatherForecastController : ControllerBase
     [HttpGet(Name = "GetWeatherForecast")]
     public async Task<IEnumerable<WeatherForecast>> Get()
     {
-        List<WeatherForecast>? weatherForecast = await _cacheService.GetAsync<List<WeatherForecast>>(
+        var weatherForecast = await _cacheService.GetAsync<List<WeatherForecast>>(
             "WeatherForecast",
-            async () =>
+            async () => await Task.Run(() =>
             {
                 var weathers = Enumerable.Range(1, 5).Select(index => new WeatherForecast
-                    {
-                        Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                        TemperatureC = Random.Shared.Next(-20, 55),
-                        Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-                    })
-                    .ToList();
+                {
+                    Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                    TemperatureC = Random.Shared.Next(-20, 55),
+                    Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+                }).ToList();
                 return weathers;
-            });
-        return weatherForecast;
+            }));
+        return weatherForecast.Match(item => item, Enumerable.Empty<WeatherForecast>());
     }
 }
