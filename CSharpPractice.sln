@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UlidPractice", "ThirdPartyP
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestSharpPractice", "ThirdPartyPractice\RestSharpPractice\RestSharpPractice.csproj", "{176E0B18-325C-412C-96DF-8AA5B35783C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JwtPractice", "ThirdPartyPractice\JwtPractice\JwtPractice.csproj", "{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,10 @@ Global
 		{176E0B18-325C-412C-96DF-8AA5B35783C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{176E0B18-325C-412C-96DF-8AA5B35783C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{176E0B18-325C-412C-96DF-8AA5B35783C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -100,6 +106,7 @@ Global
 		{19870FDA-9146-4C3F-9905-944614F32388} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
 		{BAC436E6-93E2-452B-B93C-CCA80704ABDB} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
 		{176E0B18-325C-412C-96DF-8AA5B35783C6} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
+		{75D5C951-8BE1-46FB-B1ED-DC6119F49A10} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F7FF159F-452B-4843-BF53-F1A69306BB41}
