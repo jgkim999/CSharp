@@ -60,9 +60,9 @@ namespace RestSharpPractice
             var response = await client.PostAsync(request, new CancellationToken());
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                TimeZoneConvertResponse converTime = JsonConvert.DeserializeObject<TimeZoneConvertResponse>(response.Content);
-                Console.WriteLine($"{converTime.ConversionResult.DateTime} {converTime.ConversionResult.TimeZone}");
-                return converTime.ConversionResult;
+                TimeZoneConvertResponse convertTime = JsonConvert.DeserializeObject<TimeZoneConvertResponse>(response.Content);
+                Console.WriteLine($"{convertTime.ConversionResult.DateTime} {convertTime.ConversionResult.TimeZone}");
+                return convertTime.ConversionResult;
             }
             return null;
         }
