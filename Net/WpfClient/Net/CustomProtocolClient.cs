@@ -14,15 +14,16 @@ namespace WpfClient.Net
         private readonly ByteStream _receiver;
         private LogDelegate _log;
         private readonly CustomProtocolHeaderFilter _headerFilter;
-        private readonly CustomProtocolPackageDispatcher _dispatcher;
+        private readonly IPackageDispatcher<MyPackage> _dispatcher;
 
         public CustomProtocolClient(
             string address,
             int port,
             LogDelegate log,
             CustomProtocolHeaderFilter headerFilter,
-            CustomProtocolPackageDispatcher dispatcher) 
-            : base(address, port)
+            IPackageDispatcher<MyPackage> dispatcher,
+            INetworkStatistics netStatistics) 
+            : base(address, port, netStatistics)
         {
             _log = log;
             _receiver = new ByteStream(1024 * 8, 1024 * 16);
@@ -35,7 +36,8 @@ namespace WpfClient.Net
         /// </summary>
         protected override void OnConnecting()
         {
-            _log(LogType.Information, "OnConnecting");
+            //_log(LogType.Information, "OnConnecting");
+            _dispatcher.OnConnecting(UniqueId);
         }
 
         /// <summary>
@@ -43,7 +45,8 @@ namespace WpfClient.Net
         /// </summary>
         protected override void OnConnected()
         {
-            _log(LogType.Information, "OnConnected");
+            //_log(LogType.Information, "OnConnected");
+            _dispatcher.OnConnected(UniqueId);
         }
 
         /// <summary>
@@ -51,7 +54,8 @@ namespace WpfClient.Net
         /// </summary>
         protected override void OnDisconnecting()
         {
-            _log(LogType.Information, "OnDisconnecting");
+            //_log(LogType.Information, "OnDisconnecting");
+            _dispatcher.OnDisconnection(UniqueId);
         }
 
         /// <summary>
@@ -59,7 +63,8 @@ namespace WpfClient.Net
         /// </summary>
         protected override void OnDisconnected()
         {
-            _log(LogType.Information, "OnDisconnected");
+            //_log(LogType.Information, "OnDisconnected");
+            _dispatcher.OnDisconnected(UniqueId);
         }
 
         /// <summary>
@@ -73,7 +78,7 @@ namespace WpfClient.Net
         /// </remarks>
         protected override void OnReceived(byte[] buffer, long offset, long size)
         {
-            _log(LogType.Information, "OnReceived");
+            _log(LogType.Information, $"{UniqueId} OnReceived");
             _receiver.Write(buffer, offset, size);
             while (true)
             {
@@ -85,7 +90,7 @@ namespace WpfClient.Net
                     {
                         Span<byte> packet = _receiver.GetBytes(0, totalSize);
                         var package = _headerFilter.DecodePackage(packet);
-                        _dispatcher.Dispatch(package);
+                        _dispatcher.Dispatch(UniqueId, package);
                         ByteArrayPool.Release(package.Body);
                         _receiver.Advance(totalSize);
                     }
@@ -112,7 +117,8 @@ namespace WpfClient.Net
         /// </remarks>
         protected override void OnSent(long sent, long pending)
         {
-            _log(LogType.Information, "OnSent");
+            //_log(LogType.Information, "OnSent");
+            _dispatcher.OnSent(UniqueId, sent, pending);
         }
 
         /// <summary>
@@ -124,7 +130,8 @@ namespace WpfClient.Net
         /// </remarks>
         protected override void OnEmpty()
         {
-            _log(LogType.Information, "OnEmpty");
+            //_log(LogType.Information, "OnEmpty");
+            _dispatcher.OnEmpty(UniqueId);
         }
 
         /// <summary>
@@ -133,7 +140,8 @@ namespace WpfClient.Net
         /// <param name="error">Socket error code</param>
         protected override void OnError(SocketError error)
         {
-            _log(LogType.Information, "OnError");
+            //_log(LogType.Information, "OnError");
+            _dispatcher.OnError(UniqueId, error);
         }
 
         #region dispose

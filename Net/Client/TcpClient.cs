@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Client.Interfaces;
+
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -8,6 +10,10 @@ namespace Client
 {
     public class TcpClient : IDisposable
     {
+        public static long ClientUniqueId = 0;
+
+        public long UniqueId { get; }
+
         /// <summary>
         /// Client Id
         /// </summary>
@@ -107,13 +113,15 @@ namespace Client
         /// </summary>
         public int OptionSendBufferSize { get; set; } = 8192;
 
+        private readonly INetworkStatistics _netStatistics;
+
         /// <summary>
         /// Initialize TCP client with a given server IP address and port number
         /// </summary>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public TcpClient(IPAddress address, int port)
-            : this(new IPEndPoint(address, port))
+        public TcpClient(IPAddress address, int port, INetworkStatistics netStatistics)
+            : this(new IPEndPoint(address, port), netStatistics)
         {
         }
 
@@ -122,8 +130,8 @@ namespace Client
         /// </summary>
         /// <param name="address">IP address</param>
         /// <param name="port">Port number</param>
-        public TcpClient(string address, int port)
-            : this(new IPEndPoint(IPAddress.Parse(address), port))
+        public TcpClient(string address, int port, INetworkStatistics netStatistics)
+            : this(new IPEndPoint(IPAddress.Parse(address), port), netStatistics)
         {
         }
 
@@ -131,8 +139,8 @@ namespace Client
         /// Initialize TCP client with a given DNS endpoint
         /// </summary>
         /// <param name="endpoint">DNS endpoint</param>
-        public TcpClient(DnsEndPoint endpoint)
-            : this(endpoint as EndPoint, endpoint.Host, endpoint.Port)
+        public TcpClient(DnsEndPoint endpoint, INetworkStatistics netStatistics)
+            : this(endpoint as EndPoint, endpoint.Host, endpoint.Port, netStatistics)
         {
         }
 
@@ -140,8 +148,8 @@ namespace Client
         /// Initialize TCP client with a given IP endpoint
         /// </summary>
         /// <param name="endpoint">IP endpoint</param>
-        public TcpClient(IPEndPoint endpoint) 
-            : this(endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port)
+        public TcpClient(IPEndPoint endpoint, INetworkStatistics netStatistics) 
+            : this(endpoint as EndPoint, endpoint.Address.ToString(), endpoint.Port, netStatistics)
         {
         }
 
@@ -151,8 +159,10 @@ namespace Client
         /// <param name="endpoint">Endpoint</param>
         /// <param name="address">Server address</param>
         /// <param name="port">Server port</param>
-        private TcpClient(EndPoint endpoint, string address, int port)
+        private TcpClient(EndPoint endpoint, string address, int port, INetworkStatistics netStatistics)
         {
+            _netStatistics = netStatistics;
+            UniqueId = Interlocked.Increment(ref ClientUniqueId);
             Id = Guid.NewGuid();
             Address = address;
             Port = port;
@@ -495,6 +505,7 @@ namespace Client
             {
                 // Update statistic
                 BytesSent += sent;
+                _netStatistics.AddSent(sent);
 
                 // Call the buffer sent handler
                 OnSent(sent, BytesPending + BytesSending);
@@ -623,6 +634,7 @@ namespace Client
             {
                 // Update statistic
                 BytesReceived += received;
+                _netStatistics.AddReceive(received);
 
                 // Call the buffer received handler
                 OnReceived(buffer, 0, received);
@@ -878,6 +890,7 @@ namespace Client
             {
                 // Update statistic
                 BytesReceived += size;
+                _netStatistics.AddReceive(size);
 
                 // Call the buffer received handler
                 OnReceived(_receiveBuffer.Data, 0, size);
@@ -933,6 +946,7 @@ namespace Client
                 // Update statistic
                 BytesSending -= size;
                 BytesSent += size;
+                _netStatistics.AddSent(size);
 
                 // Increase the flush buffer offset
                 _sendBufferFlushOffset += size;
