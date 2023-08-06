@@ -31,11 +31,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApplication1", "MediatR\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MediatR", "MediatR", "{19870FDA-9146-4C3F-9905-944614F32388}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UlidPractice", "ThirdPartyPractice\UlidPractice\UlidPractice.csproj", "{BAC436E6-93E2-452B-B93C-CCA80704ABDB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UlidPractice", "ThirdPartyPractice\UlidPractice\UlidPractice.csproj", "{BAC436E6-93E2-452B-B93C-CCA80704ABDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestSharpPractice", "ThirdPartyPractice\RestSharpPractice\RestSharpPractice.csproj", "{176E0B18-325C-412C-96DF-8AA5B35783C6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestSharpPractice", "ThirdPartyPractice\RestSharpPractice\RestSharpPractice.csproj", "{176E0B18-325C-412C-96DF-8AA5B35783C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JwtPractice", "ThirdPartyPractice\JwtPractice\JwtPractice.csproj", "{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JwtPractice", "ThirdPartyPractice\JwtPractice\JwtPractice.csproj", "{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiMdc", "Maui\MauiMdc\MauiMdc.csproj", "{798869DD-C2BD-402B-8E91-8614F3CB1290}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,6 +93,12 @@ Global
 		{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75D5C951-8BE1-46FB-B1ED-DC6119F49A10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{798869DD-C2BD-402B-8E91-8614F3CB1290}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{798869DD-C2BD-402B-8E91-8614F3CB1290}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{798869DD-C2BD-402B-8E91-8614F3CB1290}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{798869DD-C2BD-402B-8E91-8614F3CB1290}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{798869DD-C2BD-402B-8E91-8614F3CB1290}.Release|Any CPU.Build.0 = Release|Any CPU
+		{798869DD-C2BD-402B-8E91-8614F3CB1290}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -107,6 +115,7 @@ Global
 		{BAC436E6-93E2-452B-B93C-CCA80704ABDB} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
 		{176E0B18-325C-412C-96DF-8AA5B35783C6} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
 		{75D5C951-8BE1-46FB-B1ED-DC6119F49A10} = {4301BE0B-59F7-49E3-9F4F-39F3E9786D62}
+		{798869DD-C2BD-402B-8E91-8614F3CB1290} = {87FC7CEF-7BE9-4FB0-8242-3A26DDBE5B14}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F7FF159F-452B-4843-BF53-F1A69306BB41}
