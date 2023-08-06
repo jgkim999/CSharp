@@ -1,25 +1,75 @@
-version: "3"
-services:
-  mysql:
-    image: mysql:latest
-    container_name: stress-test-gb-mysql
-    environment:
-      MYSQL_DATABASE: stress-test-gb
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_ROOT_HOST: '%'      
+# 파일 규격 버전
+version: "3.7"
+# 이 항목 밑에 실행하려는 컨테이너 들을 정의
+services: 
+  # 서비스 명
+  MySql:
+    # 사용할 이미지
+    image: mysql:8.1.0
+    # 컨테이너 이름 설정
+    container_name: mysql
+    networks:
+      - test-network
+    # 접근 포트 설정 (컨테이너 외부:컨테이너 내부)
     ports:
-      - 3306:3306
+      - "3306:3306"
+    # -e 옵션 
+    environment:
+      MYSQL_DATABASE: test-db
+      # MYSQL 패스워드 설정 옵션
+      MYSQL_ROOT_PASSWORD: "1234"
+      MYSQL_ROOT_HOST: '%'
+    # 명령어 실행 (한글 인코딩 관련)
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     volumes:
-      - stress-test-gb:/var/lib/mysql
-
-  redis:
-    image: redis:latest
-    container_name: stress-test-gb-redis
+      # -v 옵션 (다렉토리 마운트 설정)
+      - D:/docker_volumes/mysql:/var/lib/mysql
+  # redis
+  Redis:
+    image: redis:bookworm
+    container_name: redis
+    networks:
+      - test-network
+    command: redis-server --port 6379
+    hostname: redis_boot
+    labels:
+      - "name=redis"
+      - "mode=standalone"
     ports:
       - 6379:6379
+    volumes:
+    # -v 옵션 (다렉토리 마운트 설정)
+      - D:/docker_volumes/redis:/data
+  # InfluxDB - Database for sensor data
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    networks:
+      - test-network
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - D:/docker_volumes/influxdb2/config:/etc/influxdb2
+      - D:/docker_volumes/influxdb2/db:/var/lib/influxdb2
+  # grapana
+  grapana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    networks:
+      - test-network
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3000:3000"
+    volumes:
+      -  D:/docker_volumes/grafana:/var/lib/grafana
 
-volumes:
-  stress-test-gb:
+networks:
+  test-network:
+    driver: bridge
