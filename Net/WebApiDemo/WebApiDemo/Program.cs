@@ -3,17 +3,19 @@ using HealthChecks.UI.Client;
 
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
-
+using MySqlConnector;
 using Quartz;
 
 using Serilog;
 
 using System.Reflection;
 using System.Threading.RateLimiting;
-
+using WebApiApplication.Interfaces;
+using WebApiApplication.Services;
 using WebApiDemo.Extensions;
 using WebApiDemo.HealthChecks;
 using WebApiDemo.SchedulingJobs;
+using WebApiInfrastructure.Repositories;
 
 internal class Program
 {
@@ -26,7 +28,7 @@ internal class Program
         try
         {
             var envJson = $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json";
-                        
+
             Log.Information("Starting web application");
             Log.Information($"{envJson}");
 
@@ -91,7 +93,7 @@ internal class Program
 
             builder.Services.AddQuartz(q =>
             {
-                q.UseMicrosoftDependencyInjectionJobFactory();
+                //q.UseMicrosoftDependencyInjectionJobFactory();
 
                 // 1분마다 영원히 실행
                 var jobKey = new JobKey("HelloJob");
@@ -106,6 +108,10 @@ internal class Program
             {
                 o.WaitForJobsToComplete = true;
             });
+
+            builder.Services.AddTransient(x => new MySqlConnection(builder.Configuration.GetConnectionString("Default")));
+            builder.Services.AddTransient<IAccountRepository, AccountRepository>();
+            builder.Services.AddTransient<IAccountService, AccountService>();
 
             var app = builder.Build();
 
@@ -123,7 +129,7 @@ internal class Program
             app.UseAuthorization();
 
             app.UseCustomExceptionMiddleware();
-            
+
             // http://[domain]/healthz
             app.UseHealthChecks("/healthz", new HealthCheckOptions()
             {
