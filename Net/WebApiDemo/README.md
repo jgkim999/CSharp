@@ -26,6 +26,7 @@
     - [AppMetrics](#appmetrics)
     - [BenchmarkDotNet](#benchmarkdotnet)
   - [사용한 Nuget 패키지](#사용한-nuget-패키지)
+  - [MySQL](#mysql)
 
 Fork해서 사용하세요.
 
@@ -57,7 +58,7 @@ Serilog를 비동기적으로 이용합니다.
 
 [Health checks in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-7.0)
 
-http://localhost/healthz
+[healthz API](http://localhost/healthz)
 
 [Health check UI](https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks)
 
@@ -187,18 +188,6 @@ ULID는 정렬 가능한 랜덤 아이디 생성기입니다.
 
 [Ulid](https://www.nuget.org/packages/Ulid)
 
-# MySQL
+## MySQL
 
-```sql
-CREATE TABLE `Account` (
-  `Id` BIGINT(19) NOT NULL AUTO_INCREMENT,
-  `Name` VARCHAR(32) NOT NULL DEFAULT '' COLLATE 'utf8mb4_unicode_ci',
-  `CreatedAt` DATETIME NOT NULL DEFAULT (now()),
-  PRIMARY KEY (`Id`) USING BTREE,
-  UNIQUE INDEX `Name` (`Name`) USING BTREE
-)
-COLLATE='utf8mb4_unicode_ci'
-ENGINE=InnoDB
-AUTO_INCREMENT=3
-;
-```
+[SQL](./Account.sql)

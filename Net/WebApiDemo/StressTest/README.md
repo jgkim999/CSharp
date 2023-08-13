@@ -1,7 +1,9 @@
 # 목차
 
 - [목차](#목차)
-  - [문서화](#문서화)
+  - [K6](#k6)
+  - [Run](#run)
+  - [dotnet-counters](#dotnet-counters)
 
 ## [K6](https://k6.io/)
 
