@@ -4,5 +4,5 @@ namespace WebApiApplication.Interfaces;
 
 public interface IAccountCache
 {
-    Task SetAsync(AccountDto dto);
+    Task SetAsync(Account dto);
 }

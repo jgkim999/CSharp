@@ -5,5 +5,7 @@ namespace WebApiApplication.Interfaces;
 public interface IRedisManager
 {
     IDatabase GetDatabase();
-    Task SetAddKeyExpireAsync(RedisKey key, RedisValue value, TimeSpan ts);
+    Task StringSetExpireAsync(RedisKey key, RedisValue value, TimeSpan ts);
+    Task<RedisValue> GetAsync(RedisKey key);
+    Task<string> GetStringAsync(RedisKey key);
 }

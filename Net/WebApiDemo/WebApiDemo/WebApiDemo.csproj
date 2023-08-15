@@ -12,6 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.ApplicationStatus" Version="7.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.MySql" Version="7.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="7.0.0" />
     <PackageReference Include="AspNetCore.HealthChecks.UI" Version="7.0.2" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="7.1.0" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.InMemory.Storage" Version="7.0.0" />

@@ -49,9 +49,15 @@ internal class Program
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddHealthChecksUI().AddInMemoryStorage();
+            builder.Services.AddHealthChecksUI(setupSettings: setup =>
+            {
+                setup.SetEvaluationTimeInSeconds(5); // Configures the UI to poll for healthchecks updates every 5 seconds
+            }).AddInMemoryStorage();
+
             builder.Services.AddHealthChecks()
                 .AddCheck<RandomHealthCheck>("random")
+                .AddRedis(builder.Configuration.GetConnectionString("Redis"))
+                .AddMySql(builder.Configuration.GetConnectionString("Default"))
                 .AddApplicationStatus();
 
             builder.Services.AddRateLimiter(options =>
@@ -115,6 +121,8 @@ internal class Program
             builder.Services.AddTransient<IAccountCache, AccountCache>();
             builder.Services.AddTransient<IAccountRepository, AccountRepository>();
             builder.Services.AddTransient<IAccountService, AccountService>();
+            builder.Services.AddTransient<ISessionRepository, SessionRepository>();
+            builder.Services.AddSingleton<ISessionService, SessionService>();
 
             var redisManagerLogger = new SerilogLoggerFactory(Log.Logger).CreateLogger<RedisManager>();
             ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis"));

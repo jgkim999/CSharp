@@ -17,11 +17,11 @@ public class AccountCache : IAccountCache
         _redisManager = redisManager;
     }
 
-    public async Task SetAsync(AccountDto dto)
+    public async Task SetAsync(Account account)
     {
         try
         {
-            await _redisManager.SetAddKeyExpireAsync(_accountPrefix + dto.Ulid, JsonConvert.SerializeObject(dto), TimeSpan.FromHours(1));
+            await _redisManager.StringSetExpireAsync($"{_accountPrefix}{account.Id}", JsonConvert.SerializeObject(account), TimeSpan.FromHours(1));
         }
         catch (Exception ex)
         {
