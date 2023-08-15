@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 
 using WebApiDemo.Models;
 
@@ -28,6 +28,7 @@ public class ExceptionMiddleware
         }
         catch (Exception ex)
         {
+            _logger.LogError($"Exception: {ex.Message}");
             await HandleExceptionAsync(httpContext, ex);
         }
     }

@@ -7,7 +7,8 @@ using MySqlConnector;
 using Quartz;
 
 using Serilog;
-
+using Serilog.Extensions.Logging;
+using StackExchange.Redis;
 using System.Reflection;
 using System.Threading.RateLimiting;
 using WebApiApplication.Interfaces;
@@ -15,6 +16,7 @@ using WebApiApplication.Services;
 using WebApiDemo.Extensions;
 using WebApiDemo.HealthChecks;
 using WebApiDemo.SchedulingJobs;
+using WebApiInfrastructure;
 using WebApiInfrastructure.Repositories;
 
 internal class Program
@@ -110,8 +112,14 @@ internal class Program
             });
 
             builder.Services.AddTransient(x => new MySqlConnection(builder.Configuration.GetConnectionString("Default")));
+            builder.Services.AddTransient<IAccountCache, AccountCache>();
             builder.Services.AddTransient<IAccountRepository, AccountRepository>();
             builder.Services.AddTransient<IAccountService, AccountService>();
+
+            var redisManagerLogger = new SerilogLoggerFactory(Log.Logger).CreateLogger<RedisManager>();
+            ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis"));
+            RedisManager redisManager = new RedisManager(redisManagerLogger, connectionMultiplexer);
+            builder.Services.AddSingleton<IRedisManager>(redisManager);
 
             var app = builder.Build();
 

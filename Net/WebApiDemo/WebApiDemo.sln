@@ -19,6 +19,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiApplication", "WebApi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApiInfrastructure", "WebApiInfrastructure\WebApiInfrastructure.csproj", "{EC7AA3A3-8EFD-4095-BA34-1BDD151F69E5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StressTest", "StressTest", "{52C2FA92-4248-44AD-BEEA-FFC2AE2852F7}"
+	ProjectSection(SolutionItems) = preProject
+		StressTest\README.md = StressTest\README.md
+		StressTest\stressTest.js = StressTest\stressTest.js
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +50,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{52C2FA92-4248-44AD-BEEA-FFC2AE2852F7} = {FE404525-4A96-45EA-932A-7FC878A5CC6A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EB8B091D-3B37-4B34-9EF9-EB7E4A88FD31}
