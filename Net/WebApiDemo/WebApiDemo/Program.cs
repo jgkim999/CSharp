@@ -122,7 +122,9 @@ internal class Program
             builder.Services.AddTransient<IAccountRepository, AccountRepository>();
             builder.Services.AddTransient<IAccountService, AccountService>();
             builder.Services.AddTransient<ISessionRepository, SessionRepository>();
+            builder.Services.AddTransient<IGameItemRepository, GameItemRepository>();
             builder.Services.AddSingleton<ISessionService, SessionService>();
+            builder.Services.AddSingleton<IGameService, GameService>();
 
             var redisManagerLogger = new SerilogLoggerFactory(Log.Logger).CreateLogger<RedisManager>();
             ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis"));
