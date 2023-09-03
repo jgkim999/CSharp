@@ -55,7 +55,11 @@ public class InvocationMessage : HubMethodInvocationMessage {}
 
 ## PostMan
 
+[Postman supports websocket apis](https://blog.postman.com/postman-supports-websocket-apis/)
+
 [PostMan](https://wadehuang36.medium.com/connect-signalr-apis-with-postman-dce2b0f59c2a)
+
+[Using postman with signalr websockets development](https://trailheadtechnology.com/using-postman-with-signalr-websockets-development/)
 
 ## Every message 0x1E
 
