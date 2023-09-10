@@ -25,7 +25,7 @@ services:
       - --collation-server=utf8mb4_unicode_ci
     volumes:
       # -v 옵션 (다렉토리 마운트 설정)
-      - D:/docker_volumes/mysql:/var/lib/mysql
+      - /home/jgkim/docker_volumes/mysql:/var/lib/mysql
   # redis
   Redis:
     image: redis:bookworm
@@ -42,7 +42,7 @@ services:
       - 16380:6379
     volumes:
     # -v 옵션 (다렉토리 마운트 설정)
-      - D:/docker_volumes/redis:/data
+      - /home/jgkim/docker_volumes/redis:/data
   # InfluxDB - Database for sensor data
   influxdb:
     image: influxdb:latest
@@ -55,12 +55,13 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - D:/docker_volumes/influxdb2/config:/etc/influxdb2
-      - D:/docker_volumes/influxdb2/db:/var/lib/influxdb2
+      - /home/jgkim/docker_volumes/influxdb2/config:/etc/influxdb2
+      - /home/jgkim/docker_volumes/influxdb2/db:/var/lib/influxdb2
   # grapana
   grapana:
     image: grafana/grafana:latest
     container_name: grafana
+    user: "1000:1000"
     networks:
       - test-network
     environment:
@@ -69,7 +70,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      -  D:/docker_volumes/grafana:/var/lib/grafana
+      - /home/jgkim/docker_volumes/grafana:/var/lib/grafana
 
 networks:
   test-network:

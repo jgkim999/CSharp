@@ -43,6 +43,7 @@ wsl --list
 
 Linux용 Windows 하위 시스템 배포:
 Ubuntu-22.04
+
 Amazon2
 docker-desktop
 Ubuntu-20.04 (기본값)
@@ -56,6 +57,7 @@ wsl --setdefault Ubuntu-22.04
 
 Linux용 Windows 하위 시스템 배포:
 Ubuntu-22.04 (기본값)
+
 Amazon2
 docker-desktop
 Ubuntu-20.04
@@ -187,8 +189,8 @@ sudo unzip -d /usr/share/fonts/d2coding D2Coding-Ver1.3.2-20180524.zip
 sudo fc-cache -f -v
 
 AWS EC2
-yum install fontconfig
-yum install unzip
+sudo yum install fontconfig
+sudo yum install unzip
 wget https://github.com/naver/d2codingfont/releases/download/VER1.3.2/D2Coding-Ver1.3.2-20180524.zip
 unzip -d /usr/share/fonts/d2coding D2Coding-Ver1.3.2-20180524.zip
 fc-cache -f -v
