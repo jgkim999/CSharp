@@ -1,59 +1,23 @@
 # k8s
+- [k8s](#k8s)
+  - [이전으로](#이전으로)
+  - [virtual box 에 k8s node설치](#virtual-box-에-k8s-node설치)
+  - [Master node](#master-node)
+  - [Worker node](#worker-node)
+  - [전부 날리고 다시](#전부-날리고-다시)
+  - [오류시](#오류시)
+  - [다음, 배포 연습](#다음-배포-연습)
 
-##
-
-https://domdom.tistory.com/591
-
-## deployment.yaml
-
-```bash
-kubectl apply -f deployment.yaml
-```
-
-## secret.yaml
-
-mysql 비밀번호는 base64 encoding
-
-```bash
-echo -n root | base64
-cm9vdA==
-```
-
-## token
-
-```bash
-sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.0.47
-
-[init] Using Kubernetes version: v1.28.1
-...
-[addons] Applied essential addon: CoreDNS
-[addons] Applied essential addon: kube-proxy
-
-Your Kubernetes control-plane has initialized successfully!
-
-To start using your cluster, you need to run the following as a regular user:
-
-  mkdir -p $HOME/.kube
-  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-  sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-Alternatively, if you are the root user, you can run:
-
-  export KUBECONFIG=/etc/kubernetes/admin.conf
-
-You should now deploy a pod network to the cluster.
-Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
-  https://kubernetes.io/docs/concepts/cluster-administration/addons/
-
-Then you can join any number of worker nodes by running the following on each as root:
-
-kubeadm join 192.168.0.47:6443 --token 6822q4.hjlc4lv3ctgvaooj \
-	--discovery-token-ca-cert-hash sha256:26b4855b227c9e491015d9b7e55e3ef05b91b506febb8d2f6d4925d168bbbac9
-```
+## [이전으로](./k8s.md)
 
 ## virtual box 에 k8s node설치
 
 SSH 포트 2222 -> node 22 / virtual box 세팅에서 설정
+
+|       |      |    |
+|-------|------|----|
+| node1 | 2222 | 22 |
+| node2 | 2223 | 22 |
 
 ssh -p 2222 jgkim@127.0.0.1
 
@@ -94,14 +58,17 @@ sudo apt-get update
 
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
+# 버전 확인
 sudo docker version
 
+# 서비스 시작
 sudo systemctl enable docker
 sudo systemctl start docker
 
 sudo systemctl enable containerd
 sudo systemctl start containerd
 
+# cgroup 변경
 sudo mkdir -p /etc/docker
 cat <<EOF | sudo tee /etc/docker/daemon.json
 {
@@ -139,22 +106,16 @@ sudo sysctl --system
 ```
 
 ```bash
+# 필요한 프로그램 미리 설치
 sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl
 
+# 키등록
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 
 cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
-```
-
-```bash
-unset KUBECONFIG
-export KUBECONFIG=/etc/kubernetes/admin.conf
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
 ```bash
@@ -165,10 +126,52 @@ sudo apt-get install -y kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 ```
 
+```bash
+unset KUBECONFIG
+export KUBECONFIG=/etc/kubernetes/admin.conf
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
 ## Master node
+
+마스터 노드 초기화
+
+```bash
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=[host ip]
+```
+
+마지막에 출력되는 토큰은 꼭 기록하자. worker node가 master노드에 등록되려면 필요하다.
 
 ```bash
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.0.47
+
+[init] Using Kubernetes version: v1.28.1
+...
+[addons] Applied essential addon: CoreDNS
+[addons] Applied essential addon: kube-proxy
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 192.168.0.47:6443 --token 6822q4.hjlc4lv3ctgvaooj \
+	--discovery-token-ca-cert-hash sha256:26b4855b227c9e491015d9b7e55e3ef05b91b506febb8d2f6d4925d168bbbac9
 ```
 
 ## Worker node
@@ -176,8 +179,8 @@ sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address
 master node에 조인해본다.
 
 ```bash
-kubeadm join 192.168.0.47:6443 --token 7zgp0o.wvwp832l50abpmfy \
-	--discovery-token-ca-cert-hash sha256:b433fd5f8328bf5540d0a3aa0a18abaffed3c974a509d63703dbdaffa096e019 
+sudo kubeadm join 192.168.0.47:6443 --token 7zgp0o.wvwp832l50abpmfy \
+	--discovery-token-ca-cert-hash sha256:b433fd5f8328bf5540d0a3aa0a18abaffed3c974a509d63703dbdaffa096e019
 
 [ERROR CRI]: container runtime is not running
 ```
@@ -189,7 +192,9 @@ kubeadm join 192.168.0.47:6443 --token 7zgp0o.wvwp832l50abpmfy \
 disabled_plugins 항목에서 CRI 제거 후 재시작
 
 ```bash
-systemctl restart containerd
+sudo vi /etc/containerd/config.toml
+
+sudo systemctl restart containerd
 ```
 
 토근이 유효하지 않다면
@@ -246,7 +251,7 @@ sudo systemctl restart kubelet
 sudo reboot
 ```
 
-### 오류시
+## 오류시
 
 ```bash
 kubectl describe node k8smaster.example.net
@@ -287,7 +292,6 @@ sudo kubeadm join 192.168.0.47:6443 --token 7zgp0o.wvwp832l50abpmfy \
 	--discovery-token-ca-cert-hash sha256:b433fd5f8328bf5540d0a3aa0a18abaffed3c974a509d63703dbdaffa096e019
 ```
 
-## 배포 테스트
+## [다음, 배포 연습](./k8s_2.md)
 
-https://domdom.tistory.com/592
-
+[def]: #k8s

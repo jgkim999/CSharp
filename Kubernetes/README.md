@@ -1,8 +1,15 @@
 # Kubernetes
 
-Windows 환경
+- [Kubernetes](#kubernetes)
+  - [Windows 환경, wsl로 리눅스 배포판 설치, linux shell이용](#windows-환경-wsl로-리눅스-배포판-설치-linux-shell이용)
+  - [zsh로 shell변경](#zsh로-shell변경)
+    - [필요 패키지 설치](#필요-패키지-설치)
+    - [zsh설치](#zsh설치)
+    - [기본 shell 변경](#기본-shell-변경)
+    - [oh-my-zsh설치](#oh-my-zsh설치)
+  - [다음, Docker, Kubernetes설치](#다음-docker-kubernetes설치)
 
-## wsl
+## Windows 환경, wsl로 리눅스 배포판 설치, linux shell이용
 
 powershell실행, wsl업데이트
 
@@ -30,7 +37,7 @@ SUSE-Linux-Enterprise-15-SP5           SUSE Linux Enterprise 15 SP5
 openSUSE-Tumbleweed                    openSUSE Tumbleweed
 ```
 
-설치
+Ubuntu 설치
 
 ```bash
 wsl --install -d Ubuntu-22.04
@@ -64,7 +71,7 @@ Ubuntu-20.04
 docker-desktop-data
 ```
 
-## shell
+## zsh로 shell변경
 
 ubuntu 22.04로 진행, shell확인
 
@@ -74,7 +81,7 @@ echo "$SHELL"
 /bin/bash
 ```
 
-필요 패키지 설치
+### 필요 패키지 설치
 
 ```bash
 Ubuntu
@@ -84,7 +91,7 @@ AWS EC2
 yum install wget curl git unzip
 ```
 
-zsh설치
+### zsh설치
 
 ```bash
 Ubuntu
@@ -95,7 +102,7 @@ yum install zsh
 zsh --version
 ```
 
-기본 shell 변경
+### 기본 shell 변경
 
 ```bash
 Ubuntu
@@ -108,7 +115,7 @@ chsh -s /bin/zsh
 
 재접속, 2번 선택
 
-oh-my-zsh설치
+### oh-my-zsh설치
 
 ```bash
 Ubuntu
@@ -195,3 +202,5 @@ wget https://github.com/naver/d2codingfont/releases/download/VER1.3.2/D2Coding-V
 unzip -d /usr/share/fonts/d2coding D2Coding-Ver1.3.2-20180524.zip
 fc-cache -f -v
 ```
+
+## [다음, Docker, Kubernetes설치](./k8s.md)
