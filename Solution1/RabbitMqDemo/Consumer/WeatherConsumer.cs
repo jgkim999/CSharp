@@ -5,7 +5,7 @@ namespace RabbitMqDemo.Consumer;
 
 public class WeatherConsumer : IConsumer<Weather>
 {
-    private ILogger<WeatherConsumer> _logger;
+    private readonly ILogger<WeatherConsumer> _logger;
 
     public WeatherConsumer(ILogger<WeatherConsumer> logger)
     {
