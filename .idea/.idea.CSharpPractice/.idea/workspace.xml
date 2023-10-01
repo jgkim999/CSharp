@@ -36,21 +36,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/Controllers/HttpClientFactoryController.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/Controllers/WeatherForecastController.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/HttpClientDemo.csproj" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/Models/Post.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/Models/PublicApi.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/Program.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/Properties/launchSettings.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/WeatherForecast.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/appsettings.Development.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/HttpClientDemo/appsettings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CSharpPractice.sln" beforeDir="false" afterPath="$PROJECT_DIR$/CSharpPractice.sln" afterDir="false" />
-    </list>
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="httpclient demo" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -547,8 +533,17 @@
       <workItem from="1696128567879" duration="53000" />
       <workItem from="1696128640034" duration="3308000" />
       <workItem from="1696143702401" duration="1480000" />
-      <workItem from="1696157433240" duration="2684000" />
+      <workItem from="1696157433240" duration="3011000" />
     </task>
+    <task id="LOCAL-00001" summary="httpclient demo">
+      <option name="closed" value="true" />
+      <created>1696160444175</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1696160444175</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -557,6 +552,8 @@
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="httpclient demo" />
+    <option name="LAST_COMMIT_MESSAGE" value="httpclient demo" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
