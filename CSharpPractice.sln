@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMq.Common", "RabbitMq
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitMqConsumerDemo", "RabbitMq\RabbitMqConsumerDemo\RabbitMqConsumerDemo.csproj", "{DD856E99-5DC5-46FC-8DF4-904F321E2FAA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReadAppSetting", "ReadAppSetting\ReadAppSetting.csproj", "{CFB78C83-5C19-4697-A5C5-045645B81594}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,10 @@ Global
 		{DD856E99-5DC5-46FC-8DF4-904F321E2FAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD856E99-5DC5-46FC-8DF4-904F321E2FAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD856E99-5DC5-46FC-8DF4-904F321E2FAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFB78C83-5C19-4697-A5C5-045645B81594}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFB78C83-5C19-4697-A5C5-045645B81594}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFB78C83-5C19-4697-A5C5-045645B81594}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFB78C83-5C19-4697-A5C5-045645B81594}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
