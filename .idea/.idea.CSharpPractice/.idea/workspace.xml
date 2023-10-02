@@ -40,38 +40,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="httpclient demo">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CSharpPractice.sln" beforeDir="false" afterPath="$PROJECT_DIR$/CSharpPractice.sln" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Controllers/OneWayController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Controllers/OneWayController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Controllers/PingController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Controllers/PingController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Controllers/PingNfyController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Controllers/PingNfyController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Controllers/WeatherForecastController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Controllers/WeatherForecastController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Handler/OneWay.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Handler/OneWay.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Handler/Ping.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Handler/Ping.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Handler/PingNfy.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Handler/PingNfy.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Models/OneWayRes.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Models/OneWayRes.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Models/PongRes.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Models/PongRes.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/Properties/launchSettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/Properties/launchSettings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/WeatherForecast.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/WeatherForecast.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/WebApplication1.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/MediatR.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/appsettings.Development.json" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/appsettings.Development.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/WebApplication1/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/appsettings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/ConsumerDemo1.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/RabbitMqConsumerDemo.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/Controllers/WeatherForecastController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Controllers/WeatherForecastController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/Extentions/UseRabbitMqConsumer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Extentions/UseRabbitMqConsumer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/Properties/launchSettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Properties/launchSettings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/Services/Consumer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Services/Consumer.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/WeatherForecast.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/WeatherForecast.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/appsettings.Development.json" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/appsettings.Development.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/ConsumerDemo1/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/appsettings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RabbitMq/RabbitMq.sln" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Solution1/RabbitMqDemo/.vscode/launch.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Solution1/RabbitMqDemo/.vscode/tasks.json" beforeDir="false" />
-    </list>
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="Move projects" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -630,7 +599,7 @@
       <workItem from="1696128640034" duration="3308000" />
       <workItem from="1696143702401" duration="1480000" />
       <workItem from="1696157433240" duration="3011000" />
-      <workItem from="1696213629885" duration="386000" />
+      <workItem from="1696213629885" duration="845000" />
     </task>
     <task id="LOCAL-00001" summary="httpclient demo">
       <option name="closed" value="true" />
@@ -640,7 +609,15 @@
       <option name="project" value="LOCAL" />
       <updated>1696160444175</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Move projects">
+      <option name="closed" value="true" />
+      <created>1696214098854</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1696214098854</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -651,7 +628,8 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="httpclient demo" />
-    <option name="LAST_COMMIT_MESSAGE" value="httpclient demo" />
+    <MESSAGE value="Move projects" />
+    <option name="LAST_COMMIT_MESSAGE" value="Move projects" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
