@@ -1,0 +1,23 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  efdemo1:
+    build:
+      context: "/home/jgkim/github/CSharp"
+      dockerfile: "../EF/EfDemo1/Dockerfile"
+      target: "base"
+    command: []
+    entrypoint:
+    - "dotnet"
+    - "/app/bin/Debug/net7.0/EfDemo1.dll"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      NUGET_PACKAGES: "/home/jgkim/.nuget/packages"
+      NUGET_FALLBACK_PACKAGES: "/home/jgkim/.nuget/packages"
+    image: "efdemo1:dev"
+    ports: []
+    volumes:
+    - "/home/jgkim/.nuget/packages:/root/.nuget/fallbackpackages"
+    - "/home/jgkim/github/EF/EfDemo1:/app:rw"
+    - "/home/jgkim/github/CSharp:/src:rw"
+    working_dir: "/app"
