@@ -60,19 +60,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Middlewares/ErrorHandlingMiddleware.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Models/ExceptionResponse.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/GlobalExceptionDemo/Controllers/ExceptionDemoController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GlobalExceptionDemo/Controllers/WeatherForecastController.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GlobalExceptionDemo/GlobalExceptionDemo.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/GlobalExceptionDemo/GlobalExceptionDemo.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GlobalExceptionDemo/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/GlobalExceptionDemo/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GlobalExceptionDemo/WeatherForecast.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Grpc/GrpcService/GrpcService.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Grpc/GrpcService/GrpcService.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SignalR/ChatSignalR/ChatSignalR.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/SignalR/ChatSignalR/ChatSignalR.csproj" afterDir="false" />
-    </list>
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -82,10 +70,12 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/08203aa41ad540b19ddab9ebccb415dc16908/93/4e1a086f/0200000Apdb5.il" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/7e42f17e6a464bd2814c023d0ce4ea2eb1d8a0/4d/96394d70/02000087pdb70.il" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/9393a70546eb4471a8eae5dcdb1e86c31e3918/86/d33102dc/02000054pdb104.il" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/1f371daa9d6feabe01612a3aa37cb2c6c80a984cb4efc21d718f7f8c9e0ca/Exception.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/81a3bcf4bb6aa5e62a9839f9cfeeba6126496f4fa07d1e57b27a5176e42525/ControllerBase.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/8f69a418371b27ad203a6493a1f53360a2ddf31d4e2c142d99e21ef4220811e/MemoryCacheServiceCollectionExtensions.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ConsumerBase.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="KubernetesApiProvider">{
@@ -1180,7 +1170,7 @@
       <workItem from="1697718796925" duration="5194000" />
       <workItem from="1697854635544" duration="79000" />
       <workItem from="1697854731458" duration="3841000" />
-      <workItem from="1697883233805" duration="3975000" />
+      <workItem from="1697883233805" duration="4292000" />
     </task>
     <task id="LOCAL-00001" summary="httpclient demo">
       <option name="closed" value="true" />
