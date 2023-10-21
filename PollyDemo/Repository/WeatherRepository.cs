@@ -16,6 +16,7 @@ public class WeatherRepository : IWeatherRepository
         var randValue = _rand.Next(0, 2);
         if (randValue == 1)
         {
+            await Task.Delay(2000);
             _logger.LogInformation("Success.");
             List<WeatherForecast> weathers = new();
             weathers.Add(new WeatherForecast()
