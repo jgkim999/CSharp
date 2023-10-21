@@ -142,9 +142,9 @@ internal class Program
                 app.UseCustomRequestLoggingMiddleware();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            //app.UseAuthorization();
 
             app.UseCustomExceptionMiddleware();
 

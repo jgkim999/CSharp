@@ -1,7 +1,15 @@
 # 파일 규격 버전
 version: "3.7"
 # 이 항목 밑에 실행하려는 컨테이너 들을 정의
-services: 
+services:
+  RabbitMq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: 1234
   # 서비스 명
   MySql:
     # 사용할 이미지
