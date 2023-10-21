@@ -122,7 +122,7 @@ internal class Program
             builder.Services.AddTransient<IAccountRepository, AccountRepository>();
             builder.Services.AddTransient<IAccountService, AccountService>();
             builder.Services.AddTransient<ISessionRepository, SessionRepository>();
-            builder.Services.AddTransient<IGameItemRepository, GameItemRepository>();
+            builder.Services.AddTransient<IGameRepository, GameRepository>();
             builder.Services.AddSingleton<ISessionService, SessionService>();
             builder.Services.AddSingleton<IGameService, GameService>();
 

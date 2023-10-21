@@ -9,20 +9,20 @@ using WebApiDomain.Models;
 
 namespace WebApiInfrastructure.Repositories;
 
-public class GameItemRepository : IGameItemRepository
+public class GameRepository : IGameRepository
 {
-    private readonly ILogger<GameItemRepository> _logger;
+    private readonly ILogger<GameRepository> _logger;
     private readonly IConfiguration _config;
 
-    public GameItemRepository(
-        ILogger<GameItemRepository> logger,
+    public GameRepository(
+        ILogger<GameRepository> logger,
         IConfiguration config)
     {
         _logger = logger;
         _config = config;
     }
 
-    public async Task<int> AddAsync(GameItem item)
+    public async Task<int> AddItemAsync(GameItem item)
     {
         try
         {
@@ -52,6 +52,22 @@ public class GameItemRepository : IGameItemRepository
             sb.AppendLine($"({items[items.Count - 1].AccountId},{items[items.Count - 1].ItemId},{items[items.Count - 1].Amount});");
             var affectedRow = await conn.ExecuteAsync(sb.ToString());
             return affectedRow;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.ToString());
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<GameItem>> GetAllItemAsync(long userId)
+    {
+        try
+        {
+            using IDbConnection conn = new MySqlConnection(_config.GetConnectionString("Default"));
+            string query = "SELECT `Id`,`AccountId`,`ItemId`,`Amount` FROM `GameItem` WHERE `AccountId` = @AccountId;";
+            var items = await conn.QueryAsync<GameItem>(query, new { AccountId = userId });
+            return items;
         }
         catch (Exception ex)
         {
