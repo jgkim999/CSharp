@@ -37,7 +37,7 @@ public class GameItemAddController : ControllerBase
         sw.Start();
         for (var i = 0; i < 100; ++i)
         {
-            await _gameService.AddOneAsync(userId);
+            await _gameService.AddOneItemAsync(userId);
         }
         sw.Stop();
         var elsp = sw.ElapsedMilliseconds;
@@ -55,10 +55,32 @@ public class GameItemAddController : ControllerBase
         }
         var sw = new Stopwatch();
         sw.Start();
-        await _gameService.AddAsync(userId, 100);
+        await _gameService.AddItemAsync(userId, 100);
         sw.Stop();
         // 8msec
         var elsp = sw.ElapsedMilliseconds;
         return Ok(elsp);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<GameItemDto>> GetAll([FromBody] ReqBase req)
+    {
+        var (success, userId) = await _sessionService.IsValid(req.SessionId);
+        if (success == false)
+        {
+            return Ok(new ResBase() { ErrorCode = 1 });
+        }
+        var items = await _gameService.GetAllItemAsync(userId);
+        List<GameItemDto> result = new();
+        foreach (var item in items)
+        {
+            result.Add(new GameItemDto()
+            {
+                Id = item.Id,
+                ItemId = item.ItemId,
+                Amount = item.Amount
+            });
+        }
+        return Ok(result);
     }
 }

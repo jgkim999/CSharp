@@ -8,15 +8,23 @@ namespace WebApiApplication.Services;
 public class GameService : IGameService
 {
     private readonly ILogger<GameService> _logger;
-    private readonly IGameItemRepository _gameItemRepo;
+    private readonly IGameRepository _gameRepo;
 
-    public GameService(ILogger<GameService> logger, IGameItemRepository gameItemRepo)
+    public GameService(ILogger<GameService> logger, IGameRepository gameItemRepo)
     {
         _logger = logger;
-        _gameItemRepo = gameItemRepo;
+        _gameRepo = gameItemRepo;
     }
 
-    public async Task AddOneAsync(long userId)
+    public async Task<IGameUser> GetAsync(long userId)
+    {
+        IGameUser user = new GameUser(userId);
+        var items = await _gameRepo.GetAllItemAsync(userId);
+        user.SetItems(items);
+        return user;
+    }
+
+    public async Task AddOneItemAsync(long userId)
     {
         Faker faker = new Faker();
         GameItem item = new GameItem()
@@ -25,10 +33,10 @@ public class GameService : IGameService
             ItemId = faker.Random.Int(1, int.MaxValue),
             Amount = faker.Random.Int(1, 100)
         };
-        await _gameItemRepo.AddAsync(item);
+        await _gameRepo.AddItemAsync(item);
     }
 
-    public async Task AddAsync(long userId, int count)
+    public async Task AddItemAsync(long userId, int count)
     {
         Faker faker = new Faker();
         var items = new List<GameItem>();
@@ -42,6 +50,11 @@ public class GameService : IGameService
                     Amount = faker.Random.Int(1, 100)
                 });
         }
-        await _gameItemRepo.AddAsync(items);
+        await _gameRepo.AddAsync(items);
+    }
+
+    public async Task<IEnumerable<GameItem>> GetAllItemAsync(long userId)
+    {
+        return await _gameRepo.GetAllItemAsync(userId);
     }
 }
