@@ -398,5 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 C:\Users\jgkim
 .android
-.idea/
-
+.idea/*
