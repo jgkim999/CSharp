@@ -60,7 +60,21 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="" />
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/DemoApplication/Interfaces/IBookService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoApplication/Services/BookService.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoDomain/Dtos/BookDto.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoDomain/Entities/Book.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoDomain/Interfaces/IBookRepository.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoDomain/Profiles/BookProfile.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoInfrastructure/Data/BookRepository.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DemoDomain/DemoDomain.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoDomain/DemoDomain.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DemoInfrastructure/DemoInfrastructure.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoInfrastructure/DemoInfrastructure.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GlobalExceptionDemo/GlobalExceptionDemo.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/GlobalExceptionDemo/GlobalExceptionDemo.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GlobalExceptionDemo/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/GlobalExceptionDemo/Program.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -97,29 +111,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/jgkim/github/CSharp/RabbitMq/RabbitMqDemo/RabbitMqDemo.csproj",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "settings.editor.selected.configurable": "preferences.keymap",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/jgkim/github/CSharp/RabbitMq/RabbitMqDemo/RabbitMqDemo.csproj&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "rider.external.source.directories": [
-      "/home/jgkim/.config/JetBrains/Rider2023.2/resharper-host/DecompilerCache",
-      "/home/jgkim/.config/JetBrains/Rider2023.2/resharper-host/SourcesCache",
-      "/home/jgkim/.local/share/Symbols/src"
+  &quot;keyToStringList&quot;: {
+    &quot;rider.external.source.directories&quot;: [
+      &quot;/home/jgkim/.config/JetBrains/Rider2023.2/resharper-host/DecompilerCache&quot;,
+      &quot;/home/jgkim/.config/JetBrains/Rider2023.2/resharper-host/SourcesCache&quot;,
+      &quot;/home/jgkim/.local/share/Symbols/src&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected=".NET Launch Settings Profile.GlobalExceptionDemo: http">
     <configuration name="EfDemo1" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -1171,7 +1185,8 @@
       <workItem from="1697854635544" duration="79000" />
       <workItem from="1697854731458" duration="3841000" />
       <workItem from="1697883233805" duration="4292000" />
-      <workItem from="1697940218799" duration="4709000" />
+      <workItem from="1697940218799" duration="5314000" />
+      <workItem from="1697972410417" duration="4838000" />
     </task>
     <task id="LOCAL-00001" summary="httpclient demo">
       <option name="closed" value="true" />
