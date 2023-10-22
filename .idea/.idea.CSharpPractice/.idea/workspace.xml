@@ -60,7 +60,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="" />
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/DemoApplication/Interfaces/ICache.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoInfrastructure/Adapter/MemoryCacheAdapter.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoInfrastructure/Adapter/RedisCacheAdapter.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CSharpPractice.sln" beforeDir="false" afterPath="$PROJECT_DIR$/CSharpPractice.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DemoInfrastructure/DemoInfrastructure.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoInfrastructure/DemoInfrastructure.csproj" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -70,12 +78,10 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/08203aa41ad540b19ddab9ebccb415dc16908/93/4e1a086f/0200000Apdb5.il" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/7e42f17e6a464bd2814c023d0ce4ea2eb1d8a0/4d/96394d70/02000087pdb70.il" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/ILViewer/9393a70546eb4471a8eae5dcdb1e86c31e3918/86/d33102dc/02000054pdb104.il" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/1f371daa9d6feabe01612a3aa37cb2c6c80a984cb4efc21d718f7f8c9e0ca/Exception.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/81a3bcf4bb6aa5e62a9839f9cfeeba6126496f4fa07d1e57b27a5176e42525/ControllerBase.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/8f69a418371b27ad203a6493a1f53360a2ddf31d4e2c142d99e21ef4220811e/MemoryCacheServiceCollectionExtensions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/70a8d7b26eef4e1fbd9cf9dd01ea464e11c00/54/dd7bbaa6/MemoryCacheOptions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/cd58ad211f1f4a4da2ac86366f1b77e49600/df/32c970f4/CacheExtensions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/4dd944a5b04738689686624fd02a51be60d58e6c8398bd57fc11e39de82f75/ConnectionMultiplexer.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/DemoPresentation/Class1.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ConsumerBase.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="KubernetesApiProvider">{
@@ -116,9 +122,9 @@
   },
   "keyToStringList": {
     "rider.external.source.directories": [
-      "C:\\Users\\jgkim\\AppData\\Roaming\\JetBrains\\Rider2023.1\\resharper-host\\DecompilerCache",
-      "C:\\Users\\jgkim\\AppData\\Roaming\\JetBrains\\Rider2023.1\\resharper-host\\SourcesCache",
-      "C:\\Users\\jgkim\\AppData\\Local\\Symbols\\src"
+      "/home/jgkim/.config/JetBrains/Rider2023.2/resharper-host/DecompilerCache",
+      "/home/jgkim/.config/JetBrains/Rider2023.2/resharper-host/SourcesCache",
+      "/home/jgkim/.local/share/Symbols/src"
     ]
   }
 }]]></component>
@@ -921,12 +927,14 @@
       <option name="PROJECT_PATH" value="$PROJECT_DIR$/Maui/MauiApp1/MauiApp1.csproj" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="IS_PASS_PARENT_ENVS" value="false" />
+      <option name="EXTRA_MLAUNCH_PARAMETERS" value="" />
       <method v="2" />
     </configuration>
     <configuration name="Notes" type="XamarinIOSProject" factoryName="Xamarin.iOS">
       <option name="PROJECT_PATH" value="$PROJECT_DIR$/Maui/Notes/Notes.csproj" />
       <option name="PROGRAM_PARAMETERS" value="" />
       <option name="IS_PASS_PARENT_ENVS" value="false" />
+      <option name="EXTRA_MLAUNCH_PARAMETERS" value="" />
       <method v="2" />
     </configuration>
     <configuration name="MauiApp1" type="XamarinMacProject" factoryName="Xamarin.Mac">
@@ -1171,6 +1179,7 @@
       <workItem from="1697854635544" duration="79000" />
       <workItem from="1697854731458" duration="3841000" />
       <workItem from="1697883233805" duration="4292000" />
+      <workItem from="1697940218799" duration="4349000" />
     </task>
     <task id="LOCAL-00001" summary="httpclient demo">
       <option name="closed" value="true" />
