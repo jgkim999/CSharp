@@ -60,15 +60,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Interfaces/ICache.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoInfrastructure/Adapter/MemoryCacheAdapter.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoInfrastructure/Adapter/RedisCacheAdapter.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CSharpPractice.sln" beforeDir="false" afterPath="$PROJECT_DIR$/CSharpPractice.sln" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoInfrastructure/DemoInfrastructure.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoInfrastructure/DemoInfrastructure.csproj" afterDir="false" />
-    </list>
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -1179,7 +1171,7 @@
       <workItem from="1697854635544" duration="79000" />
       <workItem from="1697854731458" duration="3841000" />
       <workItem from="1697883233805" duration="4292000" />
-      <workItem from="1697940218799" duration="4349000" />
+      <workItem from="1697940218799" duration="4709000" />
     </task>
     <task id="LOCAL-00001" summary="httpclient demo">
       <option name="closed" value="true" />
