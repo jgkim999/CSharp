@@ -60,11 +60,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Lib1/Class1.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Lib1/Lib1.csproj" afterDir="false" />
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="wtf">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CSharpPractice.sln" beforeDir="false" afterPath="$PROJECT_DIR$/CSharpPractice.sln" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Lib1/Lib1.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/Lib1/Lib1.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/MediatR.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatR/MediatR.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RabbitMq/.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/.editorconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ConsumerBase.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ConsumerBase.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ProducerBase.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ProducerBase.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RabbitMq/RabbitMq.Common/RabbitMq.Common.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMq.Common/RabbitMq.Common.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RabbitMq/RabbitMq.Common/RabbitMqClientBase.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMq.Common/RabbitMqClientBase.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Extentions/UseRabbitMqConsumer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Extentions/UseRabbitMqConsumer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/RabbitMqConsumerDemo.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/RabbitMqConsumerDemo.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,6 +88,7 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/4dd944a5b04738689686624fd02a51be60d58e6c8398bd57fc11e39de82f75/ConnectionMultiplexer.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/DemoPresentation/Class1.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ConsumerBase.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Extentions/UseRabbitMqConsumer.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -2205,7 +2212,7 @@
       <workItem from="1697883233805" duration="4292000" />
       <workItem from="1697940218799" duration="5314000" />
       <workItem from="1697972410417" duration="4838000" />
-      <workItem from="1698143555084" duration="798000" />
+      <workItem from="1698143555084" duration="3148000" />
     </task>
     <task id="LOCAL-00001" summary="httpclient demo">
       <option name="closed" value="true" />
@@ -2255,7 +2262,15 @@
       <option name="project" value="LOCAL" />
       <updated>1697642031507</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="wtf">
+      <option name="closed" value="true" />
+      <created>1698144439970</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1698144439970</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2271,7 +2286,8 @@
     <MESSAGE value="Read appsettings.json" />
     <MESSAGE value="MethodTimer" />
     <MESSAGE value="Polly demo" />
-    <option name="LAST_COMMIT_MESSAGE" value="Polly demo" />
+    <MESSAGE value="wtf" />
+    <option name="LAST_COMMIT_MESSAGE" value="wtf" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
