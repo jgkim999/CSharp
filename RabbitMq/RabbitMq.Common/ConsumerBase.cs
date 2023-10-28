@@ -9,9 +9,8 @@ namespace RabbitMq.Common;
 
 public abstract class ConsumerBase : RabbitMqClientBase
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<ConsumerBase> _logger;
-    protected abstract string QueueName { get; }
+    private readonly IMediator _mediator;
 
     public ConsumerBase(
         IMediator mediator,
@@ -23,6 +22,8 @@ public abstract class ConsumerBase : RabbitMqClientBase
         _mediator = mediator;
         _logger = consumerLogger;
     }
+
+    protected abstract string QueueName { get; }
 
     protected virtual async Task OnEventReceived<T>(object sender, BasicDeliverEventArgs @event)
     {

@@ -28,5 +28,10 @@
     </ItemGroup>
 
 
+    <ItemGroup>
+      <ProjectReference Include="..\RabbitMq.Common\RabbitMq.Common.csproj" />
+    </ItemGroup>
+
+
 
 </Project>
