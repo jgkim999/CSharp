@@ -1,6 +1,8 @@
+using DemoApplication.Handlers;
 using DemoDomain.Entities;
 using Flurl.Http;
 using Flurl.Http.Configuration;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
@@ -17,13 +19,16 @@ public class HttpClientFactoryController : ControllerBase
     private readonly HttpClient _publicApiClient;
     private readonly HttpClient _jsonPlaceholderClient;
     private readonly IFlurlClientFactory _flurlClientFactory;
+    private readonly IMediator _iMediator;
     
     public HttpClientFactoryController(
         ILogger<HttpClientFactoryController> logger,
+        IMediator iMediator,
         IHttpClientFactory clientFactory,
         IFlurlClientFactory flurlClientFactory)
     {
         _logger = logger;
+        _iMediator = iMediator;
         _clientFactory = clientFactory;
         _publicApiClient = clientFactory.CreateClient("PublicApis");
         _jsonPlaceholderClient = _clientFactory.CreateClient("JsonPlaceholder");
@@ -33,9 +38,8 @@ public class HttpClientFactoryController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> PublicApis()
     {
-        var publicApiResponse = await _publicApiClient.GetStringAsync("random");
-        var entryResponse = JsonConvert.DeserializeObject<EntryResponse>(publicApiResponse);
-        return Ok(entryResponse);
+        var response = await _iMediator.Send(new PublicApiRequest());
+        return Ok(response);
     }
 
     [HttpGet]

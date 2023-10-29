@@ -1,4 +1,5 @@
-using DemoApplication;
+
+using DemoApplication.Handlers;
 using DemoDomain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

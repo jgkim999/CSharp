@@ -3,7 +3,7 @@ using DemoDomain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace DemoApplication;
+namespace DemoApplication.Handlers;
 
 public class WeatherForcastSelect : IRequest<IEnumerable<WeatherForecast>>
 {
