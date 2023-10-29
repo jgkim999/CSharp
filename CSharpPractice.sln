@@ -31,8 +31,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WpfClient", "Net\WpfClient\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatSignalR", "SignalR\ChatSignalR\ChatSignalR.csproj", "{03289E59-B30B-4707-9FA0-7F77780882FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpClientDemo", "HttpClientDemo\HttpClientDemo.csproj", "{808C3368-2D37-4B2D-84E6-8C55D944EADD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MethodTime", "MethodTime\MethodTime.csproj", "{FD81DEF6-8D39-4FD2-ABC2-E12A47ED149E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prometheus", "Prometheus\Prometheus.csproj", "{F060C04B-C267-4DA5-BFE3-A67FFAD46B6E}"
@@ -112,10 +110,6 @@ Global
 		{03289E59-B30B-4707-9FA0-7F77780882FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03289E59-B30B-4707-9FA0-7F77780882FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03289E59-B30B-4707-9FA0-7F77780882FA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{808C3368-2D37-4B2D-84E6-8C55D944EADD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{808C3368-2D37-4B2D-84E6-8C55D944EADD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{808C3368-2D37-4B2D-84E6-8C55D944EADD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{808C3368-2D37-4B2D-84E6-8C55D944EADD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FD81DEF6-8D39-4FD2-ABC2-E12A47ED149E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FD81DEF6-8D39-4FD2-ABC2-E12A47ED149E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD81DEF6-8D39-4FD2-ABC2-E12A47ED149E}.Release|Any CPU.ActiveCfg = Release|Any CPU

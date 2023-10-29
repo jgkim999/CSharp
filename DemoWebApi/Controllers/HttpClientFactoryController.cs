@@ -1,16 +1,15 @@
+using DemoDomain.Entities;
 using Flurl.Http;
 using Flurl.Http.Configuration;
-using HttpClientDemo.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
 using IHttpClientFactory = System.Net.Http.IHttpClientFactory;
 
-namespace HttpClientDemo.Controllers;
+namespace DemoWebApi.Controllers;
 
+[Route("v1/api/[controller]/[action]")]
 [ApiController]
-[Route("[controller]/[action]")]
-[Produces("application/json")]
 public class HttpClientFactoryController : ControllerBase
 {
     private readonly ILogger<HttpClientFactoryController> _logger;

@@ -63,14 +63,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="Global Exception">
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Settings/DatabaseSettings.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Settings/FormatSettings.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Settings/NumberSettings.cs" afterDir="false" />
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="App settings">
+      <change afterPath="$PROJECT_DIR$/DemoDomain/Entities/EntryResponse.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoDomain/Entities/Post.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoWebApi/Controllers/HttpClientFactoryController.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CSharpPractice.sln" beforeDir="false" afterPath="$PROJECT_DIR$/CSharpPractice.sln" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DemoWebApi/DemoWebApi.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/DemoWebApi.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DemoWebApi/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoWebApi/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/appsettings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,9 +81,15 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/8271807a61bb8a8540cf6d7a38534480374a4aac934ee4f53d7efdc9aea37ae/IOptions.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/c018a1a3af0722da2f22dede3badfa058bc532f9991c982db8493bbe5d34f4/ServiceCollection.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/DemoPresentation/Class1.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/GlobalExceptionDemo/Controllers/ExceptionDemoController.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/GlobalExceptionDemo/Program.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/HttpClientDemo/Controllers/HttpClientFactoryController.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/HttpClientDemo/Models/Post.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/HttpClientDemo/Models/PublicApi.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/HttpClientDemo/Program.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/OneWayController.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingController.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingNfyController.cs" root0="SKIP_HIGHLIGHTING" />
@@ -94,6 +100,11 @@
     <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/appsettings.json" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ConsumerBase.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Extentions/UseRabbitMqConsumer.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ReadAppSetting/Controllers/WeatherForecastController.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ReadAppSetting/Settings/DatabaseSettings.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ReadAppSetting/Settings/FormatSettings.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ReadAppSetting/appsettings.Development.json" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ReadAppSetting/appsettings.json" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -2285,7 +2296,7 @@
       <workItem from="1698410185186" duration="1502000" />
       <workItem from="1698456528256" duration="27000" />
       <workItem from="1698472928277" duration="1952000" />
-      <workItem from="1698542740386" duration="7656000" />
+      <workItem from="1698542740386" duration="8749000" />
     </task>
     <task id="LOCAL-00001" summary="httpclient demo">
       <option name="closed" value="true" />
@@ -2367,7 +2378,23 @@
       <option name="project" value="LOCAL" />
       <updated>1698556474738</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="App settings">
+      <option name="closed" value="true" />
+      <created>1698561975470</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1698561975470</updated>
+    </task>
+    <task id="LOCAL-00012" summary="App settings">
+      <option name="closed" value="true" />
+      <created>1698561990484</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1698561990484</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2387,7 +2414,8 @@
     <MESSAGE value="Remove error" />
     <MESSAGE value="DemoWebApi" />
     <MESSAGE value="Global Exception" />
-    <option name="LAST_COMMIT_MESSAGE" value="Global Exception" />
+    <MESSAGE value="App settings" />
+    <option name="LAST_COMMIT_MESSAGE" value="App settings" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

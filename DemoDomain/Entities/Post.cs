@@ -1,4 +1,4 @@
-namespace HttpClientDemo.Models;
+namespace DemoDomain.Entities;
 
 public class Post
 {
