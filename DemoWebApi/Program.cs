@@ -1,10 +1,13 @@
 using System.Reflection;
 using DemoApplication.Interfaces;
 using DemoApplication.Middlewares;
+using DemoApplication.Settings;
 using DemoInfrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<FormatSettings>(builder.Configuration.GetSection("Formatting"));
+builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("Database"));
 // Add services to the container.
 
 builder.Services.AddControllers();

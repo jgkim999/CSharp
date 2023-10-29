@@ -63,9 +63,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="DemoWebApi">
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="Global Exception">
+      <change afterPath="$PROJECT_DIR$/DemoApplication/Settings/DatabaseSettings.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoApplication/Settings/FormatSettings.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoApplication/Settings/NumberSettings.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DemoWebApi/DemoWebApi.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/DemoWebApi.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DemoWebApi/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DemoWebApi/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/appsettings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,6 +82,8 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/DemoPresentation/Class1.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/GlobalExceptionDemo/Controllers/ExceptionDemoController.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/GlobalExceptionDemo/Program.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/OneWayController.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingController.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingNfyController.cs" root0="SKIP_HIGHLIGHTING" />
@@ -106,6 +113,7 @@
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
@@ -121,7 +129,7 @@
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
-    "settings.editor.selected.configurable": "CodeInspectionSettingsId",
+    "settings.editor.selected.configurable": "editor.preferences.tabs",
     "vue.rearranger.settings.migration": "true"
   },
   "keyToStringList": {
@@ -2277,7 +2285,7 @@
       <workItem from="1698410185186" duration="1502000" />
       <workItem from="1698456528256" duration="27000" />
       <workItem from="1698472928277" duration="1952000" />
-      <workItem from="1698542740386" duration="6570000" />
+      <workItem from="1698542740386" duration="7656000" />
     </task>
     <task id="LOCAL-00001" summary="httpclient demo">
       <option name="closed" value="true" />
@@ -2351,7 +2359,15 @@
       <option name="project" value="LOCAL" />
       <updated>1698554081770</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Global Exception">
+      <option name="closed" value="true" />
+      <created>1698556474738</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1698556474738</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2370,7 +2386,8 @@
     <MESSAGE value="wtf" />
     <MESSAGE value="Remove error" />
     <MESSAGE value="DemoWebApi" />
-    <option name="LAST_COMMIT_MESSAGE" value="DemoWebApi" />
+    <MESSAGE value="Global Exception" />
+    <option name="LAST_COMMIT_MESSAGE" value="Global Exception" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
