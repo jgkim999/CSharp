@@ -64,11 +64,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="PublicApiRequestHandler">
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Handlers/FlurlClientFactoryRequest.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Handlers/JsonPlaceholderClientRequest.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Handlers/RestClientRequest.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoWebApi/Controllers/HttpClientFactoryController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/Controllers/HttpClientFactoryController.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/DemoDomain/Entities/Aws/EcsTaskMetadata.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DemoApplication/Class1.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/DemoDomain/DemoDomain.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoDomain/DemoDomain.csproj" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -131,29 +130,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/home/jgkim/github/CSharp/RabbitMq/RabbitMqDemo/RabbitMqDemo.csproj",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "settings.editor.selected.configurable": "editor.preferences.tabs",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/jgkim/github/CSharp/RabbitMq/RabbitMqDemo/RabbitMqDemo.csproj&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.tabs&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "rider.external.source.directories": [
-      "C:\\Users\\jgkim\\AppData\\Roaming\\JetBrains\\Rider2023.1\\resharper-host\\DecompilerCache",
-      "C:\\Users\\jgkim\\AppData\\Roaming\\JetBrains\\Rider2023.1\\resharper-host\\SourcesCache",
-      "C:\\Users\\jgkim\\AppData\\Local\\Symbols\\src"
+  &quot;keyToStringList&quot;: {
+    &quot;rider.external.source.directories&quot;: [
+      &quot;C:\\Users\\jgkim\\AppData\\Roaming\\JetBrains\\Rider2023.1\\resharper-host\\DecompilerCache&quot;,
+      &quot;C:\\Users\\jgkim\\AppData\\Roaming\\JetBrains\\Rider2023.1\\resharper-host\\SourcesCache&quot;,
+      &quot;C:\\Users\\jgkim\\AppData\\Local\\Symbols\\src&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected=".NET Launch Settings Profile.DemoWebApi: http">
     <configuration default="true" type="docker-deploy" factoryName="docker-compose.yml" temporary="true">
       <deployment type="docker-compose.yml">
@@ -2441,12 +2440,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="DotNet Breakpoints">
-          <url>file://$PROJECT_DIR$/ThirdPartyPractice/RestSharpPractice/RestSharpTest.cs</url>
-          <line>60</line>
-          <properties documentPath="D:\GitHub\CSharp\ThirdPartyPractice\RestSharpPractice\RestSharpTest.cs" initialLine="67" containingFunctionPresentation="Method 'Post'" />
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/Prometheus/Program.cs</url>
           <line>16</line>

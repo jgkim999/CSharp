@@ -16,11 +16,11 @@ public class ExceptionDemoController: ControllerBase
         {
             throw new NotFoundException();
         }
-        catch (NotFoundException ex)
+        catch (NotFoundException)
         {
             return NotFound(new ExceptionResponse(HttpStatusCode.NotFound, "Exception catch local"));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return BadRequest(new ExceptionResponse(HttpStatusCode.InternalServerError, "Exception catch local"));
         }
