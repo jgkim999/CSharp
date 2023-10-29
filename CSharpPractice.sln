@@ -17,8 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcGreeterClient", "Grpc\G
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcService", "Grpc\GrpcService\GrpcService.csproj", "{CD35950F-E1EE-490B-84A2-36A2B4583586}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MediatR", "MediatR\MediatR\MediatR.csproj", "{ED6FB5E2-5270-4F51-A81F-40C57FF891FB}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UlidPractice", "ThirdPartyPractice\UlidPractice\UlidPractice.csproj", "{BAC436E6-93E2-452B-B93C-CCA80704ABDB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestSharpPractice", "ThirdPartyPractice\RestSharpPractice\RestSharpPractice.csproj", "{176E0B18-325C-412C-96DF-8AA5B35783C6}"
@@ -94,10 +92,6 @@ Global
 		{CD35950F-E1EE-490B-84A2-36A2B4583586}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD35950F-E1EE-490B-84A2-36A2B4583586}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD35950F-E1EE-490B-84A2-36A2B4583586}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ED6FB5E2-5270-4F51-A81F-40C57FF891FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ED6FB5E2-5270-4F51-A81F-40C57FF891FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ED6FB5E2-5270-4F51-A81F-40C57FF891FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ED6FB5E2-5270-4F51-A81F-40C57FF891FB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BAC436E6-93E2-452B-B93C-CCA80704ABDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BAC436E6-93E2-452B-B93C-CCA80704ABDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAC436E6-93E2-452B-B93C-CCA80704ABDB}.Release|Any CPU.ActiveCfg = Release|Any CPU

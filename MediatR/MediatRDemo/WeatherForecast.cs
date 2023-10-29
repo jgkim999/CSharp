@@ -1,4 +1,4 @@
-namespace DemoWebApi;
+namespace MediatrDemo;
 
 public class WeatherForecast
 {

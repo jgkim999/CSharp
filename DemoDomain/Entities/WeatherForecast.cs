@@ -1,4 +1,4 @@
-namespace WebApplication1;
+namespace DemoDomain.Entities;
 
 public class WeatherForecast
 {

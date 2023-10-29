@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
-using MediatR;
-using Microsoft.AspNetCore.Http;
+using MassTransit.Mediator;
+using MediatrDemo.Handler;
+using MediatrDemo.Models;
 using Microsoft.AspNetCore.Mvc;
-using WebApplication1.Handler;
-using WebApplication1.Models;
 
-namespace WebApplication1.Controllers
+namespace MediatrDemo.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

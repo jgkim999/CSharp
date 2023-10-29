@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using MediatR;
 
-namespace WebApplication1.Handler;
+namespace MediatrDemo.Handler;
 
 public class PingNfy : INotification
 {

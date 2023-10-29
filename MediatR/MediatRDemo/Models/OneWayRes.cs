@@ -1,4 +1,4 @@
-namespace WebApplication1.Models;
+namespace MediatrDemo.Models;
 
 public class OneWayRes
 {

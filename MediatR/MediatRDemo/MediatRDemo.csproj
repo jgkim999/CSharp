@@ -4,22 +4,18 @@
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>WebApplication1</RootNamespace>
+        <RootNamespace>MediatrDemo</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MassTransit.Abstractions" Version="8.1.0" />
+        <PackageReference Include="MediatR" Version="12.1.1" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="7.0.6" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="MediatR">
-        <HintPath>..\..\..\..\.nuget\packages\mediatr\12.1.1\lib\net6.0\MediatR.dll</HintPath>
-      </Reference>
-      <Reference Include="MediatR.Contracts">
-        <HintPath>..\..\..\..\.nuget\packages\mediatr.contracts\2.0.1\lib\netstandard2.0\MediatR.Contracts.dll</HintPath>
-      </Reference>
+    <ItemGroup>      
     </ItemGroup>
 
 </Project>
