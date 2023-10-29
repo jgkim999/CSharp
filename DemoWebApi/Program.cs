@@ -1,5 +1,6 @@
 using System.Reflection;
 using DemoApplication.Interfaces;
+using DemoApplication.Middlewares;
 using DemoInfrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,9 +36,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Global error handler
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
-app.UseAuthorization();
+//app.UseHttpsRedirection();
+
+//app.UseAuthorization();
 
 app.MapControllers();
 

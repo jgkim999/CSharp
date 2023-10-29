@@ -63,35 +63,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Interfaces/IWeatherForecastRepository.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoApplication/Mediator/WeatherForcastSelect.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoDomain/Entities/WeatherForecast.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DemoInfrastructure/Data/WeatherForecastRepository.cs" afterDir="false" />
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="DemoWebApi">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CSharpPractice.sln" beforeDir="false" afterPath="$PROJECT_DIR$/CSharpPractice.sln" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoApplication/DemoApplication.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoDomain/DemoDomain.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoDomain/DemoDomain.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoInfrastructure/DemoInfrastructure.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoInfrastructure/DemoInfrastructure.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoWebApi/Controllers/WeatherForecastController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/Controllers/WeatherForecastController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoWebApi/DemoWebApi.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/DemoWebApi.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DemoWebApi/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/DemoWebApi/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoWebApi/WeatherForecast.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Controllers/OneWayController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/OneWayController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Controllers/PingController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Controllers/PingNfyController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingNfyController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Controllers/WeatherForecastController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/WeatherForecastController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Handler/OneWay.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Handler/OneWay.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Handler/Ping.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Handler/Ping.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Handler/PingNfy.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Handler/PingNfy.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/MediatR.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/MediatRDemo.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Models/OneWayRes.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Models/OneWayRes.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Models/PongRes.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Models/PongRes.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/Properties/launchSettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/Properties/launchSettings.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/WeatherForecast.cs" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/WeatherForecast.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/appsettings.Development.json" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/appsettings.Development.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/MediatR/MediatR/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/MediatR/MediatRDemo/appsettings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,13 +77,14 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/DemoPresentation/Class1.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/OneWayController.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingController.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingNfyController.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Handler/OneWay.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Handler/Ping.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Handler/PingNfy.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Program.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/OneWayController.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingController.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingNfyController.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Handler/OneWay.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Handler/Ping.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Handler/PingNfy.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Program.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/appsettings.json" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ConsumerBase.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Extentions/UseRabbitMqConsumer.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
@@ -2302,7 +2277,7 @@
       <workItem from="1698410185186" duration="1502000" />
       <workItem from="1698456528256" duration="27000" />
       <workItem from="1698472928277" duration="1952000" />
-      <workItem from="1698542740386" duration="5106000" />
+      <workItem from="1698542740386" duration="6570000" />
     </task>
     <task id="LOCAL-00001" summary="httpclient demo">
       <option name="closed" value="true" />
@@ -2368,7 +2343,15 @@
       <option name="project" value="LOCAL" />
       <updated>1698147546845</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="DemoWebApi">
+      <option name="closed" value="true" />
+      <created>1698554081770</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1698554081770</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2386,7 +2369,8 @@
     <MESSAGE value="Polly demo" />
     <MESSAGE value="wtf" />
     <MESSAGE value="Remove error" />
-    <option name="LAST_COMMIT_MESSAGE" value="Remove error" />
+    <MESSAGE value="DemoWebApi" />
+    <option name="LAST_COMMIT_MESSAGE" value="DemoWebApi" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

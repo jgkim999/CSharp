@@ -56,8 +56,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EfDemo1", "EF\EfDemo1\EfDem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PollyDemo", "PollyDemo\PollyDemo.csproj", "{6FD50362-1E95-4198-87FD-F1DF5CA4F425}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlobalExceptionDemo", "GlobalExceptionDemo\GlobalExceptionDemo.csproj", "{39B5341D-2460-4309-89F5-962E044CC118}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoApplication", "DemoApplication\DemoApplication.csproj", "{79820BBF-7CE2-4D2B-BE8A-0F1991060E5A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DemoDomain", "DemoDomain\DemoDomain.csproj", "{D31BE105-90E7-42D1-A730-DAEAA47D000D}"
@@ -148,10 +146,6 @@ Global
 		{6FD50362-1E95-4198-87FD-F1DF5CA4F425}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FD50362-1E95-4198-87FD-F1DF5CA4F425}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6FD50362-1E95-4198-87FD-F1DF5CA4F425}.Release|Any CPU.Build.0 = Release|Any CPU
-		{39B5341D-2460-4309-89F5-962E044CC118}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{39B5341D-2460-4309-89F5-962E044CC118}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{39B5341D-2460-4309-89F5-962E044CC118}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{39B5341D-2460-4309-89F5-962E044CC118}.Release|Any CPU.Build.0 = Release|Any CPU
 		{79820BBF-7CE2-4D2B-BE8A-0F1991060E5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{79820BBF-7CE2-4D2B-BE8A-0F1991060E5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79820BBF-7CE2-4D2B-BE8A-0F1991060E5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
