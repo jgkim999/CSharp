@@ -63,12 +63,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="PublicApiRequestHandler">
-      <change afterPath="$PROJECT_DIR$/DemoDomain/Entities/Aws/EcsTaskMetadata.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.CSharpPractice/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoApplication/Class1.cs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/DemoDomain/DemoDomain.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/DemoDomain/DemoDomain.csproj" afterDir="false" />
-    </list>
+    <list default="true" id="69738b9c-9df3-4ec8-90a8-e47909135e6f" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -85,21 +80,7 @@
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/8271807a61bb8a8540cf6d7a38534480374a4aac934ee4f53d7efdc9aea37ae/IOptions.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/c018a1a3af0722da2f22dede3badfa058bc532f9991c982db8493bbe5d34f4/ServiceCollection.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/DemoPresentation/Class1.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/GlobalExceptionDemo/Controllers/ExceptionDemoController.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/GlobalExceptionDemo/Program.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HttpClientDemo/Controllers/HttpClientFactoryController.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HttpClientDemo/Models/Post.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HttpClientDemo/Models/PublicApi.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/HttpClientDemo/Program.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/OneWayController.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingController.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Controllers/PingNfyController.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Handler/OneWay.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Handler/Ping.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Handler/PingNfy.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/Program.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/MediatR/MediatRDemo/appsettings.json" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/GitHub/CSharp/DemoDomain/Entities/Book.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMq.Common/ConsumerBase.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/RabbitMq/RabbitMqConsumerDemo/Extentions/UseRabbitMqConsumer.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/ReadAppSetting/Controllers/WeatherForecastController.cs" root0="SKIP_HIGHLIGHTING" />
@@ -2412,7 +2393,15 @@
       <option name="project" value="LOCAL" />
       <updated>1698563900291</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="EcsTaskMetadata.cs">
+      <option name="closed" value="true" />
+      <created>1698573841916</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1698573841916</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -2435,7 +2424,8 @@
     <MESSAGE value="App settings" />
     <MESSAGE value="HttpClient" />
     <MESSAGE value="PublicApiRequestHandler" />
-    <option name="LAST_COMMIT_MESSAGE" value="PublicApiRequestHandler" />
+    <MESSAGE value="EcsTaskMetadata.cs" />
+    <option name="LAST_COMMIT_MESSAGE" value="EcsTaskMetadata.cs" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
