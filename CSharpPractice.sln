@@ -45,7 +45,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EF", "EF", "{661D9481-B9C0-
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D475E809-FED6-449D-9F1D-44018E2AFC17}"
 	ProjectSection(SolutionItems) = preProject
-		docker-compose.yml = docker-compose.yml
+		Docker\docker-compose.yml = Docker\docker-compose.yml
+		Docker\start.sh = Docker\start.sh
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EfDemo1", "EF\EfDemo1\EfDemo1.csproj", "{D0BAAF13-D064-43A4-BD42-CF7509D6B316}"
