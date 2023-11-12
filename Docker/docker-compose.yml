@@ -89,12 +89,26 @@ services:
       - test-network
     volumes:
       - 'grafana_storage:/var/lib/grafana'
+      - ./grafana:/etc/grafana/provisioning/datasources
+  # prometheus
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    networks:
+      - default
+      - test-network
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
 networks:
   test-network:
     driver: bridge
 
 volumes:
+  prometheus_data: {}
   rabbitmq_lib: {}
   rabbitmq_log: {}
   mysql_lib: {}
