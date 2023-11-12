@@ -1,13 +1,20 @@
 using DemoApplication.Interfaces;
 using DemoApplication.Middlewares;
+using DemoApplication.Mq;
 using DemoApplication.Settings;
 using DemoInfrastructure.Data;
 using Flurl.Http.Configuration;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog((ctx, lc) => lc
+    .WriteTo.Console()
+    .ReadFrom.Configuration(ctx.Configuration));
+
 builder.Services.Configure<FormatSettings>(builder.Configuration.GetSection("Formatting"));
 builder.Services.Configure<DatabaseSettings>(builder.Configuration.GetSection("Database"));
+builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMQ"));
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -42,6 +49,9 @@ builder.Services.AddHttpClient("JsonPlaceholder", client =>
 });
 
 builder.Services.AddSingleton<IFlurlClientFactory, PerBaseUrlFlurlClientFactory>();
+
+builder.Services.AddSingleton<MqProducer>();
+builder.Services.AddHostedService<MqBackgroundReceiver>();
 
 var app = builder.Build();
 
