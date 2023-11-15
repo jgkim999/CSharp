@@ -15,5 +15,5 @@ dotnet workload install aspire
 ## Create Project
 
 ```bash
-dotnet new aspire
+dotnet new aspire-starter
 ```
