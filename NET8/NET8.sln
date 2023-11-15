@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.0.0
+MinimumVisualStudioVersion = 17.8.0.0
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET8.AppHost", "NET8.AppHost\NET8.AppHost.csproj", "{5B42EAB2-20F0-4A78-834A-A6CD1DBAE53D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NET8.ServiceDefaults", "NET8.ServiceDefaults\NET8.ServiceDefaults.csproj", "{1DD66C34-17EF-4E54-B258-507B7F73E74A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5B42EAB2-20F0-4A78-834A-A6CD1DBAE53D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B42EAB2-20F0-4A78-834A-A6CD1DBAE53D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B42EAB2-20F0-4A78-834A-A6CD1DBAE53D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B42EAB2-20F0-4A78-834A-A6CD1DBAE53D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1DD66C34-17EF-4E54-B258-507B7F73E74A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1DD66C34-17EF-4E54-B258-507B7F73E74A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1DD66C34-17EF-4E54-B258-507B7F73E74A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1DD66C34-17EF-4E54-B258-507B7F73E74A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {503B317E-86CC-491D-97F0-3026FD4F9976}
+	EndGlobalSection
+EndGlobal
