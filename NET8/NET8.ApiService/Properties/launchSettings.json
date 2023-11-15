@@ -5,11 +5,10 @@
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:15278",
+      "launchUrl": "weatherforecast",
+      "applicationUrl": "http://localhost:5549",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "DOTNET_ENVIRONMENT": "Development",
-        "DOTNET_DASHBOARD_OTLP_ENDPOINT_URL": "http://localhost:16156"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
   }
