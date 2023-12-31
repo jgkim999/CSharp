@@ -20,7 +20,7 @@ builder.Services.AddMassTransit((x) =>
     {
         rabbit.Durable = false;
         rabbit.UseMessageRetry(x => x.Interval(2, 1000));
-        rabbit.Host("localhost", "/", h =>
+        rabbit.Host("localhost", 5672, "/", h =>
         {
             h.Username("user");
             h.Password("1234");
@@ -41,7 +41,7 @@ builder.Services.AddMassTransit<ISecondBus>((x) =>
     {
         rabbit.Durable = false;
         rabbit.UseMessageRetry(x => x.Interval(2, 1000));
-        rabbit.Host("localhost", "/", h =>
+        rabbit.Host("localhost", 5672, "/", h =>
         {
             h.Username("user");
             h.Password("1234");
