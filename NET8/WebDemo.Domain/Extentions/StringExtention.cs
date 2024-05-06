@@ -8,6 +8,7 @@ public static class StringExtention
     /// yyyyMMddHHmmss
     /// </summary>
     /// <param name="dtFmt"></param>
+    /// <param name="timeZone"></param>
     /// <returns></returns>
     public static DateTime ToDateTime(this string dtFmt, string timeZone = "Korea Standard Time")
     {
