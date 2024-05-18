@@ -6,3 +6,5 @@ NET8/WebDemo/.vs
 NET8/WebDemo.Domain/bin
 NET8/WebDemo.Domain/obj
 NET8/.idea
+NET8/BlazorDemo/obj
+NET8/BlazorDemo/bin

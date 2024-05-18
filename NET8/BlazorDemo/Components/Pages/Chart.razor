@@ -1,0 +1,51 @@
+﻿@using Color = System.Drawing.Color
+
+@page "/chart"
+
+<PageTitle>Chart</PageTitle>
+
+<h1>Chart</h1>
+
+<p>This component demonstrates showing data.</p>
+
+@if (lineChart == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row mb-3">
+        <LineChart @ref="lineChart" Width="1600" Class="mb-4" />
+    </div>
+    <div class="row mb-3">
+        <label class="col-md-2 col-form-label">VU: <span class="text-danger">*</span></label>
+        <div class="col-md-2">
+            <NumberInput TValue="int" @bind-Value="@vu" Placeholder="Enter amount" />
+        </div>
+        <label class="col-md-2 col-form-label">Duration(min): <span class="text-danger">*</span></label>
+        <div class="col-md-2">
+            <NumberInput TValue="int" @bind-Value="@duration" Step="30" Placeholder="Enter minutes" />
+        </div>
+        <div class="col-md-2">
+            <Button Type="ButtonType.Button" Color="ButtonColor.Primary" Size="Size.Small" @onclick="async () => await AddDataAsync()"> Add Data </Button>
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>VU</th>
+            <th>Duration(m)</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var forecast in TimeLine)
+        {
+            <tr>
+                <td>@forecast.VuMax</td>
+                <td>@forecast.DurationMin</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+}

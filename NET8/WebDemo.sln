@@ -5,7 +5,9 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebDemo", "WebDemo\WebDemo.csproj", "{5B711534-E784-48C1-A393-D81D76CCFF20}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebDemo.Domain", "WebDemo.Domain\WebDemo.Domain.csproj", "{64088344-9605-4CF6-89B5-0D4890CD65E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebDemo.Domain", "WebDemo.Domain\WebDemo.Domain.csproj", "{64088344-9605-4CF6-89B5-0D4890CD65E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorDemo", "BlazorDemo\BlazorDemo.csproj", "{0528B945-6FCC-410E-9D13-E13C59D3518D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{64088344-9605-4CF6-89B5-0D4890CD65E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64088344-9605-4CF6-89B5-0D4890CD65E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64088344-9605-4CF6-89B5-0D4890CD65E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0528B945-6FCC-410E-9D13-E13C59D3518D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0528B945-6FCC-410E-9D13-E13C59D3518D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0528B945-6FCC-410E-9D13-E13C59D3518D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0528B945-6FCC-410E-9D13-E13C59D3518D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
