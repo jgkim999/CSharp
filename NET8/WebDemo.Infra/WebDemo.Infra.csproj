@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebDemo.Application\WebDemo.Application.csproj" />
+    <ProjectReference Include="..\WebDemo.Domain\WebDemo.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" Version="2.7.33" />
+    <PackageReference Include="StackExchange.Redis.Extensions.Newtonsoft" Version="10.2.0" />
+  </ItemGroup>
+
+</Project>

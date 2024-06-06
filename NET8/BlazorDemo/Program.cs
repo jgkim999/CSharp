@@ -1,4 +1,7 @@
 using BlazorDemo.Components;
+using StackExchange.Redis;
+using WebDemo.Application.Interfaces;
+using WebDemo.Infra;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +10,16 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddBlazorBootstrap();
+
+ConfigurationOptions redisOption = new()
+{
+    EndPoints = 
+    {
+        { "localhost", 6379 }
+    }
+};
+ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(redisOption);
+builder.Services.AddSingleton<IPublisher>(new RedisPublisher(redis));
 
 var app = builder.Build();
 

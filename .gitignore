@@ -8,3 +8,12 @@ NET8/WebDemo.Domain/obj
 NET8/.idea
 NET8/BlazorDemo/obj
 NET8/BlazorDemo/bin
+.vs/CSharp/v17
+.vs
+NET8/WebDemo.Infra/obj
+NET8/WebDemo.Infra/obj
+NET8/WebDemo.Application/obj
+NET8/WebDemo.Application/obj
+NET8/WebDemo.Infra/obj
+NET8/WebDemo.Infra/bin
+NET8/WebDemo.Application/bin

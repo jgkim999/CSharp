@@ -8,10 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="2.2.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.7.33" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WebDemo.Application\WebDemo.Application.csproj" />
     <ProjectReference Include="..\WebDemo.Domain\WebDemo.Domain.csproj" />
+    <ProjectReference Include="..\WebDemo.Infra\WebDemo.Infra.csproj" />
   </ItemGroup>
 
 </Project>
