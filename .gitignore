@@ -29,3 +29,4 @@ Docker/prometheus/data/wal
 Docker/prometheus/data/lock
 Docker/prometheus/data/queries.active
 Docker/prometheus/data
+Docker/redis/data/dump.rdb
