@@ -17,3 +17,15 @@ NET8/WebDemo.Application/obj
 NET8/WebDemo.Infra/obj
 NET8/WebDemo.Infra/bin
 NET8/WebDemo.Application/bin
+Docker/grafana/data/grafana.db
+Docker/mysql/data/#innodb_redo
+Docker/mysql/data/performance_schema
+Docker/mysql/data/#innodb_temp
+Docker/mysql/data/mysql
+Docker/mysql/data/sys
+Docker/mysql/data
+Docker/prometheus/data/chunks_head
+Docker/prometheus/data/wal
+Docker/prometheus/data/lock
+Docker/prometheus/data/queries.active
+Docker/prometheus/data
