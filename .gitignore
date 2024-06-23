@@ -30,3 +30,9 @@ Docker/prometheus/data/lock
 Docker/prometheus/data/queries.active
 Docker/prometheus/data
 Docker/redis/data/dump.rdb
+Docker/portainer/data/certs
+Docker/portainer/data/chisel
+Docker/portainer/data/docker_config
+Docker/portainer/data/portainer.db
+Docker/portainer/data/portainer.key
+Docker/portainer/data/portainer.pub
