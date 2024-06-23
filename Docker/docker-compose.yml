@@ -32,6 +32,23 @@ services:
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/conf/mysql.conf:/etc/mysql.conf.d/mysqld.cnf
+  # mysql-exporter
+  mysql-exporter:
+    image: prom/mysqld-exporter
+    container_name: mysql-exporter
+    restart: always
+    ports: 
+      - "9104:9104"
+    command: 
+      #- —mysqld.username=exporter:qwer34##$$
+      - --config.my-cnf=/cfg/.my.cnf
+      - --mysqld.address=mysql:3306
+    volumes:
+      - "./mysqlexporter/.my.cnf:/cfg/.my.cnf"
+    links:
+      - mysql
+    depends_on:
+      - mysql    
   # redis
   redis:
     image: redis:bookworm

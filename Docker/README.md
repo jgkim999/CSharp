@@ -12,3 +12,11 @@ docker-compose up -d
 | [Prometheus](https://prometheus.io/) | [prometheus](https://hub.docker.com/r/prom/prometheus) | 9090 | | http://localhost:9090/ |
 | [Grapana](https://grafana.com/) | [grapana](https://hub.docker.com/r/grafana/grafana) | 3000 | admin/admin | http://localhost:3000/login |
 | [Influxdb](https://www.influxdata.com/) | [influxdb](https://hub.docker.com/_/influxdb) | 8086 | | http://localhost:8086/ |
+
+## MySQL Exporter
+
+```sql
+CREATE USER 'exporter'@'%' IDENTIFIED BY '1234qwer' WITH MAX_USER_CONNECTIONS 3;
+GRANT ALL PRIVILEGES ON *.* TO 'exporter'@'%';
+FLUSH PRIVILEGES;
+```
