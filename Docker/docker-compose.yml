@@ -54,7 +54,6 @@ services:
     image: redis:bookworm
     container_name: redis
     restart: always
-    command: "--requirepass 1234"
     hostname: redis
     labels:
       - "name=redis"
@@ -73,7 +72,6 @@ services:
       - 9121:9121
     command:
       - '--redis.addr=redis://redis:6379'
-      - '--redis.password=1234'
     links:
       - redis
       - prometheus
