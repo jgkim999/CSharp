@@ -36,3 +36,6 @@ Docker/portainer/data/docker_config
 Docker/portainer/data/portainer.db
 Docker/portainer/data/portainer.key
 Docker/portainer/data/portainer.pub
+
+DataGrip/.idea/
+NET8/FluentBlazorDemo/obj
