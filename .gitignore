@@ -36,3 +36,5 @@ Docker/portainer/data/docker_config
 Docker/portainer/data/portainer.db
 Docker/portainer/data/portainer.key
 Docker/portainer/data/portainer.pub
+.idea
+Docker/grafana/data
