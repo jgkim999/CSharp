@@ -21,7 +21,7 @@ GRANT ALL PRIVILEGES ON *.* TO 'user1'@'%';
 FLUSH PRIVILEGES;
 ```
 
-## MySQL Exporter
+For MySQL Exporter
 
 ```sql
 CREATE USER 'exporter'@'%' IDENTIFIED BY '1234qwer' WITH MAX_USER_CONNECTIONS 3;
