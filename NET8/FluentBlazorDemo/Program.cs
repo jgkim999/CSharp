@@ -1,6 +1,8 @@
+using System.Configuration;
 using Microsoft.FluentUI.AspNetCore.Components;
 using FluentBlazorDemo.Components;
 using Serilog;
+using WebDemo.Domain.Configs;
 
 internal class Program
 {
@@ -15,9 +17,26 @@ internal class Program
             .AddInteractiveServerComponents();
         builder.Services.AddFluentUIComponents();
 
+        IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+            .AddEnvironmentVariables()
+            .Build();
+        
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .CreateLogger();
+        
         // Add support to logging with SERILOG
-        builder.Host.UseSerilog((context, configuration) =>
-            configuration.ReadFrom.Configuration(context.Configuration));
+        builder.Host.UseSerilog(Log.Logger);
+
+        DbConfig? dbConfig = builder.Configuration.GetSection("DB").Get<DbConfig>();
+        if (dbConfig is null)
+        {
+            Log.Logger.Fatal($"Read failed, DbConfig");
+        }
+        Log.Logger.Information($"DbConfig:{dbConfig?.AccountDb}");
         
         var app = builder.Build();
 

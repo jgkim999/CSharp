@@ -17,5 +17,16 @@
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.1" />
     <PackageReference Include="Serilog.Sinks.Async" Version="2.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebDemo.Application\WebDemo.Application.csproj" />
+    <ProjectReference Include="..\WebDemo.Domain\WebDemo.Domain.csproj" />
+    <ProjectReference Include="..\WebDemo.Infra\WebDemo.Infra.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Logs\" />
   </ItemGroup>
 </Project>

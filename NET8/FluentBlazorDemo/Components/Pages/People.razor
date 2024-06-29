@@ -7,3 +7,9 @@
 <div role="status" style="padding-bottom: 1em;">
     <FluentButton Appearance="Appearance.Accent" @onclick="BtnClick">Click me</FluentButton>
 </div>
+
+<FluentDataGrid Items="@people">
+    <PropertyColumn Property="@(p => p.PersonId)" Sortable="true" />
+    <PropertyColumn Property="@(p => p.Name)" Sortable="true" />
+    <PropertyColumn Property="@(p => p.BirthDate)" Format="yyyy-MM-dd" Sortable="true" />
+</FluentDataGrid>
