@@ -39,3 +39,7 @@ Docker/portainer/data/portainer.pub
 
 DataGrip/.idea/
 NET8/FluentBlazorDemo/obj
+.idea
+Docker/grafana/data
+NET8/FluentBlazorDemo/bin
+NET8/FluentBlazorDemo/Logs
