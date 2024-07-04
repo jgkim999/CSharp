@@ -15,7 +15,7 @@ services:
       - ./rabbitmq/log:/var/log/rabbitmq/'
   # mysql
   mysql:
-    image: mysql:latest
+    image: mysql:lts
     container_name: mysql
     restart: always
     ports:
@@ -24,15 +24,16 @@ services:
       MYSQL_DATABASE: test-db
       MYSQL_ROOT_PASSWORD: "1234"
       MYSQL_ROOT_HOST: '%'
+      TZ: Asia/Seoul
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
     volumes:
+      - ./mysql/config/mysql.conf:/etc/mysql/my.cnf
       - ./mysql/data:/var/lib/mysql
-      - ./mysql/conf/mysql.conf:/etc/mysql.conf.d/mysqld.cnf
   # mysql-exporter
   mysql-exporter:
-    image: prom/mysqld-exporter
+    image: prom/mysqld-exporter:latest
     container_name: mysql-exporter
     restart: always
     ports: 
@@ -63,7 +64,7 @@ services:
       - ./redis/data:/data    
   # redis prometheus exporter
   redis-exporter:
-    image: oliver006/redis_exporter
+    image: oliver006/redis_exporter:latest
     container_name: redis_exporter
     restart: always
     ports:
@@ -136,3 +137,18 @@ services:
     restart: always
     ports:
       - 9100:9100
+  nexus:
+    image: sonatype/nexus3:latest
+    container_name: nexus
+    volumes:
+      - ./nexus-data:/nexus-data
+    ports:
+      - 8081:8081
+      - 8082:8082
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/config.json
+    command: --interval 30
+

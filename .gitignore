@@ -43,3 +43,5 @@ NET8/FluentBlazorDemo/obj
 Docker/grafana/data
 NET8/FluentBlazorDemo/bin
 NET8/FluentBlazorDemo/Logs
+
+Docker/nexus-data/
