@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: grapana
+  name: grapana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: grapana
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: grapana
+    spec:
+      containers:
+        - env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+          image: grafana/grafana:latest
+          name: grafana
+          ports:
+            - containerPort: 3000
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/lib/grafana
+              name: grapana-claim0
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: grapana-claim1
+      restartPolicy: Always
+      volumes:
+        - name: grapana-claim0
+          persistentVolumeClaim:
+            claimName: grapana-claim0
+        - name: grapana-claim1
+          persistentVolumeClaim:
+            claimName: grapana-claim1
+status: {}
