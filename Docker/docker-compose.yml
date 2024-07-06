@@ -13,6 +13,9 @@ services:
     volumes:
       - ./rabbitmq/lib:/var/lib/rabbitmq/'
       - ./rabbitmq/log:/var/log/rabbitmq/'
+    networks:
+      - default
+      - compose_network
   # mysql
   mysql:
     image: mysql:lts
@@ -31,6 +34,9 @@ services:
     volumes:
       - ./mysql/config/mysql.conf:/etc/mysql/my.cnf
       - ./mysql/data:/var/lib/mysql
+    networks:
+      - default
+      - compose_network
   # mysql-exporter
   mysql-exporter:
     image: prom/mysqld-exporter:latest
@@ -47,7 +53,10 @@ services:
     links:
       - mysql
     depends_on:
-      - mysql    
+      - mysql 
+    networks:
+      - default
+      - compose_network  
   # redis
   redis:
     image: redis:bookworm
@@ -61,7 +70,10 @@ services:
       - 6379:6379
       - 6380:6379
     volumes:
-      - ./redis/data:/data    
+      - ./redis/data:/data
+    networks:
+      - default
+      - compose_network    
   # redis prometheus exporter
   redis-exporter:
     image: oliver006/redis_exporter:latest
@@ -74,6 +86,9 @@ services:
     links:
       - redis
       - prometheus
+    networks:
+      - default
+      - compose_network
   # InfluxDB - Database for sensor data
   influxdb:
     image: influxdb:latest
@@ -86,6 +101,9 @@ services:
     volumes:
       - ./influxdb/etc:/etc/influxdb2'
       - ./influxdb/lib:/var/lib/influxdb2'
+    networks:
+      - default
+      - compose_network
   # prometheus
   prometheus:
     image: prom/prometheus
@@ -97,6 +115,9 @@ services:
     volumes:
       - ./prometheus/data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - default
+      - compose_network
   # grapana
   grapana:
     image: grafana/grafana:latest
@@ -111,6 +132,9 @@ services:
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana:/etc/grafana/provisioning/datasources
+    networks:
+      - default
+      - compose_network
   portainer:
     image: portainer/portainer-ce:alpine
     container_name: portainer
@@ -120,6 +144,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./portainer/data:/data
+    networks:
+      - default
+      - compose_network
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
     container_name: cadvisor
@@ -132,12 +159,18 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
+    networks:
+      - default
+      - compose_network
   node-exporter:
     image: prom/node-exporter
     container_name: node-exporter
     restart: unless-stopped
     ports:
       - 9100:9100
+    networks:
+      - default
+      - compose_network
   nexus:
     image: sonatype/nexus3:latest
     container_name: nexus
@@ -147,3 +180,9 @@ services:
     ports:
       - 8081:8081
       - 8082:8082
+    networks:
+      - default
+      - compose_network
+networks:
+  compose_network:
+    driver: bridge
