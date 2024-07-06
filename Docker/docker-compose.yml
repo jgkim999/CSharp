@@ -18,7 +18,7 @@ services:
       - compose_network
   # mysql
   mysql:
-    image: bitnami/mysql:latest
+    image: mysql:lts
     container_name: mysql
     restart: unless-stopped
     ports:
