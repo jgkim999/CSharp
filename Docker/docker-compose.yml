@@ -1,7 +1,7 @@
 services:
   # rabbitmq
   rabbitmq:    
-    image: rabbitmq:management
+    image: bitnami/rabbitmq:latest
     container_name: rabbitmq
     restart: unless-stopped
     ports:
@@ -18,7 +18,7 @@ services:
       - compose_network
   # mysql
   mysql:
-    image: mysql:lts
+    image: bitnami/mysql:latest
     container_name: mysql
     restart: unless-stopped
     ports:
@@ -39,7 +39,7 @@ services:
       - compose_network
   # mysql-exporter
   mysql-exporter:
-    image: prom/mysqld-exporter:latest
+    image: bitnami/mysqld-exporter:latest
     container_name: mysql-exporter
     restart: unless-stopped
     ports: 
@@ -59,7 +59,7 @@ services:
       - compose_network  
   # redis
   redis:
-    image: redis:bookworm
+    image: bitnami/redis:latest
     container_name: redis
     restart: unless-stopped
     hostname: redis
@@ -76,7 +76,7 @@ services:
       - compose_network    
   # redis prometheus exporter
   redis-exporter:
-    image: oliver006/redis_exporter:latest
+    image: bitnami/redis-exporter:latest
     container_name: redis_exporter
     restart: unless-stopped
     ports:
@@ -91,7 +91,7 @@ services:
       - compose_network
   # InfluxDB - Database for sensor data
   influxdb:
-    image: influxdb:latest
+    image: bitnami/influxdb:latest
     container_name: influxdb
     restart: unless-stopped
     security_opt:
@@ -106,7 +106,7 @@ services:
       - compose_network
   # prometheus
   prometheus:
-    image: prom/prometheus
+    image: bitnami/prometheus:latest
     container_name: prometheus
     restart: unless-stopped
     user: root
@@ -120,7 +120,7 @@ services:
       - compose_network
   # grapana
   grapana:
-    image: grafana/grafana:latest
+    image: bitnami/grafana:latest
     container_name: grafana
     restart: unless-stopped
     user: "1000:1000"
@@ -148,7 +148,7 @@ services:
       - default
       - compose_network
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor
+    image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     restart: unless-stopped
     ports:
@@ -163,7 +163,7 @@ services:
       - default
       - compose_network
   node-exporter:
-    image: prom/node-exporter
+    image: bitnami/node-exporter:latest
     container_name: node-exporter
     restart: unless-stopped
     ports:
