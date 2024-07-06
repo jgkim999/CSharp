@@ -91,7 +91,7 @@ services:
       - compose_network
   # InfluxDB - Database for sensor data
   influxdb:
-    image: bitnami/influxdb:latest
+    image: influxdb:latest
     container_name: influxdb
     restart: unless-stopped
     security_opt:
