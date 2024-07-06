@@ -3,7 +3,7 @@ services:
   rabbitmq:    
     image: rabbitmq:management
     container_name: rabbitmq
-    restart: always
+    restart: unless-stopped
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -17,7 +17,7 @@ services:
   mysql:
     image: mysql:lts
     container_name: mysql
-    restart: always
+    restart: unless-stopped
     ports:
       - "3306:3306"
     environment:
@@ -35,7 +35,7 @@ services:
   mysql-exporter:
     image: prom/mysqld-exporter:latest
     container_name: mysql-exporter
-    restart: always
+    restart: unless-stopped
     ports: 
       - "9104:9104"
     command: 
@@ -52,7 +52,7 @@ services:
   redis:
     image: redis:bookworm
     container_name: redis
-    restart: always
+    restart: unless-stopped
     hostname: redis
     labels:
       - "name=redis"
@@ -66,7 +66,7 @@ services:
   redis-exporter:
     image: oliver006/redis_exporter:latest
     container_name: redis_exporter
-    restart: always
+    restart: unless-stopped
     ports:
       - 9121:9121
     command:
@@ -78,7 +78,7 @@ services:
   influxdb:
     image: influxdb:latest
     container_name: influxdb
-    restart: always
+    restart: unless-stopped
     security_opt:
       - no-new-privileges:true
     ports:
@@ -90,7 +90,7 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    restart: always
+    restart: unless-stopped
     user: root
     ports:
       - 9090:9090
@@ -101,7 +101,7 @@ services:
   grapana:
     image: grafana/grafana:latest
     container_name: grafana
-    restart: always
+    restart: unless-stopped
     user: "1000:1000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
@@ -114,7 +114,7 @@ services:
   portainer:
     image: portainer/portainer-ce:alpine
     container_name: portainer
-    restart: always
+    restart: unless-stopped
     ports:
       - 9000:9000
     volumes:
@@ -123,7 +123,7 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
     container_name: cadvisor
-    restart: except-stopped
+    restart: unless-stopped
     ports:
       - 8080:8080
     volumes:
@@ -135,13 +135,13 @@ services:
   node-exporter:
     image: prom/node-exporter
     container_name: node-exporter
-    restart: always
+    restart: unless-stopped
     ports:
       - 9100:9100
   nexus:
     image: sonatype/nexus3:latest
     container_name: nexus
-    restart: except-stopped
+    restart: unless-stopped
     volumes:
       - ./nexus-data:/nexus-data
     ports:
