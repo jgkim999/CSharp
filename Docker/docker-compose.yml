@@ -11,6 +11,7 @@ services:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: 1234
     volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
       - ./rabbitmq/lib:/var/lib/rabbitmq/'
       - ./rabbitmq/log:/var/log/rabbitmq/'
     networks:
