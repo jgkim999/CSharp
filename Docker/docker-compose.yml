@@ -123,6 +123,7 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
     container_name: cadvisor
+    restgart: except-stopped
     ports:
       - 8080:8080
     volumes:
@@ -140,10 +141,9 @@ services:
   nexus:
     image: sonatype/nexus3:latest
     container_name: nexus
+    restgart: except-stopped
     volumes:
       - ./nexus-data:/nexus-data
     ports:
       - 8081:8081
       - 8082:8082
-
-
