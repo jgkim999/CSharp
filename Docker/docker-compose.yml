@@ -178,7 +178,7 @@ services:
     container_name: nexus
     restart: unless-stopped
     volumes:
-      - ./nexus-data:/nexus-data
+      - ./nexus:/nexus-data
     ports:
       - 8081:8081
       - 8082:8082
