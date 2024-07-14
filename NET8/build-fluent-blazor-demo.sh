@@ -1,1 +1,1 @@
-docker build -t blazor-demo -f DockerfileBlazorDemo .
+docker build -t fluent-blazor-demo -f DockerfileBlazorDemo .
