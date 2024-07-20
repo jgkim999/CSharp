@@ -202,11 +202,12 @@ services:
       - compose_network
   loki:
     image: grafana/loki:master
-    container_name: loki    
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml    
     user: root
     ports:
        - 3100:3100
-       - 9096:9096    
+       - 9096:9096
     healthcheck:
         test: wget -q --tries=1 -O- http://localhost:3100/ready 
         interval: 3s
@@ -215,7 +216,15 @@ services:
         start_period: 10s
     volumes:
       - ./loki/data:/loki
-      - ./loki/local-config.yaml:/etc/loki/local-config.yaml
+    networks:
+      - default
+      - compose_network
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - /var/log:/var/log
     networks:
       - default
       - compose_network
