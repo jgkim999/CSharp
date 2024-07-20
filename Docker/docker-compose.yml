@@ -201,12 +201,12 @@ services:
       - default
       - compose_network
   loki:
-    container_name: loki
     image: grafana/loki:master
+    container_name: loki    
     user: root
     ports:
        - 3100:3100
-    command: -config.file=/etc/loki/local-config.yaml
+       - 9096:9096    
     healthcheck:
         test: wget -q --tries=1 -O- http://localhost:3100/ready 
         interval: 3s
@@ -215,6 +215,7 @@ services:
         start_period: 10s
     volumes:
       - ./loki/data:/loki
+      - ./loki/local-config.yaml:/etc/loki/local-config.yaml
     networks:
       - default
       - compose_network
