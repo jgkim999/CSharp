@@ -2,6 +2,7 @@ using Quartz;
 
 using Serilog;
 using Serilog.Core;
+using Serilog.Sinks.Grafana.Loki;
 
 internal class Program
 {
@@ -23,10 +24,12 @@ internal class Program
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.ControlledBy(logLevelSwitch)
                 .ReadFrom.Configuration(configuration)
+                /*
                 .WriteTo.Seq(
                     "http://192.168.0.47:10000/",
                     bufferBaseFilename: @"./Logs/log_buffer",
                     controlLevelSwitch: logLevelSwitch)
+                */
                 .CreateLogger();
 
             TimeZoneInfo localZone = TimeZoneInfo.Local;
