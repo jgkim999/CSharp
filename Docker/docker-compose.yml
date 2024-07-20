@@ -130,7 +130,7 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
     ports:
-      - "3000:3000"
+      - 3000:3000
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana:/etc/grafana/provisioning/datasources
@@ -183,6 +183,20 @@ services:
     ports:
       - 8081:8081
       - 8082:8082
+    networks:
+      - default
+      - compose_network
+  seq:
+    image: datalust/seq:latest
+    container_name: seq
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: Y
+    volumes:
+      - ./seq/data:/data
+    ports:
+      - 10000:80
+      - 10001:5341
     networks:
       - default
       - compose_network
