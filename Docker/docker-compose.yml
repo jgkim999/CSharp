@@ -232,8 +232,13 @@ services:
     image: gitlab/gitlab-ce:latest
     container_name: gitlab
     restart: unless-stopped
+    hostname: '192.168.0.47'
     environment:
-      - hostname: 192.168.0.47
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://192.168.0.47'
+        gitlab_rails['gitlab_shell_ssh_port'] = 3201
+        # Add any other gitlab.rb configuration here, each on its own line
+      TZ: 'Asia/Seoul'
     ports:
       - 3200:80
       - 3201:22
