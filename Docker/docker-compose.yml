@@ -241,7 +241,10 @@ services:
     volumes:
       - ./gitlab/config:/etc/gitlab
       - ./gitlab/logs:/var/log/gitlab
-      - ./gitlab/data:/var/opt/gitlab  
+      - ./gitlab/data:/var/opt/gitlab
+    networks:
+      - default
+      - compose_network  
 networks:
   compose_network:
     driver: bridge
