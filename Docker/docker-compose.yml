@@ -228,6 +228,20 @@ services:
     networks:
       - default
       - compose_network
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
+    restart: unless-stopped
+    environment:
+      - hostname: 192.168.0.47
+    ports:
+      - 3200:80
+      - 3201:22
+      - 3202:443
+    volumes:
+      - ./gitlab/config:/etc/gitlab
+      - ./gitlab/logs:/var/log/gitlab
+      - ./gitlab/data:/var/opt/gitlab  
 networks:
   compose_network:
     driver: bridge
