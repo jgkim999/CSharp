@@ -42,3 +42,6 @@ NET8/WebDemo/.vs
 NET8/WebDemo/bin
 NET8/WebDemo/Logs
 NET8/WebDemo/obj
+NET8/WebDemo/WebDemo.csproj.user
+NET8/WebDemo/Properties/PublishProfiles/FolderProfile.pubxml
+NET8/WebDemo/Properties/PublishProfiles/FolderProfile.pubxml.user

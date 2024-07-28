@@ -1,8 +1,16 @@
+using Consul;
+
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.Hosting;
+
 using Quartz;
 
 using Serilog;
 using Serilog.Core;
 using Serilog.Sinks.Grafana.Loki;
+
+using WebDemo.Application.Services;
+using WebDemo.Domain.Configs;
 
 internal class Program
 {
@@ -53,11 +61,32 @@ internal class Program
 
             builder.Host.UseSerilog(Log.Logger);
 
+            {
+                builder.WebHost.ConfigureKestrel((context, serverOptions) =>
+                {
+                    var kestrelSection = context.Configuration.GetSection("Kestrel");
+                    serverOptions.Configure(kestrelSection);
+                });
+                Log.Information("ASPNETCORE_ENVIRONMENT", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+                Log.Information("ASPNETCORE_URLS", Environment.GetEnvironmentVariable("ASPNETCORE_URLS"));
+            }
+
             // Add services to the container.
             builder.Services.AddQuartz();
             builder.Services.AddQuartzHostedService(opt => { opt.WaitForJobsToComplete = true; });
 
-
+            // Consul
+            {
+                var consulConfig = builder.Configuration.GetSection("Consul").Get<ConsulConfig>();
+                builder.Services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(
+                    e =>
+                {
+                    e.Address = new Uri(consulConfig.Host);
+                }));
+                builder.Services.AddSingleton(consulConfig);
+                builder.Services.AddSingleton<IHostedService, ConsulHostedService>();
+            }
+            
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
