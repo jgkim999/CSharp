@@ -9,11 +9,22 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebDemo.Domain", "WebDemo.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorDemo", "BlazorDemo\BlazorDemo.csproj", "{0528B945-6FCC-410E-9D13-E13C59D3518D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebDemo.Infra", "WebDemo.Infra\WebDemo.Infra.csproj", "{040E0982-E4F3-44C1-922E-5D146BF7B6A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebDemo.Infra", "WebDemo.Infra\WebDemo.Infra.csproj", "{040E0982-E4F3-44C1-922E-5D146BF7B6A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebDemo.Application", "WebDemo.Application\WebDemo.Application.csproj", "{7F5BB0A4-FED6-43C0-88A6-9B18CA30C16D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebDemo.Application", "WebDemo.Application\WebDemo.Application.csproj", "{7F5BB0A4-FED6-43C0-88A6-9B18CA30C16D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentBlazorDemo", "FluentBlazorDemo\FluentBlazorDemo.csproj", "{6A41BF61-C487-4391-ABBD-A0157FBB9367}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FluentBlazorDemo", "FluentBlazorDemo\FluentBlazorDemo.csproj", "{6A41BF61-C487-4391-ABBD-A0157FBB9367}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "솔루션 항목", "솔루션 항목", "{005B9F36-DB74-42FF-9D48-949DCB5DB52C}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		build-blazor-demo.sh = build-blazor-demo.sh
+		build-fluent-blazor-demo.sh = build-fluent-blazor-demo.sh
+		build-web-demo.sh = build-web-demo.sh
+		DockerfileBlazorDemo = DockerfileBlazorDemo
+		DockerfileFluentBlazorDemo = DockerfileFluentBlazorDemo
+		DockerfileWebDemo = DockerfileWebDemo
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

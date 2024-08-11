@@ -1,9 +1,8 @@
-﻿using System.Net;
+﻿using Consul;
+
+using System.Net;
 using System.Net.Sockets;
-using System.Xml.Linq;
-
-using Consul;
-
+using Ductus.FluentDocker.Services;
 using WebDemo.Domain.Configs;
 
 namespace WebDemo.Application.Services;
@@ -23,9 +22,28 @@ public class ConsulHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        var hosts = new Hosts().Discover();
+        var docker = hosts.FirstOrDefault(x => x.IsNative) ?? hosts.FirstOrDefault(x => x.Name == "default");
+        if (docker is not null)
+        {
+            var containers = docker.GetRunningContainers();
+            foreach (var container in containers)
+            {
+                _logger.LogInformation($"{container.Id} {container.Image}");
+                foreach (var network in container.GetNetworks())
+                {
+                    _logger.LogInformation($"{network.Id} {network.DockerHost}");
+                }
+            }
+            //var networkSettings = docker.GetConfiguration().NetworkSettings;
+            //Environment.SetEnvironmentVariable("NetworkSettings", networkSettings.Networks.First().Value.IPAddress);
+        }
+
+        var domainName = Environment.UserDomainName;
         var hostName = Dns.GetHostName();
         var ip = (await Dns.GetHostEntryAsync(hostName, cancellationToken)).AddressList
             .FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
+        var networkSettings = Environment.GetEnvironmentVariable("NetworkSettings");
 
         var registration = new AgentServiceRegistration
         {
@@ -33,6 +51,7 @@ public class ConsulHostedService : IHostedService
             Name = "webDemoService",
             Meta = new Dictionary<string, string>
             {
+                {"DomainName", domainName},
                 {"HostName", hostName},
                 {"ip", ip.ToString()},
                 {"port", "5000"},
@@ -45,18 +64,19 @@ public class ConsulHostedService : IHostedService
                 {"consulPort", "8500"},
                 {"consulScheme", "http"},
                 {"consulDatacenter", "dc1"},
-                {"guid", Guid.NewGuid().ToString()}
+                {"guid", Guid.NewGuid().ToString()},
+                {"networkSettings", networkSettings ?? ""}
             }
         };
-        /*
+        
         var check = new AgentServiceCheck
         {
-            HTTP = serviceConfig.HealthCheckUrl,
-            Interval = TimeSpan.FromSeconds(serviceConfig.HealthCheckIntervalSeconds),
-            Timeout = TimeSpan.FromSeconds(serviceConfig.HealthCheckTimeoutSeconds)
+            DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(5),
+            HTTP = "/healthz",
+            Interval = TimeSpan.FromSeconds(15),
+            Timeout = TimeSpan.FromSeconds(15)
         };
-        */
-        //registration.Checks = new[] { check };
+        registration.Checks = new[] { check };
 
         _logger.LogInformation($"Registering service with Consul: {registration.Name}");
 

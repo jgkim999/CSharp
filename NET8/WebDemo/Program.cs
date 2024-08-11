@@ -61,6 +61,8 @@ internal class Program
 
             builder.Host.UseSerilog(Log.Logger);
 
+            builder.Services.AddHealthChecks();
+
             {
                 builder.WebHost.ConfigureKestrel((context, serverOptions) =>
                 {
@@ -97,15 +99,17 @@ internal class Program
             app.UseSerilogRequestLogging();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            //if (app.Environment.IsDevelopment())
+            //{
                 app.UseSwagger();
                 app.UseSwaggerUI();
-            }
+            //}
 
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.MapHealthChecks("/healthz");
 
             app.Run();
         }
