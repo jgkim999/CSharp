@@ -79,17 +79,28 @@ public class ConsulHostedService : IHostedService
         registration.Checks = new[] { check };
 
         _logger.LogInformation($"Registering service with Consul: {registration.Name}");
-
-        await _consulClient.Agent.ServiceDeregister(registration.ID, cancellationToken);
-        await _consulClient.Agent.ServiceRegister(registration, cancellationToken);
+        try
+        {
+            await _consulClient.Agent.ServiceDeregister(registration.ID, cancellationToken);
+            await _consulClient.Agent.ServiceRegister(registration, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error registering service with Consul");
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        var registration = new AgentServiceRegistration { ID = "webDemoId" };
-
-        _logger.LogInformation($"Deregistering service from Consul: {registration.ID}");
-
-        await _consulClient.Agent.ServiceDeregister(registration.ID, cancellationToken);
+        try
+        {
+            var registration = new AgentServiceRegistration { ID = "webDemoId" };
+            _logger.LogInformation($"Deregistering service from Consul: {registration.ID}");
+            await _consulClient.Agent.ServiceDeregister(registration.ID, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e.ToString());
+        }
     }
 }

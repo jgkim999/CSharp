@@ -1,13 +1,9 @@
 using Consul;
 
-using Microsoft.AspNetCore.Hosting.Server.Features;
-using Microsoft.Extensions.Hosting;
-
 using Quartz;
 
 using Serilog;
 using Serilog.Core;
-using Serilog.Sinks.Grafana.Loki;
 
 using WebDemo.Application.Services;
 using WebDemo.Domain.Configs;
