@@ -48,3 +48,7 @@ NET8/WebDemo/Properties/PublishProfiles/FolderProfile.pubxml.user
 NET8/Radzen/bin
 NET8/Radzen/obj
 NET8/Radzen/RadzenDemo.sln.DotSettings.user
+NET8/MassTransitPub/bin
+NET8/MassTransitPub/obj
+NET8/MassTransitPub/logs
+NET8/MassTransitPub/Properties/launchSettings.json
