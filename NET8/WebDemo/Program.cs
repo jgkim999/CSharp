@@ -16,29 +16,23 @@ internal class Program
 {
     public static void Main(string[] args)
     {
+        IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile(
+                $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json",
+                optional: true)
+            .AddEnvironmentVariables()
+            .Build();
+
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .WriteTo.Console()
+            .CreateLogger();
         try
         {
-            IConfiguration configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile(
-                    $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json",
-                    optional: true)
-                .AddEnvironmentVariables()
-                .Build();
-
-            var logLevelSwitch = new LoggingLevelSwitch();
-
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.ControlledBy(logLevelSwitch)
-                .ReadFrom.Configuration(configuration)
-                /*
-                .WriteTo.Seq(
-                    "http://192.168.0.47:10000/",
-                    bufferBaseFilename: @"./Logs/log_buffer",
-                    controlLevelSwitch: logLevelSwitch)
-                */
-                .CreateLogger();
+            var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddSerilog();
 
             TimeZoneInfo localZone = TimeZoneInfo.Local;
             Log.Information("Local Time Zone ID:{0}", localZone.Id);
@@ -57,12 +51,7 @@ internal class Program
             Log.Information("ProcessorCount:{0}", Environment.ProcessorCount);
             Log.Information("ASPNETCORE_ENVIRONMENT:{0}", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
             
-            var builder = WebApplication.CreateBuilder(args);
-
-            builder.Host.UseSerilog(Log.Logger);
-
             builder.Services.AddHealthChecks();
-
             {
                 builder.WebHost.ConfigureKestrel((context, serverOptions) =>
                 {
@@ -79,6 +68,7 @@ internal class Program
 
             // Consul
             {
+                /*
                 var consulConfig = builder.Configuration.GetSection("Consul").Get<ConsulConfig>();
                 builder.Services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(
                     e =>
@@ -87,6 +77,7 @@ internal class Program
                 }));
                 builder.Services.AddSingleton(consulConfig);
                 builder.Services.AddSingleton<IHostedService, ConsulHostedService>();
+                */
             }
             
             builder.Services.AddControllers();
