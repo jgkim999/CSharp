@@ -1,5 +1,6 @@
 using Consul;
-
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using Quartz;
 
 using Serilog;
@@ -46,6 +47,41 @@ internal class Program
             Log.Information("UserInteractive:{0}", Environment.UserInteractive);
             Log.Information("ProcessorCount:{0}", Environment.ProcessorCount);
             Log.Information("ASPNETCORE_ENVIRONMENT:{0}", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
+            
+            var otel = builder.Services.AddOpenTelemetry();
+            otel.WithMetrics(metrics => metrics
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddMeter("Microsoft.AspNetCore.Hosting")
+                .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+                .AddMeter("Microsoft.AspNetCore.Diagnostics")
+                .AddMeter("System.Net.NameResolution")
+                .AddMeter("System.Runtime")
+                .AddMeter("Microsoft.Extensions.Diagnostics.HealthChecks")
+                .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
+                .AddMeter("Microsoft.Extensions.Hosting")
+                .AddMeter("System.Http")
+                .AddPrometheusExporter());
+            
+            otel.WithTracing(tracing =>
+            {
+                tracing.AddAspNetCoreInstrumentation();
+                tracing.AddHttpClientInstrumentation();
+                /*
+                tracing.AddSource(greeterActivitySource.Name);
+                if (tracingOtlpEndpoint != null)
+                {
+                    tracing.AddOtlpExporter(otlpOptions =>
+                    {
+                        otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
+                    });
+                }
+                else
+                {
+                    tracing.AddConsoleExporter();
+                }
+                */
+            });
             
             builder.Services.AddHealthChecks();
             {
@@ -98,6 +134,8 @@ internal class Program
 
             app.MapHealthChecks("/healthz");
 
+            app.MapPrometheusScrapingEndpoint();
+            
             app.Run();
         }
         catch (Exception e)
