@@ -53,3 +53,6 @@ NET8/WebDemo/obj
 NET8/WebDemo/WebDemo.csproj.user
 NET8/WebDemo/Properties/PublishProfiles/FolderProfile.pubxml
 NET8/WebDemo/Properties/PublishProfiles/FolderProfile.pubxml.user
+NET8/Radzen/bin
+NET8/Radzen/obj
+NET8/Radzen/RadzenDemo.sln.DotSettings.user

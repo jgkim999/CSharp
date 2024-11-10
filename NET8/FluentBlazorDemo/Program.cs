@@ -1,7 +1,9 @@
-using System.Configuration;
-using Microsoft.FluentUI.AspNetCore.Components;
 using FluentBlazorDemo.Components;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.FluentUI.AspNetCore.Components;
+
 using Serilog;
+using WebDemo.Application.NotifyService;
 using WebDemo.Domain.Configs;
 
 internal class Program
@@ -11,7 +13,15 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddHttpClient();
-        
+
+        // Add signalR support
+        builder.Services.AddSignalR();
+        builder.Services.AddResponseCompression(opts =>
+        {
+            opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+                ["application/octet-stream"]);
+        });
+
         // Add services to the container.
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
@@ -31,6 +41,8 @@ internal class Program
         // Add support to logging with SERILOG
         builder.Host.UseSerilog(Log.Logger);
 
+        builder.Services.AddHostedService<NotifyBackgroundService>();
+
         DbConfig? dbConfig = builder.Configuration.GetSection("DB").Get<DbConfig>();
         if (dbConfig is null)
         {
@@ -39,6 +51,7 @@ internal class Program
         Log.Logger.Information($"DbConfig:{dbConfig?.AccountDb}");
         
         var app = builder.Build();
+        app.UseResponseCompression();
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
@@ -47,6 +60,9 @@ internal class Program
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
+
+        // signalR
+        app.MapHub<NotifyHub>("/notifyHub");
 
         app.UseHttpsRedirection();
 
