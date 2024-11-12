@@ -1,8 +1,12 @@
 using Consul;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Quartz;
-
+using System.Diagnostics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Exporter;
 using Serilog;
 using Serilog.Core;
 
@@ -13,6 +17,8 @@ internal class Program
 {
     public static void Main(string[] args)
     {
+        ActivitySource tracingSource = new("Example.Source");
+
         IConfiguration configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -23,9 +29,7 @@ internal class Program
             .Build();
 
         Log.Logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(configuration)
-            .WriteTo.Console()
-            .CreateLogger();
+            .ReadFrom.Configuration(configuration)           .CreateLogger();
         try
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -48,40 +52,38 @@ internal class Program
             Log.Information("ProcessorCount:{0}", Environment.ProcessorCount);
             Log.Information("ASPNETCORE_ENVIRONMENT:{0}", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
             
-            var otel = builder.Services.AddOpenTelemetry();
-            otel.WithMetrics(metrics => metrics
-                .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation()
-                .AddMeter("Microsoft.AspNetCore.Hosting")
-                .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
-                .AddMeter("Microsoft.AspNetCore.Diagnostics")
-                .AddMeter("System.Net.NameResolution")
-                .AddMeter("System.Runtime")
-                .AddMeter("Microsoft.Extensions.Diagnostics.HealthChecks")
-                .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
-                .AddMeter("Microsoft.Extensions.Hosting")
-                .AddMeter("System.Http")
-                .AddPrometheusExporter());
-            
-            otel.WithTracing(tracing =>
-            {
-                tracing.AddAspNetCoreInstrumentation();
-                tracing.AddHttpClientInstrumentation();
-                /*
-                tracing.AddSource(greeterActivitySource.Name);
-                if (tracingOtlpEndpoint != null)
+            var otel = builder.Services.AddOpenTelemetry()
+                .ConfigureResource(r => r.AddService("My Service"))
+                .WithMetrics(metrics => metrics
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddRuntimeInstrumentation()
+                    .AddProcessInstrumentation()
+                    /*
+                    .AddMeter("Microsoft.AspNetCore.Hosting")
+                    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+                    .AddMeter("Microsoft.AspNetCore.Diagnostics")
+                    .AddMeter("System.Net.NameResolution")
+                    .AddMeter("System.Runtime")
+                    .AddMeter("Microsoft.Extensions.Diagnostics.HealthChecks")
+                    .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
+                    .AddMeter("Microsoft.Extensions.Hosting")
+                    .AddMeter("System.Http")
+                    */
+                    .AddPrometheusExporter()
+                    )
+                .WithTracing(tracing =>
                 {
-                    tracing.AddOtlpExporter(otlpOptions =>
+                    tracing.AddSource("WebDemo");
+                    tracing.AddAspNetCoreInstrumentation();
+                    tracing.AddHttpClientInstrumentation();
+                    tracing.AddOtlpExporter(opt =>
                     {
-                        otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
+                        opt.Endpoint = new Uri("http://192.168.0.47:10001/ingest/otlp/v1/traces");
+                        opt.Protocol = OtlpExportProtocol.HttpProtobuf;
+                        opt.Headers = "X-Seq-ApiKey=7IcnLMHBbZxPx03s2Plb";
                     });
-                }
-                else
-                {
-                    tracing.AddConsoleExporter();
-                }
-                */
-            });
+                });
             
             builder.Services.AddHealthChecks();
             {
