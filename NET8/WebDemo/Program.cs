@@ -9,7 +9,7 @@ using OpenTelemetry.Trace;
 using OpenTelemetry.Exporter;
 using Serilog;
 using Serilog.Core;
-
+using WebDemo.Application;
 using WebDemo.Application.Services;
 using WebDemo.Domain.Configs;
 
@@ -113,6 +113,8 @@ internal class Program
                 builder.Services.AddSingleton<IHostedService, ConsulHostedService>();
                 */
             }
+            
+            builder.Services.AddApplicationServices("WebDemo", "1.0.0");
             
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

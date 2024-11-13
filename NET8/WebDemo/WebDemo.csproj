@@ -39,9 +39,11 @@
     <PackageReference Include="SharpAbp.Abp.OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="3.5.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WebDemo.Application\WebDemo.Application.csproj" />
     <ProjectReference Include="..\WebDemo.Domain\WebDemo.Domain.csproj" />
   </ItemGroup>
 
