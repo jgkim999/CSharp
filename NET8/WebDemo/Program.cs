@@ -1,17 +1,16 @@
-using Consul;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
-using Quartz;
-using System.Diagnostics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using OpenTelemetry.Exporter;
+
+using Quartz;
+
 using Serilog;
-using Serilog.Core;
+
+using System.Diagnostics;
+
 using WebDemo.Application;
-using WebDemo.Application.Services;
-using WebDemo.Domain.Configs;
+using WebDemo.Infra;
 
 internal class Program
 {
@@ -35,22 +34,7 @@ internal class Program
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddSerilog();
 
-            TimeZoneInfo localZone = TimeZoneInfo.Local;
-            Log.Information("Local Time Zone ID:{0}", localZone.Id);
-            Log.Information("Display Name is:{0}.", localZone.DisplayName);
-            Log.Information("Standard name is:{0}.", localZone.StandardName);
-            Log.Information("Daylight saving name is:{0}.", localZone.DaylightName);
             
-            Log.Information("UserName:{0}", Environment.UserName);
-            Log.Information("MachineName:{0}", Environment.MachineName);
-            Log.Information("OSVersion:{0}", Environment.OSVersion);
-            Log.Information("Version:{0}", Environment.Version);
-            Log.Information("CurrentDirectory:{0}", Environment.CurrentDirectory);
-            Log.Information("SystemDirectory:{0}", Environment.SystemDirectory);
-            Log.Information("UserDomainName:{0}", Environment.UserDomainName);
-            Log.Information("UserInteractive:{0}", Environment.UserInteractive);
-            Log.Information("ProcessorCount:{0}", Environment.ProcessorCount);
-            Log.Information("ASPNETCORE_ENVIRONMENT:{0}", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
             
             var otel = builder.Services.AddOpenTelemetry()
                 .ConfigureResource(r => r.AddService("My Service"))
@@ -75,6 +59,7 @@ internal class Program
                 .WithTracing(tracing =>
                 {
                     tracing.AddSource("WebDemo");
+                    tracing.AddSource("MassTransit");
                     tracing.AddAspNetCoreInstrumentation();
                     tracing.AddHttpClientInstrumentation();
                     tracing.AddOtlpExporter(opt =>
@@ -115,7 +100,8 @@ internal class Program
             }
             
             builder.Services.AddApplicationServices("WebDemo", "1.0.0");
-            
+            builder.Services.AddInfraServices();
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

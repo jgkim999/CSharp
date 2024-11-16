@@ -60,3 +60,4 @@ NET8/MassTransitPub/bin
 NET8/MassTransitPub/obj
 NET8/MassTransitPub/logs
 NET8/MassTransitPub/Properties/launchSettings.json
+*.user

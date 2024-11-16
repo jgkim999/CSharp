@@ -12,9 +12,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.8" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.1" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.11" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Serilog" Version="4.1.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebDemo.Domain\WebDemo.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

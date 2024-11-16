@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Microsoft.Extensions.Logging;
 
 namespace WebDemo.Application;
 
@@ -22,6 +21,22 @@ public class ActivityManager
         GlobalLogger.GetLogger<ActivityManager>().Verbose("ActivityManager.StartActivity is called. {name}", name);
         
         Activity? activity = _activitySource.StartActivity(name);
+        return activity;
+    }
+    
+    public Activity? StartActivity(string name, ActivityKind kind)
+    {
+        GlobalLogger.GetLogger<ActivityManager>().Verbose("ActivityManager.StartActivity is called. {name}, {kind}", name, kind);
+
+        Activity? activity = _activitySource.StartActivity(name, kind);
+        return activity;
+    }
+
+    public Activity? StartActivity(string name, ActivityKind kind, string parentId)
+    {
+        GlobalLogger.GetLogger<ActivityManager>().Verbose("ActivityManager.StartActivity is called. {name}, {kind} {parentId}", name, kind, parentId);
+
+        Activity? activity = _activitySource.StartActivity(name, kind, parentId);
         return activity;
     }
 }
