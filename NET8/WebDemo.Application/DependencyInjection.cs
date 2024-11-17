@@ -9,6 +9,10 @@ using System.Net.Sockets;
 using MassTransit;
 using WebDemo.Application.WeatherService;
 using System.Reflection;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace WebDemo.Application;
 
@@ -32,7 +36,7 @@ public static class DependencyInjection
 
             x.UsingRabbitMq((context, cfg) =>
             {
-                cfg.Host("192.168.0.47", "/", h =>
+                cfg.Host("192.168.0.47", "/web_dev", h =>
                 {
                     h.Username("test");
                     h.Password("1234");
@@ -118,5 +122,46 @@ public static class DependencyInjection
         {
             GlobalLogger.ForContext("DisplayInfo").Error(e, "Error during docker client creation");
         }
+    }
+
+    public static IServiceCollection AddApplicationOpenTelemetry(
+        this IServiceCollection services,
+        string serviceName,
+        string seqApiKey)
+    {
+        services.AddOpenTelemetry()
+            .ConfigureResource(r => r.AddService(serviceName))
+            .WithMetrics(metrics => metrics
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddProcessInstrumentation()
+                /*
+                .AddMeter("Microsoft.AspNetCore.Hosting")
+                .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
+                .AddMeter("Microsoft.AspNetCore.Diagnostics")
+                .AddMeter("System.Net.NameResolution")
+                .AddMeter("System.Runtime")
+                .AddMeter("Microsoft.Extensions.Diagnostics.HealthChecks")
+                .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
+                .AddMeter("Microsoft.Extensions.Hosting")
+                .AddMeter("System.Http")
+                */
+                .AddPrometheusExporter()
+            )
+            .WithTracing(tracing =>
+            {
+                tracing.AddSource(serviceName);
+                tracing.AddSource("MassTransit");
+                tracing.AddAspNetCoreInstrumentation();
+                tracing.AddHttpClientInstrumentation();
+                tracing.AddOtlpExporter(opt =>
+                {
+                    opt.Endpoint = new Uri("http://192.168.0.47:10001/ingest/otlp/v1/traces");
+                    opt.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    opt.Headers = $"X-Seq-ApiKey={seqApiKey}";
+                });
+            });
+        return services;
     }
 }

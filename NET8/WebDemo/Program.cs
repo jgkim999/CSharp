@@ -34,41 +34,7 @@ internal class Program
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddSerilog();
 
-            
-            
-            var otel = builder.Services.AddOpenTelemetry()
-                .ConfigureResource(r => r.AddService("My Service"))
-                .WithMetrics(metrics => metrics
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation()
-                    .AddProcessInstrumentation()
-                    /*
-                    .AddMeter("Microsoft.AspNetCore.Hosting")
-                    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
-                    .AddMeter("Microsoft.AspNetCore.Diagnostics")
-                    .AddMeter("System.Net.NameResolution")
-                    .AddMeter("System.Runtime")
-                    .AddMeter("Microsoft.Extensions.Diagnostics.HealthChecks")
-                    .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
-                    .AddMeter("Microsoft.Extensions.Hosting")
-                    .AddMeter("System.Http")
-                    */
-                    .AddPrometheusExporter()
-                    )
-                .WithTracing(tracing =>
-                {
-                    tracing.AddSource("WebDemo");
-                    tracing.AddSource("MassTransit");
-                    tracing.AddAspNetCoreInstrumentation();
-                    tracing.AddHttpClientInstrumentation();
-                    tracing.AddOtlpExporter(opt =>
-                    {
-                        opt.Endpoint = new Uri("http://192.168.0.47:10001/ingest/otlp/v1/traces");
-                        opt.Protocol = OtlpExportProtocol.HttpProtobuf;
-                        opt.Headers = "X-Seq-ApiKey=7IcnLMHBbZxPx03s2Plb";
-                    });
-                });
+            builder.Services.AddApplicationOpenTelemetry("WebDemo", "7IcnLMHBbZxPx03s2Plb");
             
             builder.Services.AddHealthChecks();
             {
