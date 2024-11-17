@@ -155,11 +155,19 @@ public static class DependencyInjection
                 tracing.AddSource("MassTransit");
                 tracing.AddAspNetCoreInstrumentation();
                 tracing.AddHttpClientInstrumentation();
+                /*
                 tracing.AddOtlpExporter(opt =>
                 {
                     opt.Endpoint = new Uri("http://192.168.0.47:10001/ingest/otlp/v1/traces");
                     opt.Protocol = OtlpExportProtocol.HttpProtobuf;
                     opt.Headers = $"X-Seq-ApiKey={seqApiKey}";
+                });
+                */
+                tracing.AddOtlpExporter(opt =>
+                {
+                    opt.Endpoint = new Uri("http://192.168.0.47:4317");
+                    opt.Protocol = OtlpExportProtocol.Grpc;
+                    opt.Headers = $"X-Scope-OrgID={serviceName}";
                 });
             });
         return services;
