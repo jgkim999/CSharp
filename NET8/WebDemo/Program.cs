@@ -28,10 +28,16 @@ internal class Program
             .Build();
 
         Log.Logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(configuration)           .CreateLogger();
+            .ReadFrom.Configuration(configuration)
+            .CreateLogger();
         try
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Logging.AddOpenTelemetry(x =>
+            {
+                x.IncludeScopes = true;
+                x.IncludeFormattedMessage = true;
+            });
             builder.Services.AddSerilog();
 
             builder.Services.AddApplicationOpenTelemetry("WebDemo", "7IcnLMHBbZxPx03s2Plb");

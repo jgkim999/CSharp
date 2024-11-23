@@ -6,6 +6,11 @@ namespace WebDemo.Application.WeatherService;
 
 public class WeatherRequest : IRequest<IEnumerable<WeatherForecast>>
 {
+    public string ParentId { get; set; }
+    public WeatherRequest(string parentId)
+    {
+        ParentId = parentId;
+    }
 }
 
 public class WeatherQueryHandler : IRequestHandler<WeatherRequest, IEnumerable<WeatherForecast>>
@@ -22,6 +27,7 @@ public class WeatherQueryHandler : IRequestHandler<WeatherRequest, IEnumerable<W
     public async Task<IEnumerable<WeatherForecast>> Handle(WeatherRequest request, CancellationToken cancellationToken)
     {
         using var myActivity = _activityManager.StartActivity(nameof(WeatherQueryHandler));
-        return await _repo.GetAsync();
+        myActivity?.SetParentId(request.ParentId);
+        return await _repo.GetAsync(request.ParentId);
     }
 }

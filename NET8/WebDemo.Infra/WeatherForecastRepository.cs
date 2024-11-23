@@ -19,10 +19,10 @@ public class WeatherForecastRepository : IWeatherForecastRepository
         _activityManager = activityManager;
     }
 
-    public async Task<IEnumerable<WeatherForecast>> GetAsync()
+    public async Task<IEnumerable<WeatherForecast>> GetAsync(string parentId)
     {
         using var myActivity = _activityManager.StartActivity(nameof(WeatherForecastRepository), ActivityKind.Internal);
-        //myActivity?.SetParentId(activity?.Id);
+        myActivity?.SetParentId(parentId);
 
         await Task.CompletedTask;
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast

@@ -52,7 +52,7 @@ public class WeatherQueryMassTransitHandler :
 
     public async Task<IEnumerable<WeatherForecast>> Handle(WeatherMassTransitRequest request, CancellationToken cancellationToken)
     {
-        using var myActivity = _activityManager.StartActivity(nameof(WeatherQueryMassTransitHandler), ActivityKind.Producer, request.TraceId);
+        using var myActivity = _activityManager.StartActivity(nameof(WeatherQueryMassTransitHandler), request.TraceId);
 
         WeatherRabbitMqRequest req = new WeatherRabbitMqRequest(request.TraceId);
         // _bus.Request<WeatherRabbitMqRequest, IEnumerable<WeatherForecast>>(req, cancellationToken);
@@ -74,11 +74,10 @@ public class WeatherRabbitMqConsumer : IConsumer<WeatherRabbitMqRequest>
 
     public async Task Consume(ConsumeContext<WeatherRabbitMqRequest> context)
     {
-        GlobalLogger.GetLogger<WeatherRabbitMqConsumer>().Information("TraceId:{traceId}", context.Message.TraceId);
-
-        using var activity = _activityManager.StartActivity(nameof(WeatherRabbitMqConsumer), ActivityKind.Server, context.Message.TraceId);
-
-        var x = await _repo.GetAsync();
+        using var activity = _activityManager.StartActivity(nameof(WeatherRabbitMqConsumer), context.Message.TraceId);
+        activity?.SetParentId(context.Message.TraceId);
+        GlobalLogger.GetLogger<WeatherRabbitMqConsumer>(activity).Information("RabbitMq consumer");
+        var x = await _repo.GetAsync(activity?.TraceId.ToString());
         await context.RespondAsync(new WeatherRabbitMqResponse()
         {
             WeatherForecasts = x.ToList()

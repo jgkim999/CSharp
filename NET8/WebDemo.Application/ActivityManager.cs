@@ -32,7 +32,16 @@ public class ActivityManager
         return activity;
     }
 
-    public Activity? StartActivity(string name, ActivityKind kind, string parentId)
+    public Activity? StartActivity(string name, string parentId)
+    {
+        GlobalLogger.GetLogger<ActivityManager>().Verbose("ActivityManager.StartActivity is called. {name}, {parentId}", name, parentId);
+
+        Activity? activity = _activitySource.StartActivity(name);
+        activity?.SetParentId(parentId);
+        return activity;
+    }
+
+    public Activity? StartActivity(string name, string parentId, ActivityKind kind)
     {
         GlobalLogger.GetLogger<ActivityManager>().Verbose("ActivityManager.StartActivity is called. {name}, {kind} {parentId}", name, kind, parentId);
 
