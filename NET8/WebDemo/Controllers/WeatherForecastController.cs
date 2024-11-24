@@ -77,11 +77,10 @@ namespace WebDemo.Controllers
             activity?.SetParentId(traceId);
             activity?.SetTag("http.method", "GET");
             activity?.SetTag("http.route", "/WeatherForecast/MassTransit");
-            activity?.SetTag("http.status_code", 200);
 
             GlobalLogger.GetLogger<WeatherForecastController>(activity).Information("traceId:{traceId}", traceId);
 
-            return await _mediator.Send(new WeatherMassTransitRequest(traceId));
+            return await _mediator.Send(new WeatherMassTransitRequest(activity?.TraceId.ToString()));
         }
 
         [HttpGet]

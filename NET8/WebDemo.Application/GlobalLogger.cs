@@ -31,7 +31,7 @@ public static class GlobalLogger
             .ForContext("Filename", Path.GetFileName(filePath))
             .ForContext("LineNumber", lineNumber);
         if (activity is not null)
-            logger.ForContext("TraceId", activity.TraceId.ToHexString());
+            logger.ForContext("ParentId", activity.TraceId.ToHexString());
         return logger;
     }
 
@@ -60,7 +60,7 @@ public static class GlobalLogger
             .ForContext("Filename", Path.GetFileName(filePath))
             .ForContext("LineNumber", lineNumber);
         if (activity is not null)
-            logger.ForContext("TraceId", activity.TraceId.ToHexString());
+            logger.ForContext("ParentId", activity.TraceId.ToHexString());
         return logger;
     }
 }

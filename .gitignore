@@ -61,3 +61,7 @@ NET8/MassTransitPub/obj
 NET8/MassTransitPub/logs
 NET8/MassTransitPub/Properties/launchSettings.json
 *.user
+NET8/WebDemoConsumer/bin
+NET8/WebDemoConsumer/obj/Debug
+NET8/WebDemoConsumer/obj
+NET8/WebDemoConsumer/Logs

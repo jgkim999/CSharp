@@ -12,11 +12,11 @@ namespace WebDemo.Application.WeatherService;
 
 public class WeatherMassTransitRequest : IRequest<IEnumerable<WeatherForecast>>
 {
-    public string TraceId { get; set; }
+    public string ParentId { get; set; }
 
-    public WeatherMassTransitRequest(string traceId)
+    public WeatherMassTransitRequest(string parentId)
     {
-        TraceId = traceId;
+        ParentId = parentId;
     }
 }
 
@@ -52,9 +52,10 @@ public class WeatherQueryMassTransitHandler :
 
     public async Task<IEnumerable<WeatherForecast>> Handle(WeatherMassTransitRequest request, CancellationToken cancellationToken)
     {
-        using var myActivity = _activityManager.StartActivity(nameof(WeatherQueryMassTransitHandler), request.TraceId);
+        using var activity = _activityManager.StartActivity(nameof(WeatherQueryMassTransitHandler));
+        activity?.SetParentId(request.ParentId);
 
-        WeatherRabbitMqRequest req = new WeatherRabbitMqRequest(request.TraceId);
+        WeatherRabbitMqRequest req = new WeatherRabbitMqRequest(activity.TraceId.ToString());
         // _bus.Request<WeatherRabbitMqRequest, IEnumerable<WeatherForecast>>(req, cancellationToken);
         var response = await _client.GetResponse<WeatherRabbitMqResponse>(req, cancellationToken, TimeSpan.FromSeconds(5));
         return response.Message.WeatherForecasts;

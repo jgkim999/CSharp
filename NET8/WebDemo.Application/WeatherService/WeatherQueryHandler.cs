@@ -26,8 +26,8 @@ public class WeatherQueryHandler : IRequestHandler<WeatherRequest, IEnumerable<W
 
     public async Task<IEnumerable<WeatherForecast>> Handle(WeatherRequest request, CancellationToken cancellationToken)
     {
-        using var myActivity = _activityManager.StartActivity(nameof(WeatherQueryHandler));
-        myActivity?.SetParentId(request.ParentId);
-        return await _repo.GetAsync(request.ParentId);
+        using var activity = _activityManager.StartActivity(nameof(WeatherQueryHandler));
+        activity?.SetParentId(request.ParentId);
+        return await _repo.GetAsync(activity?.TraceId.ToString());
     }
 }

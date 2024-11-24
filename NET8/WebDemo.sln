@@ -24,6 +24,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "솔루션 항목", "솔루�
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MassTransitPub", "MassTransitPub\MassTransitPub.csproj", "{94CFA5E0-B46B-497C-B575-27C192C07226}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebDemoConsumer", "WebDemoConsumer\WebDemoConsumer.csproj", "{5B98FFAC-8725-4662-9D29-A9D78B49DA25}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{94CFA5E0-B46B-497C-B575-27C192C07226}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94CFA5E0-B46B-497C-B575-27C192C07226}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94CFA5E0-B46B-497C-B575-27C192C07226}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B98FFAC-8725-4662-9D29-A9D78B49DA25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B98FFAC-8725-4662-9D29-A9D78B49DA25}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B98FFAC-8725-4662-9D29-A9D78B49DA25}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B98FFAC-8725-4662-9D29-A9D78B49DA25}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

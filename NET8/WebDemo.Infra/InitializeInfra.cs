@@ -3,7 +3,7 @@ using WebDemo.Application.Repositories;
 
 namespace WebDemo.Infra;
 
-public static class DependencyInjection
+public static class InitializeInfra
 {
     public static IServiceCollection AddInfraServices(this IServiceCollection services)
     {

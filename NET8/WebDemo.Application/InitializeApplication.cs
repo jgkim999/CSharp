@@ -1,22 +1,26 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
+using MassTransit;
+
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-using System.Collections;
-using System.Net;
-using System.Net.Sockets;
-using MassTransit;
-using WebDemo.Application.WeatherService;
-using System.Reflection;
-using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
+using System.Collections;
+using System.Net;
+using System.Net.Sockets;
+using System.Reflection;
+
+using WebDemo.Application.WeatherService;
+using WebDemo.Domain.Configs;
+
 namespace WebDemo.Application;
 
-public static class DependencyInjection
+public static class InitializeApplication
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, string name, string version)
     {
@@ -28,24 +32,7 @@ public static class DependencyInjection
         var entryAssembly = Assembly.GetExecutingAssembly();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(entryAssembly));
-
-        services.AddMassTransit(x =>
-        {
-            //x.AddConsumers(entryAssembly);
-            x.AddConsumer<WeatherRabbitMqConsumer>();
-
-            x.UsingRabbitMq((context, cfg) =>
-            {
-                cfg.Host("192.168.0.47", "/web_dev", h =>
-                {
-                    h.Username("test");
-                    h.Password("1234");
-                });
-
-                cfg.ConfigureEndpoints(context);
-            });
-        });
-
+        
         //services.AddHostedService<Worker>();
 
         //services.AddAutoMapper(Assembly.GetExecutingAssembly());
@@ -129,6 +116,12 @@ public static class DependencyInjection
         string serviceName,
         string seqApiKey)
     {
+        var jaegerConfig = services.GetConfiguration().GetSection("Jaeger").Get<JaegerConfig>();
+        if (jaegerConfig is null)
+            throw new ArgumentNullException("Jaeger config is null");
+
+        services.AddSingleton(jaegerConfig);
+
         services.AddOpenTelemetry()
             .ConfigureResource(r => r.AddService(serviceName))
             .WithMetrics(metrics => metrics
@@ -136,17 +129,16 @@ public static class DependencyInjection
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
                 .AddProcessInstrumentation()
-                /*
-                .AddMeter("Microsoft.AspNetCore.Hosting")
-                .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
-                .AddMeter("Microsoft.AspNetCore.Diagnostics")
-                .AddMeter("System.Net.NameResolution")
-                .AddMeter("System.Runtime")
-                .AddMeter("Microsoft.Extensions.Diagnostics.HealthChecks")
-                .AddMeter("Microsoft.Extensions.Diagnostics.ResourceMonitoring")
-                .AddMeter("Microsoft.Extensions.Hosting")
-                .AddMeter("System.Http")
-                */
+                .AddMeter([
+                    "Microsoft.AspNetCore.Hosting",
+                    "Microsoft.AspNetCore.Server.Kestrel",
+                    "Microsoft.AspNetCore.Diagnostics",
+                    "System.Net.NameResolution",
+                    "System.Runtime",
+                    "Microsoft.Extensions.Diagnostics.HealthChecks",
+                    "Microsoft.Extensions.Diagnostics.ResourceMonitoring",
+                    "Microsoft.Extensions.Hosting",
+                    "System.Http"])
                 .AddPrometheusExporter()
             )
             .WithTracing(tracing =>
@@ -159,7 +151,7 @@ public static class DependencyInjection
                 // Jaeger
                 tracing.AddOtlpExporter(opt =>
                 {
-                    opt.Endpoint = new Uri("http://192.168.0.47:4417");
+                    opt.Endpoint = new Uri(jaegerConfig.AgentHost);
                     //opt.Protocol = OtlpExportProtocol.HttpProtobuf;
                 });
                 /*

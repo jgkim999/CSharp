@@ -1,5 +1,3 @@
-using Quartz;
-
 using Serilog;
 
 using WebDemo.Application;
@@ -21,6 +19,7 @@ internal class Program
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
             .CreateLogger();
+
         try
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -32,8 +31,8 @@ internal class Program
             builder.Services.AddSerilog();
 
             // Seq
-            builder.Services.AddApplicationOpenTelemetry("WebDemo", "7IcnLMHBbZxPx03s2Plb");
-            
+            builder.Services.AddApplicationOpenTelemetry("WebDemoConsumer", "t2lnjaPH8UrzSxRgwcCZ");
+
             builder.Services.AddHealthChecks();
             {
                 builder.WebHost.ConfigureKestrel((context, serverOptions) =>
@@ -46,25 +45,9 @@ internal class Program
             }
 
             // Add services to the container.
-            builder.Services.AddQuartz();
-            builder.Services.AddQuartzHostedService(opt => { opt.WaitForJobsToComplete = true; });
 
-            // Consul
-            {
-                /*
-                var consulConfig = builder.Configuration.GetSection("Consul").Get<ConsulConfig>();
-                builder.Services.AddSingleton<IConsulClient, ConsulClient>(p => new ConsulClient(
-                    e =>
-                {
-                    e.Address = new Uri(consulConfig.Host);
-                }));
-                builder.Services.AddSingleton(consulConfig);
-                builder.Services.AddSingleton<IHostedService, ConsulHostedService>();
-                */
-            }
-            
-            builder.Services.AddApplicationServices("WebDemo", "1.0.0");
-            builder.Services.AddMassTransItProducer();
+            builder.Services.AddApplicationServices("WebDemoConsumer", "1.0.0");
+            builder.Services.AddMassTransItConsumer();
             builder.Services.AddInfraServices();
 
             builder.Services.AddControllers();
@@ -83,6 +66,13 @@ internal class Program
                 app.UseSwaggerUI();
             //}
 
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
+
             app.UseAuthorization();
 
             app.MapControllers();
@@ -90,7 +80,7 @@ internal class Program
             app.MapHealthChecks("/healthz");
 
             app.MapPrometheusScrapingEndpoint();
-            
+
             app.Run();
         }
         catch (Exception e)

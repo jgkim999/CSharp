@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-using WebDemo.Domain.Models;
+﻿using WebDemo.Domain.Models;
 
 namespace WebDemo.Application.Repositories;
 
