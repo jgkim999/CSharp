@@ -1,5 +1,8 @@
 using Microsoft.Net.Http.Headers;
 
+using StRunner.Exceptions;
+using StRunner.Services;
+
 internal class Program
 {
     public static void Main(string[] args)
@@ -12,6 +15,10 @@ internal class Program
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+
+        builder.Services.AddExceptionHandler<CustomExceptionHandler>();
+
+        builder.Services.AddSingleton<K6Service>();
 
         // Add services to the container.
         var app = builder.Build();

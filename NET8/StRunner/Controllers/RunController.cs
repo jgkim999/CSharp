@@ -3,6 +3,8 @@
 using RestSharp;
 
 using System.Threading;
+using StRunner.Models.K6;
+using StRunner.Services;
 using StRunner.Utils;
 
 namespace StRunner.Controllers
@@ -12,13 +14,12 @@ namespace StRunner.Controllers
     public class RunController : ControllerBase
     {
         private readonly ILogger<RunController> _logger;
-        private readonly RestClient _client;
+        private readonly K6Service _k6Service;
 
-        public RunController(ILogger<RunController> logger)
+        public RunController(ILogger<RunController> logger, K6Service k6Service)
         {
             _logger = logger;
-            var options = new RestClientOptions("http://localhost:6565/");
-            _client = new RestClient(options, useClientFactory: true);
+            _k6Service = k6Service;
         }
 
         [HttpGet]
@@ -78,7 +79,8 @@ namespace StRunner.Controllers
                     */
                     //result += proc.StandardOutput.ReadToEnd();
                     //result += proc.StandardError.ReadToEnd();
-                    //proc.WaitForExit();
+                    proc.WaitForExit();
+                    _logger.LogInformation("Exit code: {ExitCode}", proc.ExitCode);
                 }
 
                 return result;
@@ -90,11 +92,39 @@ namespace StRunner.Controllers
         [HttpGet]
         public async Task<IActionResult> StatusAsync()
         {
-            var request = new RestRequest("v1/status", Method.Get);
-            request.AddHeader("Accept", "application/json");
+            try
+            {
+                var result = await _k6Service.GetStatusAsync();
+                if (result.IsSuccess)
+                {
+                    return Ok(result.Value);
+                }
+                return BadRequest(result.Reasons.Select(reason => reason.Message));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "k6 status error");
+                return BadRequest();
+            }
+        }
 
-            var res = await _client.GetAsync(request);
-            return Ok(res.Content);
+        [HttpPatch]
+        public async Task<IActionResult> StopAsync()
+        {
+            try
+            {
+                var result = await _k6Service.StopAsync();
+                if (result.IsSuccess)
+                {
+                    return Ok(result.Value);
+                }
+                return BadRequest(result.Reasons.Select(reason => reason.Message));
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "k6 status error");
+                return BadRequest();
+            }
         }
     }
 }
