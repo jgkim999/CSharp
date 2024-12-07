@@ -2,6 +2,9 @@
 
 using RestSharp;
 
+using System.Threading;
+using StRunner.Utils;
+
 namespace StRunner.Controllers
 {
     [Route("api/[controller]/[action]")]
@@ -34,10 +37,48 @@ namespace StRunner.Controllers
                     proc.StartInfo.RedirectStandardError = true;
                     proc.Start();
 
-                    result += proc.StandardOutput.ReadToEnd();
-                    result += proc.StandardError.ReadToEnd();
+                    while (!proc.StandardOutput.EndOfStream)
+                    {
+                        string line = proc.StandardOutput.ReadLine();
+                        _logger.LogInformation(line);
+                    }
+                    /*
+                    ProcessStream processStream = new ProcessStream();
+                    try
+                    {
+                        processStream.Read(proc);
 
-                    proc.WaitForExit();
+                        proc.WaitForExit();
+                        processStream.Stop();
+                        if (!proc.HasExited)
+                        {
+                            // OK, we waited until the timeout but it still didn't exit; just kill the process now
+                            //timedOut = true;
+                            try
+                            {
+                                proc.Kill();
+                                processStream.Stop();
+                            }
+                            catch
+                            {
+                            }
+                            proc.WaitForExit();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        proc.Kill();
+                        processStream.Stop();
+                        throw ex;
+                    }
+                    finally
+                    {
+                        processStream.Stop();
+                    }
+                    */
+                    //result += proc.StandardOutput.ReadToEnd();
+                    //result += proc.StandardError.ReadToEnd();
+                    //proc.WaitForExit();
                 }
 
                 return result;
