@@ -65,3 +65,6 @@ NET8/WebDemoConsumer/bin
 NET8/WebDemoConsumer/obj/Debug
 NET8/WebDemoConsumer/obj
 NET8/WebDemoConsumer/Logs
+NET8/StRunner/bin
+NET8/StRunner/obj
+NET8/StRunner/Properties/launchSettings.json
