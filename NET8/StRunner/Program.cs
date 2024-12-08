@@ -1,5 +1,3 @@
-using Microsoft.Net.Http.Headers;
-
 using StRunner.Exceptions;
 using StRunner.Services;
 
@@ -18,6 +16,8 @@ internal class Program
 
         builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
+        builder.Services.AddHealthChecks();
+
         builder.Services.AddSingleton<K6Service>();
 
         // Add services to the container.
@@ -33,6 +33,8 @@ internal class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.MapHealthChecks("/health");
 
         app.Run();  
     }
