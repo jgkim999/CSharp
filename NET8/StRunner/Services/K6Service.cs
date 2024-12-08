@@ -18,6 +18,89 @@ public class K6Service
         _client = new RestClient(options, useClientFactory: true);
     }
 
+    public async Task<Result> StartAsync(string jsName)
+    {
+        try
+        {
+            if (!File.Exists($"/app/k6/{jsName}"))
+            {
+                return Result.Fail($"File {jsName} not found");
+            }
+
+            await StopAsync();
+
+            Task.Run(() =>
+            {
+                string command = string.Format($"K6_WEB_DASHBOARD=true /app/k6/k6 run -o experimental-prometheus-rw /app/k6/{jsName}", jsName);
+                
+                string result = "";
+
+                using System.Diagnostics.Process k6Process = new System.Diagnostics.Process();
+                
+                k6Process.StartInfo.FileName = "/bin/bash";
+                k6Process.StartInfo.Arguments = "-c \" " + command + " \"";
+                k6Process.StartInfo.UseShellExecute = false;
+                k6Process.StartInfo.RedirectStandardOutput = true;
+                k6Process.StartInfo.RedirectStandardError = true;
+                k6Process.Start();
+
+                while (!k6Process.StandardOutput.EndOfStream)
+                {
+                    string? line = k6Process.StandardOutput.ReadLine();
+                    if (line != null)
+                        _logger.LogInformation(line);
+                }
+                /*
+                    ProcessStream processStream = new ProcessStream();
+                    try
+                    {
+                        processStream.Read(proc);
+
+                        proc.WaitForExit();
+                        processStream.Stop();
+                        if (!proc.HasExited)
+                        {
+                            // OK, we waited until the timeout but it still didn't exit; just kill the process now
+                            //timedOut = true;
+                            try
+                            {
+                                proc.Kill();
+                                processStream.Stop();
+                            }
+                            catch
+                            {
+                            }
+                            proc.WaitForExit();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        proc.Kill();
+                        processStream.Stop();
+                        throw ex;
+                    }
+                    finally
+                    {
+                        processStream.Stop();
+                    }
+                    */
+                //result += proc.StandardOutput.ReadToEnd();
+                //result += proc.StandardError.ReadToEnd();
+                k6Process.WaitForExit();
+                _logger.LogInformation("Exit code: {ExitCode}", k6Process.ExitCode);
+
+                return result;
+            });
+
+            return Result.Ok();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to stop k6");
+            return Result.Fail(e.Message);
+        }
+    }
+
     public async Task<Result<GetStatus>> GetStatusAsync()
     {
         try

@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-using RestSharp;
-
-using System.Threading;
-using StRunner.Models.K6;
+using StRunner.Models.Api;
 using StRunner.Services;
-using StRunner.Utils;
 
 namespace StRunner.Controllers
 {
@@ -25,67 +21,27 @@ namespace StRunner.Controllers
         [HttpGet]
         public async Task<IActionResult> RunAsync()
         {
-            Task.Run(() =>
+            var result = await _k6Service.StartAsync("test.js");
+            if (!result.IsSuccess)
             {
-                string command = "K6_WEB_DASHBOARD=true /app/k6/k6 run -o experimental-prometheus-rw /app/k6/test.js";
-                string result = "";
-                using (System.Diagnostics.Process proc = new System.Diagnostics.Process())
-                {
-                    proc.StartInfo.FileName = "/bin/bash";
-                    proc.StartInfo.Arguments = "-c \" " + command + " \"";
-                    proc.StartInfo.UseShellExecute = false;
-                    proc.StartInfo.RedirectStandardOutput = true;
-                    proc.StartInfo.RedirectStandardError = true;
-                    proc.Start();
+                return BadRequest(result.Reasons.Select(reason => reason.Message));
+            }
+            return Ok("Run");
+        }
 
-                    while (!proc.StandardOutput.EndOfStream)
-                    {
-                        string line = proc.StandardOutput.ReadLine();
-                        _logger.LogInformation(line);
-                    }
-                    /*
-                    ProcessStream processStream = new ProcessStream();
-                    try
-                    {
-                        processStream.Read(proc);
+        [HttpPost]
+        public async Task<IActionResult> RunAsync([FromBody] RunRequest req)
+        {
+            if (string.IsNullOrEmpty(req.JsName))
+            {
+                return BadRequest("JsName is required");
+            }
 
-                        proc.WaitForExit();
-                        processStream.Stop();
-                        if (!proc.HasExited)
-                        {
-                            // OK, we waited until the timeout but it still didn't exit; just kill the process now
-                            //timedOut = true;
-                            try
-                            {
-                                proc.Kill();
-                                processStream.Stop();
-                            }
-                            catch
-                            {
-                            }
-                            proc.WaitForExit();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        proc.Kill();
-                        processStream.Stop();
-                        throw ex;
-                    }
-                    finally
-                    {
-                        processStream.Stop();
-                    }
-                    */
-                    //result += proc.StandardOutput.ReadToEnd();
-                    //result += proc.StandardError.ReadToEnd();
-                    proc.WaitForExit();
-                    _logger.LogInformation("Exit code: {ExitCode}", proc.ExitCode);
-                }
-
-                return result;
-            });
-            await Task.CompletedTask;
+            var result = await _k6Service.StartAsync(req.JsName);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(result.Reasons.Select(reason => reason.Message));
+            }
             return Ok("Run");
         }
 
@@ -108,7 +64,7 @@ namespace StRunner.Controllers
             }
         }
 
-        [HttpPatch]
+        [HttpGet]
         public async Task<IActionResult> StopAsync()
         {
             try
