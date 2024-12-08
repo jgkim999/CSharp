@@ -3,6 +3,7 @@
 # 이 스테이지는 VS에서 빠른 모드로 실행할 때 사용됩니다(디버그 구성의 기본값).
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER $APP_UID
+ENV TZ=Asia/Seoul
 ENV K6_WEB_DASHBOARD=true
 ENV K6_PROMETHEUS_RW_SERVER_URL=http://192.168.0.47:9090/api/v1/write
 ENV K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true

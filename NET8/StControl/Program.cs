@@ -6,6 +6,7 @@ using OpenTelemetry.Resources;
 using Serilog;
 
 using StControl.Components;
+using StControl.Services;
 
 internal class Program
 {
@@ -57,6 +58,8 @@ internal class Program
                     ])
                     .AddPrometheusExporter()
                 );
+
+            builder.Services.AddHostedService<EcsBackgroundService>();
 
             var app = builder.Build();
 
