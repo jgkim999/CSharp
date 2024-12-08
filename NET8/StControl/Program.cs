@@ -1,3 +1,5 @@
+using MudBlazor.Services;
+
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 
@@ -29,6 +31,8 @@ internal class Program
             builder.Services.AddSerilog();
 
             builder.Services.AddHealthChecks();
+
+            builder.Services.AddMudServices();
 
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
