@@ -1,9 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using GetStartedApp.ViewModels;
+using BasicMvvmSample.ViewModels;
 
-namespace GetStartedApp;
+namespace BasicMvvmSample;
 
 public class ViewLocator : IDataTemplate
 {
