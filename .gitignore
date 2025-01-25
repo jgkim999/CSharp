@@ -73,3 +73,7 @@ NET8/StControl/bin
 NET8/StControl/obj
 NET8/StControl/Properties/launchSettings.json
 NET8/StControl/Logs
+NET9/AvaloniaUI/BasicMvvmSample/bin
+NET9/MudBlazorDemo/bin
+NET9/AvaloniaUI/BasicMvvmSample/obj
+NET9/MudBlazorDemo/obj
