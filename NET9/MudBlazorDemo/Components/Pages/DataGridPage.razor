@@ -1,0 +1,64 @@
+﻿@page "/datagrid"
+<MudGrid Spacing="1" Justify="Justify.FlexStart">
+    <MudItem xs="12">
+        <MudPaper Class="pa-2">
+            <MudStack Row="true">
+                <MudPaper Class="border-l-0 border-t-0 border-b-0 border-r-0 align-self-center"
+                          Elevation="0">
+                    <MudText Align="Align.Left" Typo="Typo.h6">
+                        DataGrid
+                    </MudText>
+                </MudPaper>
+                <MudPaper Class="border-l-0 border-t-0 border-b-0 border-r-0 align-self-center"
+                          Elevation="0">
+                    <MudText Align="Align.Left" Typo="Typo.body1">
+                        : <MudLink Href="https://mudblazor.com/components/datagrid#default-data-grid" Target="_blank">Represents a sortable, filterable data grid with multiselection and pagination.</MudLink>
+                    </MudText>
+                </MudPaper>
+            </MudStack>
+            <br/>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudPaper Class="border-l-0 border-t-0 border-b-0 border-r-0"
+                              Outlined="false"
+                              Square="true"
+                              Elevation="0">
+                        <MudText Align="Align.Left">
+                            <b>Filled</b>
+                        </MudText>
+                        <MudDataGrid Items="@employees"
+                                     Filterable="false"
+                                     SortMode="@SortMode.Single"
+                                     HeaderClass=""
+                                     Bordered="false"
+                                     Dense="true"
+                                     Elevation="0"
+                                     Groupable="false">
+                            <Columns>
+                                <PropertyColumn Property="x => x.Name"
+                                                HeaderStyle="border-right-width: 1px !important;"
+                                                Style="border-bottom-width: 0 !important;" />
+                                <PropertyColumn Property="x => x.Position"
+                                                HeaderStyle="border-right-width: 1px !important;"/>
+                                <PropertyColumn Property="x => x.YearsEmployed"
+                                                Title="Years Employed"
+                                                HeaderStyle="border-right-width: 1px !important;"/>
+                                <PropertyColumn Property="x => x.Salary"
+                                                Format="C"
+                                                HeaderStyle="border-right-width: 1px !important;"/>
+                                <TemplateColumn CellClass="d-flex justify-end">
+                                    <CellTemplate>
+                                        <MudStack Row>
+                                            <MudRating Size="@Size.Small" SelectedValue="@context.Item.Rating"/>
+                                            <MudButton Size="@Size.Small" Variant="@Variant.Outlined" Color="@Color.Primary">Hire</MudButton>
+                                        </MudStack>
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
