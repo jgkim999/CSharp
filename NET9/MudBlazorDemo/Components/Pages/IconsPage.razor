@@ -24,7 +24,9 @@
                               Outlined="false"
                               Square="true"
                               Elevation="0">
-                        <MudText Align="Align.Left"><b>MudIcon</b> : The MudIcon component shows the specified icon with the chosen style. You can use the Title attribute to improve accessibility with screen readers and show a tooltip on hover.</MudText>
+                        <MudText Align="Align.Left">
+                            <b>MudIcon</b> : <MudLink Href="https://mudblazor.com/features/icons#icons" Target="_blank">Over 1800 Material Design icons and a few custom ones.</MudLink>
+                        </MudText>
                         <MudIcon Icon="@Icons.Material.Filled.Favorite" Title="Favorite"/>
                         <MudIcon Icon="@Icons.Material.Filled.Api" Title="API"/>
                         <MudIcon Icon="@Icons.Material.Filled.AddCircle" Title="Add"/>
@@ -57,36 +59,40 @@
                               Outlined="false"
                               Square="true"
                               Elevation="0">
-                        <MudText Align="Align.Left"><b>CSS Class-Based Font Icons</b> : Most font icon libraries such as Font Awesome use two CSS classes for each icon. Pass these to the Icon parameter using the syntax icon-font-class icon-class.</MudText>
+                        <MudText Align="Align.Left">
+                            <b>CSS Class-Based Font Icons</b>
+                            <MudLink Href="https://fontawesome.com/search" Target="_blank">fontawesome</MudLink>
+                        </MudText>
                         <MudIcon Icon="fas fa-database" Color="Color.Primary"/>
                         <MudIcon Icon="fas fa-home" Color="Color.Secondary"/>
                         <MudIcon Icon="fas fa-search"/>
                         <MudIconButton Icon="fas fa-sync-alt"/>
-                        <MudButton StartIcon="fas fa-paper-plane" Color="Color.Info" Variant="Variant.Filled">Send</MudButton>
+                        <MudButton StartIcon="fas fa-paper-plane" Color="Color.Info" Variant="Variant.Filled">Send
+                        </MudButton>
                     </MudPaper>
                 </MudItem>
                 <MudItem xs="4">
-                    <MudPaper Class="border-l-0 border-t-0 border-b-0 border-r-2"
+                    <MudPaper Class="border-l-0 border-t-0 border-b-0 border-r-0"
                               Outlined="false"
                               Square="true"
                               Elevation="0">
-                        <MudPaper Class="border-l-0 border-t-0 border-b-0 border-r-2"
-                                  Outlined="false"
-                                  Square="true"
-                                  Elevation="0">
-                            <MudText Align="Align.Left"><b>Text-Based Font Icons</b> : Most font icon libraries such as Font Awesome use two CSS classes for each icon. Pass these to the Icon parameter using the syntax icon-font-class icon-class.</MudText>
-                            <MudIcon Icon="material-symbols-outlined/database" Color="Color.Primary"/>
-                            <MudIcon Icon="material-symbols-outlined/home" Color="Color.Secondary"/>
-                            <MudIcon Icon="material-symbols-outlined/search"/>
-                            <MudIconButton Icon="material-symbols-outlined/refresh" aria-label="refresh"/>
-                            <MudButton StartIcon="material-symbols-outlined/send" Color="Color.Info" Variant="Variant.Filled">Send</MudButton>
-                        </MudPaper>
+                        <MudText Align="Align.Left">
+                            <b>Text-Based Font Icons</b>
+                            <MudLink Href="https://fonts.google.com/icons?icon.query=database" Target="_blank">Google Fonts</MudLink>
+                        </MudText>
+                        <MudIcon Icon="material-symbols-outlined/database" Color="Color.Primary"/>
+                        <MudIcon Icon="material-symbols-outlined/home" Color="Color.Secondary"/>
+                        <MudIcon Icon="material-symbols-outlined/search"/>
+                        <MudIconButton Icon="material-symbols-outlined/refresh" aria-label="refresh"/>
+                        <MudButton StartIcon="material-symbols-outlined/send" Color="Color.Info"
+                                   Variant="Variant.Filled">Send
+                        </MudButton>
                     </MudPaper>
                 </MudItem>
             </MudGrid>
         </MudPaper>
     </MudItem>
-    <MudFlexBreak />
+    <MudFlexBreak/>
     <MudItem xs="12">
     </MudItem>
 </MudGrid>
