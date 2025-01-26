@@ -1,0 +1,45 @@
+﻿@page "/popover"
+@using MudBlazorDemo.Components.UI
+
+<MudGrid Spacing="1" Justify="Justify.FlexStart">
+    <MudItem xs="12">
+        <MudPaper Class="pa-2">
+            <MudStack Row="true">
+                <MudPaper Class="border-l-0 border-t-0 border-b-0 border-r-0 align-self-center"
+                          Elevation="0">
+                    <MudText Align="Align.Left" Typo="Typo.h6">
+                        Popover
+                    </MudText>
+                </MudPaper>
+                <MudPaper Class="border-l-0 border-t-0 border-b-0 border-r-0 align-self-center"
+                          Elevation="0">
+                    <MudLink Href="https://mudblazor.com/components/popover" Target="_blank">
+                        Displays content as a window over other content.
+                    </MudLink>
+                </MudPaper>
+            </MudStack>
+            <br/>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudPaper Class="border-l-0 border-t-0 border-b-0 border-r-0"
+                              Outlined="false"
+                              Square="true"
+                              Elevation="0">
+                        <MudText Align="Align.Left">
+                            <b>Popover</b>
+                            <ButtonCopyClipboard CopyText="sdfsdf"/>
+                        </MudText>
+                        <MudStack Row="true">
+                            <MudTextField @bind-Value="TextValue"
+                                          Label="Standard"
+                                          Variant="Variant.Text"
+                                          Margin="Margin.Dense">
+                            </MudTextField>
+                            <ButtonCopyClipboard CopyText="sdfsdf" Size="Size.Small" />
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
