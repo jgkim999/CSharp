@@ -33,20 +33,26 @@
                                      Bordered="false"
                                      Dense="true"
                                      Elevation="0"
+                                     RowStyle=""
+                                     Hover="true"
                                      Groupable="false">
                             <Columns>
                                 <PropertyColumn Property="x => x.Name"
                                                 HeaderStyle="border-right-width: 1px !important;"
-                                                Style="border-bottom-width: 0 !important;" />
+                                                CellStyle="border-bottom-style: none !important;"/>
                                 <PropertyColumn Property="x => x.Position"
-                                                HeaderStyle="border-right-width: 1px !important;"/>
+                                                HeaderStyle="border-right-width: 1px !important;"
+                                                CellStyle="border-bottom-style: none !important;"/>
                                 <PropertyColumn Property="x => x.YearsEmployed"
                                                 Title="Years Employed"
-                                                HeaderStyle="border-right-width: 1px !important;"/>
+                                                HeaderStyle="border-right-width: 1px !important;"
+                                                CellStyle="border-bottom-style: none !important;"/>
                                 <PropertyColumn Property="x => x.Salary"
                                                 Format="C"
-                                                HeaderStyle="border-right-width: 1px !important;"/>
-                                <TemplateColumn CellClass="d-flex justify-end">
+                                                HeaderStyle="border-right-width: 1px !important;"
+                                                CellStyle="border-bottom-style: none !important;"/>
+                                <TemplateColumn CellClass="d-flex justify-end"
+                                                CellStyle="border-bottom-style: none !important;">
                                     <CellTemplate>
                                         <MudStack Row>
                                             <MudRating Size="@Size.Small" SelectedValue="@context.Item.Rating"/>
