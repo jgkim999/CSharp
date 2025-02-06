@@ -91,3 +91,7 @@ NET9/Demo.Infra/obj
 NET9/Demo.xUnitTest/bin
 NET9/Demo.xUnitTest/obj
 NET8/qodana.yaml
+NET9/Demo.Application/bin
+NET9/Demo.Application/obj
+NET9/Demo.WebApi/bin
+NET9/Demo.WebApi/obj
