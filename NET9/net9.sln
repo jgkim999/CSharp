@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudBlazorDemo", "MudBlazorD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenApiScalar", "OpenApiScalar\OpenApiScalar.csproj", "{778603AD-812A-4D8E-A17E-C51D6BEBB12F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.Infra", "Demo.Infra\Demo.Infra.csproj", "{71BCE225-41B4-43F0-A87E-2BA886C71212}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.xUnitTest", "Demo.xUnitTest\Demo.xUnitTest.csproj", "{E0FB4458-4863-4BF2-82D3-701B85FB86AB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{778603AD-812A-4D8E-A17E-C51D6BEBB12F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{778603AD-812A-4D8E-A17E-C51D6BEBB12F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{778603AD-812A-4D8E-A17E-C51D6BEBB12F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71BCE225-41B4-43F0-A87E-2BA886C71212}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71BCE225-41B4-43F0-A87E-2BA886C71212}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71BCE225-41B4-43F0-A87E-2BA886C71212}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71BCE225-41B4-43F0-A87E-2BA886C71212}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0FB4458-4863-4BF2-82D3-701B85FB86AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0FB4458-4863-4BF2-82D3-701B85FB86AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0FB4458-4863-4BF2-82D3-701B85FB86AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0FB4458-4863-4BF2-82D3-701B85FB86AB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -86,3 +86,8 @@ NET9/AvaloniaUI/BasicMvvmSample/obj
 NET9/OpenApiScalar/bin
 NET9/OpenApiScalar/obj/Debug
 NET9/OpenApiScalar/obj
+NET9/Demo.Infra/bin
+NET9/Demo.Infra/obj
+NET9/Demo.xUnitTest/bin
+NET9/Demo.xUnitTest/obj
+NET8/qodana.yaml
