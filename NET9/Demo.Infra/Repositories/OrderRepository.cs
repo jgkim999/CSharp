@@ -35,21 +35,4 @@ public class OrderRepository
 
         return outputParamValue;
     }
-
-    public async Task<int> GetOrderCount2(string state)
-    {
-        await using MySqlConnection conn = new(_connectionString);
-        await conn.OpenAsync();
-
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "GetOrderCountByStatus";
-        cmd.CommandType = CommandType.StoredProcedure;
-
-        cmd.Parameters.Add(new MySqlParameter("@state", MySqlDbType.VarChar) { Value = state });
-        cmd.Parameters.Add(new MySqlParameter("@total", MySqlDbType.Int32) { Direction = ParameterDirection.Output });
-
-        await cmd.ExecuteScalarAsync();
-
-        return (int)cmd.Parameters["@total"].Value;
-    }
 }
