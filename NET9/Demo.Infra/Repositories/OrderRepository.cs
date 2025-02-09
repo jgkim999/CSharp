@@ -1,5 +1,7 @@
 ﻿using Dapper;
 
+using FluentResults;
+
 using MySqlConnector;
 
 using System.Data;
@@ -15,7 +17,7 @@ public class OrderRepository
         _connectionString = connectionString;
     }
 
-    public async Task<int> GetOrderCount(string state)
+    public async Task<Result<int>> GetOrderCount(string state)
     {
         MySqlConnection conn = new(_connectionString);
         await conn.OpenAsync();
@@ -34,22 +36,5 @@ public class OrderRepository
         var outputParamValue = parameters.Get<int>("@total");
 
         return outputParamValue;
-    }
-
-    public async Task<int> GetOrderCount2(string state)
-    {
-        await using MySqlConnection conn = new(_connectionString);
-        await conn.OpenAsync();
-
-        await using var cmd = conn.CreateCommand();
-        cmd.CommandText = "GetOrderCountByStatus";
-        cmd.CommandType = CommandType.StoredProcedure;
-
-        cmd.Parameters.Add(new MySqlParameter("@state", MySqlDbType.VarChar) { Value = state });
-        cmd.Parameters.Add(new MySqlParameter("@total", MySqlDbType.Int32) { Direction = ParameterDirection.Output });
-
-        await cmd.ExecuteScalarAsync();
-
-        return (int)cmd.Parameters["@total"].Value;
     }
 }

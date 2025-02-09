@@ -7,8 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="MySqlConnector" Version="2.4.0" />
+    <PackageReference Include="Dapper" />
+    <PackageReference Include="FluentResults" />
+    <PackageReference Include="MySqlConnector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Demo.Application\Demo.Application.csproj" />
+    <ProjectReference Include="..\Demo.Domain\Demo.Domain.csproj" />
   </ItemGroup>
 
 </Project>

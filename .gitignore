@@ -95,3 +95,5 @@ NET9/Demo.Application/bin
 NET9/Demo.Application/obj
 NET9/Demo.WebApi/bin
 NET9/Demo.WebApi/obj
+NET9/Demo.Domain/bin
+NET9/Demo.Domain/obj
