@@ -1,5 +1,7 @@
 ﻿using Dapper;
 
+using FluentResults;
+
 using MySqlConnector;
 
 using System.Data;
@@ -15,7 +17,7 @@ public class OrderRepository
         _connectionString = connectionString;
     }
 
-    public async Task<int> GetOrderCount(string state)
+    public async Task<Result<int>> GetOrderCount(string state)
     {
         MySqlConnection conn = new(_connectionString);
         await conn.OpenAsync();
