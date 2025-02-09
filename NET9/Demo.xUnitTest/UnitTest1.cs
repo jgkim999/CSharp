@@ -20,12 +20,32 @@ public class UnitTest1
     }
 
     [Fact]
-    public async Task EmployeeRepository()
+    public async Task EmployeeRepositoryGetAllAsync()
     {
         var logger = Mock.Of<ILogger<EmployeeRepository>>();
 
         IEmployeeRepository employeeRepo = new EmployeeRepository(connectionString, logger);
-        var employees = await employeeRepo.GetAllAsync();
-        Assert.NotNull(employees);
+        var result = await employeeRepo.GetAllAsync();
+        Assert.NotNull(result.Value);
+    }
+
+    [Fact]
+    public async Task EmployeeRepositoryGetByIdAsync()
+    {
+        var logger = Mock.Of<ILogger<EmployeeRepository>>();
+
+        IEmployeeRepository employeeRepo = new EmployeeRepository(connectionString, logger);
+        var result = await employeeRepo.GetByIdAsync(1002);
+        Assert.NotNull(result.Value);
+    }
+
+    [Fact]
+    public async Task EmployeeRepositoryGetByIdAsync2()
+    {
+        var logger = Mock.Of<ILogger<EmployeeRepository>>();
+
+        IEmployeeRepository employeeRepo = new EmployeeRepository(connectionString, logger);
+        var result = await employeeRepo.GetByIdAsync(10002);
+        Assert.True(result.IsFailed);
     }
 }

@@ -52,7 +52,34 @@ public class EmployeeRepository : IEmployeeRepository
 
     public async Task<Result<Employee?>> GetByIdAsync(int employeeNumber)
     {
-        throw new NotImplementedException();
+        try
+        {
+            string sql = "SELECT A.*, B.*, C.*" +
+                         " FROM employees AS A" +
+                         " INNER JOIN offices AS B ON A.officeCode = B.officeCode" +
+                         " LEFT JOIN employees AS C ON A.reportsTo = C.employeeNumber" +
+                         " WHERE A.employeeNumber = @employeeNumber;";
+            MySqlConnection conn = new(_connectionString);
+            await conn.OpenAsync();
+
+            DynamicParameters parameters = new();
+            parameters.Add("employeeNumber", employeeNumber);
+
+            var employees = await conn.QueryAsync<Employee, Office, Employee, Employee>(sql, (employee, office, manager) =>
+                {
+                    employee.Office = office;
+                    employee.Manager = manager;
+                    return employee;
+                },
+                splitOn: "officeCode, employeeNumber",
+                param: parameters);
+            return Result.Ok(employees?.First());
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, e.Message);
+            return Result.Fail(e.Message);
+        }
     }
 
     public async Task AddAsync(Employee employee)
