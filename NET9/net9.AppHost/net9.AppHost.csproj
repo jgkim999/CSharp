@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Demo.WebApi\Demo.WebApi.csproj" />
+    <ProjectReference Include="..\MudBlazorDemo\MudBlazorDemo.csproj" />
+    <ProjectReference Include="..\OpenApiScalar\OpenApiScalar.csproj" />
   </ItemGroup>
 
 </Project>
