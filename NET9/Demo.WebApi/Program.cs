@@ -1,38 +1,68 @@
 using Demo.Application;
-using Microsoft.AspNetCore.Http.Features;
 
 using Scalar.AspNetCore;
 
-using System.Diagnostics;
+using Serilog;
 
 internal class Program
 {
     public static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
-        builder.AddServiceDefaults();
+        IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile(
+                $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json",
+                optional: true)
+            .AddEnvironmentVariables()
+            .Build();
 
-        // Add services to the container.
-        builder.Services.AddControllers();
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
-        builder.Services.AddApplicationServices();
-        
-        var app = builder.Build();
-        
-        app.MapDefaultEndpoints();
-
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .CreateLogger();
+        try
         {
-            app.MapOpenApi();
-            
-        }
+            var builder = WebApplication.CreateBuilder(args);
+            builder.AddServiceDefaults();
 
-        app.UseAuthorization();
-        // {Scheme}://{ServiceHost}:{ServicePort}/scalar/v1
-        app.MapScalarApiReference();
-        app.MapControllers();
-        app.Run();
+            builder.AddApplicationServices("DemoWebApi");
+
+            // Add services to the container.
+            builder.Services.AddControllers();
+            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            builder.Services.AddOpenApi();
+            
+            var app = builder.Build();
+
+            app.MapDefaultEndpoints();
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.MapOpenApi();
+
+            }
+
+            app.UseAuthorization();
+            // {Scheme}://{ServiceHost}:{ServicePort}/scalar/v1
+            app.MapScalarApiReference(options =>
+            {
+                options.Servers =
+                [
+                    new ScalarServer(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"))
+                ];
+            });
+            app.MapControllers();
+            app.Run();
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Unhandled Exception");
+            throw;
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 }
