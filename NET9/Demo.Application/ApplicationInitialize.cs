@@ -111,9 +111,8 @@ public static class ApplicationInitialize
             string name = Dns.GetHostName();
             Log.Logger.Information("Container Name:{ContainerName}", name);
 
-            var address = (await Dns.GetHostEntryAsync(name)).AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
-
-            IPAddress? ip = (await Dns.GetHostEntryAsync(name)).AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
+            IPHostEntry hostEntry = await Dns.GetHostEntryAsync(name);
+            IPAddress? ip = hostEntry.AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
             Log.Logger.Information("Container Ip:{ip}", ip?.ToString());
             
             DockerClient client = new DockerClientConfiguration().CreateClient();
