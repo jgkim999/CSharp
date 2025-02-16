@@ -37,7 +37,7 @@ public class WeatherForecastController : ControllerBase
             type: "Bad Request",
             title: "Identity failure",
             detail: "wtf",
-            statusCode: StatusCodes.Status400BadRequest);;
+            statusCode: StatusCodes.Status400BadRequest);
     }
 
     [HttpGet(Name = "GetWeatherForecast3")]
