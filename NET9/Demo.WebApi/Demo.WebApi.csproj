@@ -31,10 +31,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Demo.Application\Demo.Application.csproj" />
+    <ProjectReference Include="..\Demo.Infra\Demo.Infra.csproj" />
     <ProjectReference Include="..\net9.ServiceDefaults\net9.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Logs\" />
     <Folder Include="Middleware\" />
   </ItemGroup>
 

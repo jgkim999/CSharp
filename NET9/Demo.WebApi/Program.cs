@@ -1,4 +1,5 @@
 using Demo.Application;
+using Demo.Infra;
 
 using Scalar.AspNetCore;
 
@@ -23,8 +24,8 @@ internal class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.AddInfraServices();
             builder.AddServiceDefaults();
-
             builder.AddApplicationServices("DemoWebApi");
 
             // Add services to the container.
@@ -47,10 +48,7 @@ internal class Program
             // {Scheme}://{ServiceHost}:{ServicePort}/scalar/v1
             app.MapScalarApiReference(options =>
             {
-                options.Servers =
-                [
-                    new ScalarServer(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"))
-                ];
+                options.Servers = Array.Empty<ScalarServer>();
             });
             app.MapControllers();
             app.Run();

@@ -1,6 +1,10 @@
 ﻿using Dapper;
 
+using Demo.Application.Repositories;
+using Demo.Infra.Config;
 using FluentResults;
+
+using Microsoft.Extensions.Options;
 
 using MySqlConnector;
 
@@ -8,21 +12,21 @@ using System.Data;
 
 namespace Demo.Infra.Repositories;
 
-public class OrderRepository
+public class OrderRepository : IOrderRepository
 {
-    private string _connectionString = string.Empty;
+    private MySqlConfig _mySqlConfig;
 
-    public OrderRepository(string connectionString)
+    public OrderRepository(IOptions<MySqlConfig> mySqlConfig)
     {
-        _connectionString = connectionString;
+        _mySqlConfig = mySqlConfig.Value;
     }
 
     public async Task<Result<int>> GetOrderCount(string state)
     {
-        MySqlConnection conn = new(_connectionString);
+        await using MySqlConnection conn = new(_mySqlConfig.ConnectionString);
         await conn.OpenAsync();
 
-        DynamicParameters parameters = new DynamicParameters();
+        DynamicParameters parameters = new();
         parameters.Add("orderStatus", state);
         parameters.Add("@total", dbType: DbType.Int32, direction: ParameterDirection.Output);
 

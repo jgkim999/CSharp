@@ -12,6 +12,7 @@
 		<ProjectReference Include="..\Demo.Domain\Demo.Domain.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="Docker.DotNet" />
 		<PackageReference Include="Elastic.CommonSchema.Serilog" />
 		<PackageReference Include="FluentResults" />
 		<PackageReference Include="OpenTelemetry" />
@@ -19,6 +20,7 @@
 		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.Http" />
 		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
 		<PackageReference Include="Serilog.Extensions.Hosting" />
 		<PackageReference Include="Serilog.Sinks.OpenTelemetry" />
 		<PackageReference Include="SharpAbp.Abp.OpenTelemetry.Exporter.Prometheus.AspNetCore" />
