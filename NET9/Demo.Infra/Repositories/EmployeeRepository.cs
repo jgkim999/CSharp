@@ -2,10 +2,12 @@
 
 using Demo.Application.Repositories;
 using Demo.Domain.Models;
+using Demo.Infra.Config;
 
 using FluentResults;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using MySqlConnector;
 
@@ -14,11 +16,11 @@ namespace Demo.Infra.Repositories;
 public class EmployeeRepository : IEmployeeRepository
 {
     private readonly ILogger<EmployeeRepository> _logger;
-    private readonly string _connectionString;
+    private readonly MySqlConfig _mySqlConfig;
 
-    public EmployeeRepository(string connectionString, ILogger<EmployeeRepository> logger)
+    public EmployeeRepository(IOptions<MySqlConfig> mySqlConfig, ILogger<EmployeeRepository> logger)
     {
-        _connectionString = connectionString;
+        _mySqlConfig = mySqlConfig.Value;
         _logger = logger;
     }
 
@@ -26,7 +28,7 @@ public class EmployeeRepository : IEmployeeRepository
     {
         try
         {
-            MySqlConnection conn = new(_connectionString);
+            await using MySqlConnection conn = new(_mySqlConfig.ConnectionString);
             await conn.OpenAsync();
 
             string sql = "SELECT A.*, B.*, C.*" +
@@ -59,7 +61,7 @@ public class EmployeeRepository : IEmployeeRepository
                          " INNER JOIN offices AS B ON A.officeCode = B.officeCode" +
                          " LEFT JOIN employees AS C ON A.reportsTo = C.employeeNumber" +
                          " WHERE A.employeeNumber = @employeeNumber;";
-            MySqlConnection conn = new(_connectionString);
+            await using MySqlConnection conn = new(_mySqlConfig.ConnectionString);
             await conn.OpenAsync();
 
             DynamicParameters parameters = new();

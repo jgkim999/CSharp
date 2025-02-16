@@ -1,4 +1,5 @@
 using Demo.Application;
+using Demo.Infra;
 
 using Scalar.AspNetCore;
 
@@ -23,8 +24,8 @@ internal class Program
         try
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.AddInfraServices();
             builder.AddServiceDefaults();
-
             builder.AddApplicationServices("DemoWebApi");
 
             // Add services to the container.

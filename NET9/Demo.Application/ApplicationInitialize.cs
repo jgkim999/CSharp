@@ -61,17 +61,19 @@ public static class ApplicationInitialize
                     "Microsoft.AspNetCore.Hosting",
                     "Microsoft.AspNetCore.Server.Kestrel",
                     "Microsoft.AspNetCore.Diagnostics",
-                    "System.Net.NameResolution",
-                    "System.Runtime",
                     "Microsoft.Extensions.Diagnostics.HealthChecks",
                     "Microsoft.Extensions.Diagnostics.ResourceMonitoring",
                     "Microsoft.Extensions.Hosting",
-                    "System.Http"])
+                    "MySqlConnector",
+                    "System.Http",
+                    "System.Net.NameResolution",
+                    "System.Runtime"])
                 .AddPrometheusExporter()
             )
             .WithTracing(tracing =>
             {
                 tracing.AddSource(serviceName);
+                tracing.AddSource("MySqlConnector");
                 tracing.AddAspNetCoreInstrumentation();
                 tracing.AddHttpClientInstrumentation();
             });
