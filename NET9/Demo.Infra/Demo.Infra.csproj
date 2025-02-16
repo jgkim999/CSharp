@@ -9,6 +9,8 @@
   <ItemGroup>
     <PackageReference Include="Dapper" />
     <PackageReference Include="FluentResults" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
     <PackageReference Include="MySqlConnector" />
   </ItemGroup>
 

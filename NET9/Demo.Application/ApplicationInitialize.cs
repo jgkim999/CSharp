@@ -76,6 +76,7 @@ public static class ApplicationInitialize
                 tracing.AddSource("MySqlConnector");
                 tracing.AddAspNetCoreInstrumentation();
                 tracing.AddHttpClientInstrumentation();
+                tracing.AddRedisInstrumentation();
             });
 
             builder.Services.AddHealthChecks();
