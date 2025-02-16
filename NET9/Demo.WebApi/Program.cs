@@ -47,10 +47,7 @@ internal class Program
             // {Scheme}://{ServiceHost}:{ServicePort}/scalar/v1
             app.MapScalarApiReference(options =>
             {
-                options.Servers =
-                [
-                    new ScalarServer(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"))
-                ];
+                options.Servers = Array.Empty<ScalarServer>();
             });
             app.MapControllers();
             app.Run();
