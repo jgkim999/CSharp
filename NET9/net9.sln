@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net9.AppHost", "net9.AppHos
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "net9.ServiceDefaults", "net9.ServiceDefaults\net9.ServiceDefaults.csproj", "{1344F0E8-7890-CF5D-2F82-B5D27853CF60}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpectreDemo", "SpectreDemo\SpectreDemo.csproj", "{76877B20-4AD9-4B61-A2D2-8455B4AE9DD0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +72,10 @@ Global
 		{1344F0E8-7890-CF5D-2F82-B5D27853CF60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1344F0E8-7890-CF5D-2F82-B5D27853CF60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1344F0E8-7890-CF5D-2F82-B5D27853CF60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76877B20-4AD9-4B61-A2D2-8455B4AE9DD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76877B20-4AD9-4B61-A2D2-8455B4AE9DD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76877B20-4AD9-4B61-A2D2-8455B4AE9DD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76877B20-4AD9-4B61-A2D2-8455B4AE9DD0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

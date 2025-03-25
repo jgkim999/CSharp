@@ -46,7 +46,10 @@
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1" />
+    <PackageVersion Include="Serilog.Sinks.SpectreConsole" Version="0.3.3" />
     <PackageVersion Include="SharpAbp.Abp.OpenTelemetry.Exporter.Prometheus.AspNetCore" Version="4.0.8" />
+    <PackageVersion Include="Spectre.Console" Version="0.49.1" />
+    <PackageVersion Include="Spectre.Console.Cli" Version="0.49.1" />
     <PackageVersion Include="StackExchange.Redis" Version="2.8.24" />
     <PackageVersion Include="System.Text.Json" Version="9.0.2" />
     <PackageVersion Include="xunit" Version="2.9.2" />
