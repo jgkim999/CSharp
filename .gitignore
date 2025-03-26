@@ -11,3 +11,6 @@
 **/Properties
 NET8/qodana.yaml
 NET9/eShop
+Docker/mysql
+Docker/portainer
+Docker/redis
