@@ -51,7 +51,8 @@ class Program
             .Spinner(Spinner.Known.Dots)
             .Start("[yellow]Search Directories[/]", (StatusContext ctx) =>
             {
-                string root = "e:\\github\\Unity\\Demo1\\Assets\\";
+                //string root = "e:\\github\\Unity\\Demo1\\Assets\\";
+                string root = "/Users/jgkim/Documents/gitlab/projectb4/ProjectB2/Assets";
                 AssetSearch.DirectorySearch(root, directories, assetSearchLogger);
                 ctx.Status = "OK";
             });
@@ -70,7 +71,7 @@ class Program
             {
                 AssetSearch.MakeMetaList(directoryMap, fileList, assetSearchLogger);
             });
-
+        /*
         for (int i=0; i<fileList.Count; ++i)
         {
             var (dirNum, filename) = fileList.ElementAt(i);
@@ -78,6 +79,7 @@ class Program
                 new Text($"{dirNum} {directoryMap[dirNum]} {filename}")
             ));
         }
+        */
 
         microsoftLogger.LogInformation("File listing creation complete.");
     }

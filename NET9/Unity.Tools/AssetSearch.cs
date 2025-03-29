@@ -65,7 +65,7 @@ public class AssetSearch
                 }
                 dirs.Push(subDir);
                 directories.Add(subDir);
-                logger.LogInformation(subDir);
+                //logger.LogInformation(subDir);
             }
         }
 
@@ -81,7 +81,7 @@ public class AssetSearch
         var sw = Stopwatch.StartNew();
         Parallel.ForEach(directories, directory =>
         {
-            logger.LogInformation(directory.Value);
+            //logger.LogInformation(directory.Value);
             var files = Directory.GetFiles(directory.Value);
             foreach (var file in files)
             {
@@ -99,5 +99,20 @@ public class AssetSearch
             }
         });
         logger.LogInformation($"Processed {metaFiles.Count} files in {sw.ElapsedMilliseconds} milliseconds");
+    }
+
+    public void MetaYaml(
+        Dictionary<int, string> directories, 
+        ConcurrentBag<(int dirNum, string filanme)> metaFiles, 
+        ILogger logger)
+    {
+        for (int i = 0; i < metaFiles.Count; ++i)
+        {
+            var metaFile = metaFiles.ElementAt(i);
+            if (directories.TryGetValue(metaFile.dirNum, out string dir) == false)
+                continue;
+            var filePath = Path.Combine(dir, metaFile.filanme);
+            
+        }
     }
 }
