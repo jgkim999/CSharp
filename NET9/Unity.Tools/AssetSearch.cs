@@ -4,6 +4,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 
+using YamlDotNet.RepresentationModel;
+
 namespace Unity.Tools;
 
 public class AssetSearch
@@ -63,6 +65,7 @@ public class AssetSearch
                 {
                     continue;
                 }
+
                 dirs.Push(subDir);
                 directories.Add(subDir);
                 //logger.LogInformation(subDir);
@@ -74,8 +77,8 @@ public class AssetSearch
     }
 
     public static void MakeMetaList(
-        Dictionary<int, string> directories, 
-        ConcurrentBag<(int dirNum, string filanme)> metaFiles, 
+        Dictionary<int, string> directories,
+        ConcurrentBag<UnityMetaFileInfo> metaFiles,
         ILogger logger)
     {
         var sw = Stopwatch.StartNew();
@@ -95,24 +98,49 @@ public class AssetSearch
                 {
                     continue;
                 }
-                metaFiles.Add((directory.Key, Path.GetFileName(file)));
+                metaFiles.Add(new UnityMetaFileInfo() { DirNum = directory.Key, Filename = Path.GetFileName(file) });
             }
         });
         logger.LogInformation($"Processed {metaFiles.Count} files in {sw.ElapsedMilliseconds} milliseconds");
     }
 
-    public void MetaYaml(
-        Dictionary<int, string> directories, 
-        ConcurrentBag<(int dirNum, string filanme)> metaFiles, 
+    public async Task MetaYamlAsync(
+        Dictionary<int, string> directories,
+        ConcurrentBag<UnityMetaFileInfo> metaFiles,
         ILogger logger)
     {
-        for (int i = 0; i < metaFiles.Count; ++i)
+        await Parallel.ForEachAsync(metaFiles, async (metaFile, cancellationToken) =>
         {
-            var metaFile = metaFiles.ElementAt(i);
-            if (directories.TryGetValue(metaFile.dirNum, out string dir) == false)
-                continue;
-            var filePath = Path.Combine(dir, metaFile.filanme);
-            
-        }
+            if (directories.TryGetValue(metaFile.DirNum, out string dir))
+            {
+                var filePath = Path.Combine(dir, metaFile.Filename);
+                if (File.Exists(filePath))
+                {
+                    try
+                    {
+                        var yamlContent = await File.ReadAllTextAsync(filePath, cancellationToken);
+                        var yaml = new YamlStream();
+                        yaml.Load(new StringReader(yamlContent));
+
+                        // YAML 문서의 루트 노드를 가져옵니다.
+                        var rootNode = (YamlMappingNode)yaml.Documents[0].RootNode;
+
+                        // GUID 값을 가져옵니다.
+                        if (rootNode.Children.TryGetValue(new YamlScalarNode("guid"), out var guidNode))
+                        {
+                            metaFile.Guid = guidNode.ToString();
+                        }
+                        else
+                        {
+                            logger.LogError($"GUID를 찾을 수 없습니다. {filePath}");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError(e.Message);
+                    }
+                }
+            }
+        });
     }
 }

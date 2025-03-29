@@ -64,11 +64,12 @@ class Program
         }
         microsoftLogger.LogInformation("Directory listing creation complete.");
 
-        ConcurrentBag<(int dirNum, string filanme)> fileList = new();
-        AnsiConsole.Progress()
+        ConcurrentBag<UnityMetaFileInfo> fileList = new();
+        AnsiConsole.Status()
             .AutoRefresh(true)
-            .Start(ctx =>
+            .Start("[yellow]Make meta guid[/]",ctx =>
             {
+                ctx.
                 AssetSearch.MakeMetaList(directoryMap, fileList, assetSearchLogger);
             });
         /*
