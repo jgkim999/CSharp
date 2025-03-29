@@ -11,6 +11,9 @@ using Serilog.Extensions.Logging;
 
 using System.IO;
 
+using Unity.Tools;
+using System.Collections.Concurrent;
+
 namespace SpectreDemo;
 
 class Program
@@ -32,13 +35,51 @@ class Program
         var microsoftLogger = new SerilogLoggerFactory(inner)
             .CreateLogger<SpaceLibrary>();
         
+        /*
         SpaceLibrary library = new SpaceLibrary(microsoftLogger);
 
         microsoftLogger.LogInformation("Start space library");
 
         library.Run().Wait();
+        */
+        var assetSearchLogger = new SerilogLoggerFactory(inner)
+            .CreateLogger<AssetSearch>();
+        List<string> directories = new List<string>();
+        
+        AnsiConsole.Status()
+            .AutoRefresh(true)
+            .Spinner(Spinner.Known.Dots)
+            .Start("[yellow]Search Directories[/]", (StatusContext ctx) =>
+            {
+                string root = "e:\\github\\Unity\\Demo1\\Assets\\";
+                AssetSearch.DirectorySearch(root, directories, assetSearchLogger);
+                ctx.Status = "OK";
+            });
 
-        microsoftLogger.LogInformation("Done with the space library");
+        Dictionary<int, string> directoryMap = new ();
+        for (int i = 1; i <= directories.Count; ++i)
+        {
+            directoryMap.Add(i, directories[i - 1]);
+        }
+        microsoftLogger.LogInformation("Directory listing creation complete.");
+
+        ConcurrentBag<(int dirNum, string filanme)> fileList = new();
+        AnsiConsole.Progress()
+            .AutoRefresh(true)
+            .Start(ctx =>
+            {
+                AssetSearch.MakeMetaList(directoryMap, fileList, assetSearchLogger);
+            });
+
+        for (int i=0; i<fileList.Count; ++i)
+        {
+            var (dirNum, filename) = fileList.ElementAt(i);
+            AnsiConsole.Write(new Rows(
+                new Text($"{dirNum} {directoryMap[dirNum]} {filename}")
+            ));
+        }
+
+        microsoftLogger.LogInformation("File listing creation complete.");
     }
 
     private static Logger ConfigureLogger()

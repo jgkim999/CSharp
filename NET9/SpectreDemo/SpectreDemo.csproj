@@ -26,4 +26,8 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Unity.Tools\Unity.Tools.csproj" />
+    </ItemGroup>
+
 </Project>

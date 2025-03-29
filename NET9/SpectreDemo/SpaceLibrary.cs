@@ -6,11 +6,11 @@ namespace SpectreDemo;
 
 public class SpaceLibrary
 {
-    readonly Microsoft.Extensions.Logging.ILogger logger;
+    readonly ILogger _logger;
 
-    public SpaceLibrary(Microsoft.Extensions.Logging.ILogger logger)
+    public SpaceLibrary(ILogger logger)
     {
-        this.logger = logger;
+        _logger = logger;
     }
 
     public Task Run()
@@ -27,13 +27,13 @@ public class SpaceLibrary
 
         // Initialize
         await Task.Delay(waitingTime).ConfigureAwait(false);
-        this.logger.LogInformation("Starting gravimetric field displacement manifold");
+        this._logger.LogInformation("Starting gravimetric field displacement manifold");
 
         await Task.Delay(waitingTime).ConfigureAwait(false);
-        this.logger.LogInformation("Warming up deuterium chamber");
+        this._logger.LogInformation("Warming up deuterium chamber");
 
         await Task.Delay(waitingTime).ConfigureAwait(false);
-        this.logger.LogInformation("Generating antideuterium");
+        this._logger.LogInformation("Generating antideuterium");
 
         try
         {
@@ -41,21 +41,21 @@ public class SpaceLibrary
         }
         catch (Exception ex)
         {
-            this.logger.LogError(ex, "An error occurred");
+            this._logger.LogError(ex, "An error occurred");
         }
 
         // Warp nacelles
         await Task.Delay(waitingTime).ConfigureAwait(false);
         ctx.Spinner(Spinner.Known.BouncingBar);
         ctx.Status("[bold blue]Unfolding warp nacelles[/]");
-        this.logger.LogInformation("Unfolding left warp nacelle");
+        this._logger.LogInformation("Unfolding left warp nacelle");
 
         await Task.Delay(waitingTime).ConfigureAwait(false);
-        this.logger.LogInformation("Left warp nacelle [green]online[/]");
-        this.logger.LogInformation("Unfolding right warp nacelle");
+        this._logger.LogInformation("Left warp nacelle [green]online[/]");
+        this._logger.LogInformation("Unfolding right warp nacelle");
 
         await Task.Delay(waitingTime).ConfigureAwait(false);
-        this.logger.LogInformation("Right warp nacelle {online}", "online");
+        this._logger.LogInformation("Right warp nacelle {online}", "online");
 
         // Warp bubble
         await Task.Delay(waitingTime).ConfigureAwait(false);
@@ -69,15 +69,15 @@ public class SpaceLibrary
         // Safety
         ctx.Spinner(Spinner.Known.Monkey);
         ctx.Status("[bold blue]Performing safety checks[/]");
-        this.logger.LogInformation("Enabling interior {0}", "dampening");
+        this._logger.LogInformation("Enabling interior {0}", "dampening");
 
         await Task.Delay(waitingTime).ConfigureAwait(false);
-        this.logger.LogInformation("Interior dampening [green]enabled[/]");
+        this._logger.LogInformation("Interior dampening [green]enabled[/]");
 
         // Warp!
         await Task.Delay(waitingTime).ConfigureAwait(false);
         ctx.Spinner(Spinner.Known.Moon);
-        this.logger.LogInformation("Preparing for warp");
+        this._logger.LogInformation("Preparing for warp");
 
         await Task.Delay(waitingTime).ConfigureAwait(false);
         for (var warp = 1; warp < 10; warp++)
