@@ -92,6 +92,14 @@ class Program
             //    .GetResult();
 
             AnsiConsole.Progress()
+                .Columns(new ProgressColumn[]
+                {
+                    new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new ElapsedTimeColumn(),
+                    new SpinnerColumn()
+                })
                 .StartAsync(async ctx =>
                 {
                     // Define tasks
@@ -120,7 +128,7 @@ class Program
 
             foreach (var file in fileList)
             {
-                AnsiConsole.WriteLine($"{file.Filename} {file.Guid}");
+                //AnsiConsole.WriteLine($"{file.Filename} {file.Guid}");
             }
 
             microsoftLogger.LogInformation("File listing creation complete.");
