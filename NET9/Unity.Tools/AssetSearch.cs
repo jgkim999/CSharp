@@ -13,7 +13,11 @@ public class AssetSearch
     static string[] MetaExtensions = new string[] { ".meta" };
     static string[] IgnoreDirectories = new string[] { ".git", ".idea", ".github", ".vs", "bin" };
 
-    public static void DirectorySearch(string root, List<string> directories, ILogger logger)
+    public static async Task DirectorySearchAsync(
+        string root,
+        List<string> directories,
+        ILogger logger,
+        IProgressContext progressContext)
     {
         // Count of files traversed and timer for diagnostic output
         var sw = Stopwatch.StartNew();
@@ -72,18 +76,26 @@ public class AssetSearch
             }
         }
 
+        progressContext.Increment(100f);
         // For diagnostic purposes.
         logger.LogInformation($"Processed {directories.Count} directories in {sw.ElapsedMilliseconds} milliseconds");
+        await Task.CompletedTask;
     }
 
-    public static void MakeMetaList(
+    public static async Task MakeMetaListAsync(
         Dictionary<int, string> directories,
         ConcurrentBag<UnityMetaFileInfo> metaFiles,
-        ILogger logger)
+        ILogger logger,
+        IProgressContext progressContext)
     {
+        progressContext.StartTask();
+        progressContext.SetMaxValue(directories.Count);
         var sw = Stopwatch.StartNew();
+        
         Parallel.ForEach(directories, directory =>
         {
+            progressContext.Increment(1);
+
             //logger.LogInformation(directory.Value);
             var files = Directory.GetFiles(directory.Value);
             foreach (var file in files)
@@ -102,15 +114,23 @@ public class AssetSearch
             }
         });
         logger.LogInformation($"Processed {metaFiles.Count} files in {sw.ElapsedMilliseconds} milliseconds");
+        progressContext.StopTask();
+        await Task.CompletedTask;
     }
 
-    public async Task MetaYamlAsync(
+    public static async Task MetaYamlAsync(
         Dictionary<int, string> directories,
         ConcurrentBag<UnityMetaFileInfo> metaFiles,
-        ILogger logger)
+        ILogger logger,
+        IProgressContext progressContext,
+        CancellationToken cancellationToken = default)
     {
-        await Parallel.ForEachAsync(metaFiles, async (metaFile, cancellationToken) =>
+        progressContext.SetMaxValue(metaFiles.Count);
+        progressContext.StartTask();
+
+        Parallel.ForEach(metaFiles, (metaFile, cancelToken) =>
         {
+            progressContext.Increment(1f);
             if (directories.TryGetValue(metaFile.DirNum, out string dir))
             {
                 var filePath = Path.Combine(dir, metaFile.Filename);
@@ -118,7 +138,7 @@ public class AssetSearch
                 {
                     try
                     {
-                        var yamlContent = await File.ReadAllTextAsync(filePath, cancellationToken);
+                        var yamlContent = File.ReadAllText(filePath);
                         var yaml = new YamlStream();
                         yaml.Load(new StringReader(yamlContent));
 
@@ -142,5 +162,8 @@ public class AssetSearch
                 }
             }
         });
+        progressContext.Increment(metaFiles.Count);
+        progressContext.StopTask();
+        await Task.CompletedTask;
     }
 }
