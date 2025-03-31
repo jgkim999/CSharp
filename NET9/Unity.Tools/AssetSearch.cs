@@ -183,26 +183,27 @@ public class AssetSearch
     {
         progressContext.SetMaxValue(metaFiles.Count);
         progressContext.StartTask();
-        for (int i = 0; i < metaFiles.Count; ++i)
+        Parallel.ForEach(metaFiles, (metafile, cancelToken) =>
         {
             progressContext.Increment(1);
-            var metafile = metaFiles.ElementAt(i);
             if (extNames.Contains(metafile.Extension) == false)
-                continue;
+                return;
             string dir;
             if (directories.TryGetValue(metafile.DirNum, out dir) == false)
             {
                 logger.LogError($"Unknown directory: {metafile.DirNum} {metafile.MetaFilename}");
-                continue;
+                return;
             }
+
             var filePath = Path.Combine(dir, metafile.Filename);
             if (File.Exists(filePath) == false)
             {
                 logger.LogError($"File {filePath} does not exist.");
-                continue;
+                return;
             }
+
             // 파일의 각 줄을 비동기적으로 읽습니다.
-            await foreach (var line in File.ReadLinesAsync(filePath, cancellationToken))
+            foreach (var line in File.ReadLines(filePath))
             {
                 if (line.Contains("guid") == false)
                     continue;
@@ -218,7 +219,7 @@ public class AssetSearch
                     // 중괄호 내부의 문자열 추출
                     string result = match1.Groups[1].Value;
                     //logger.LogInformation($"{filePath} {result}");
-                    
+
                     string pattern2 = @"guid:\s*([a-f0-9]{32})";
                     Regex regex2 = new Regex(pattern2);
                     Match match2 = regex2.Match(line);
@@ -232,7 +233,9 @@ public class AssetSearch
                     }
                 }
             }
-        }
+            if (metafile.Dependencies.Count > 0)
+                logger.LogInformation($"{filePath} Dependencies: {metafile.Dependencies.Count}");
+        });
         progressContext.StopTask();
         await Task.CompletedTask;
     }
