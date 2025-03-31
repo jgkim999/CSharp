@@ -45,8 +45,11 @@ class Program
             
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             microsoftLogger.LogInformation("Directory listing creation complete.");
-            
+
+            ConcurrentBag<UnityMetaFileInfo> fileList = new();
+
             AnsiConsole.Progress()
+                .AutoClear(false)
                 .Columns(new ProgressColumn[]
                 {
                     new TaskDescriptionColumn(),
@@ -80,7 +83,7 @@ class Program
                         directoryMap.Add(i, directories[i - 1]);
                     }
                     
-                    ConcurrentBag<UnityMetaFileInfo> fileList = await AssetSearch.MakeMetaListAsync(
+                    fileList = await AssetSearch.MakeMetaListAsync(
                         directoryMap,
                         assetSearchLogger,
                         task2Progress);
@@ -104,7 +107,19 @@ class Program
                 .ConfigureAwait(false)
                 .GetAwaiter()
                 .GetResult();
-            
+
+            //foreach (var file in fileList)
+            //{
+            //    if (file.DependencyCount > 0)
+            //    {
+            //        AnsiConsole.MarkupLine($"File: {file.Filename} has {file.DependencyCount} dependencies.");
+            //        foreach (var dependency in file.Dependencies)
+            //        {
+            //            AnsiConsole.MarkupLine($"Dependency: {dependency}");
+            //        }
+            //    }
+            //}
+
             microsoftLogger.LogInformation("File listing creation complete.");
             Task.Delay(2000).ConfigureAwait(false).GetAwaiter().GetResult();
         }
