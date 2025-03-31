@@ -106,8 +106,9 @@ class Program
                     var task1 = ctx.AddTask("[green]Search Directories[/]");
                     var task2 = ctx.AddTask("[green]Make meta guid[/]");
                     var task3 = ctx.AddTask("[green]Find Meta's guid[/]");
-
-                    SpectreProgressContext task1Progress = new (task1);
+                    var totalTask = ctx.AddTask("[green]Total[/]");
+                    totalTask.StartTask();
+                    SpectreProgressContext task1Progress = new(task1);
                     SpectreProgressContext task2Progress = new(task2);
                     SpectreProgressContext task3Progress = new(task3);
 
@@ -121,6 +122,7 @@ class Program
 
                     await AssetSearch.MakeMetaListAsync(directoryMap, fileList, assetSearchLogger, task2Progress);
                     await AssetSearch.MetaYamlAsync(directoryMap, fileList, assetSearchLogger, task3Progress, cancellationTokenSource.Token);
+                    totalTask.StopTask();
                 })
                 .ConfigureAwait(false)
                 .GetAwaiter()

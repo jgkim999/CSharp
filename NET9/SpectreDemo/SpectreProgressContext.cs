@@ -37,6 +37,5 @@ public class SpectreProgressContext : IProgressContext
     public void StopTask()
     {
         _task.StopTask();
-        _task.Description = $"{_task.Description} {_task.ElapsedTime?.Milliseconds}";
     }
 }

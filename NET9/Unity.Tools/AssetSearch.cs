@@ -11,7 +11,7 @@ namespace Unity.Tools;
 public class AssetSearch
 {
     static string[] MetaExtensions = new string[] { ".meta" };
-    static string[] IgnoreDirectories = new string[] { ".git", ".idea", ".github", ".vs", "bin" };
+    static string[] IgnoreDirectories = new string[] { ".git", ".idea", ".github", ".vs", "bin", "Plugins" };
 
     public static async Task DirectorySearchAsync(
         string root,
@@ -19,6 +19,7 @@ public class AssetSearch
         ILogger logger,
         IProgressContext progressContext)
     {
+        progressContext.StartTask();
         // Count of files traversed and timer for diagnostic output
         var sw = Stopwatch.StartNew();
 
@@ -75,8 +76,8 @@ public class AssetSearch
                 //logger.LogInformation(subDir);
             }
         }
-
         progressContext.Increment(100f);
+        progressContext.StopTask();
         // For diagnostic purposes.
         logger.LogInformation($"Processed {directories.Count} directories in {sw.ElapsedMilliseconds} milliseconds");
         await Task.CompletedTask;
@@ -157,12 +158,11 @@ public class AssetSearch
                     }
                     catch (Exception e)
                     {
-                        logger.LogError(e.Message);
+                        logger.LogError($"{filePath} {e.Message}");
                     }
                 }
             }
         });
-        progressContext.Increment(metaFiles.Count);
         progressContext.StopTask();
         await Task.CompletedTask;
     }
