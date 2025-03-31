@@ -3,6 +3,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using YamlDotNet.RepresentationModel;
 
@@ -11,15 +12,14 @@ namespace Unity.Tools;
 public class AssetSearch
 {
     static string[] MetaExtensions = new string[] { ".meta" };
-    static string[] IgnoreDirectories = new string[] { ".git", ".idea", ".github", ".vs", "bin", "Plugins" };
-
-    public static async Task DirectorySearchAsync(
-        string root,
-        List<string> directories,
+    
+    public static async Task<List<string>> DirectorySearchAsync(
+        string? root,
         ILogger logger,
+        string[] ignoreDirectoryNames,
         IProgressContext progressContext)
     {
-        progressContext.StartTask();
+        List<string> directories = new();
         // Count of files traversed and timer for diagnostic output
         var sw = Stopwatch.StartNew();
 
@@ -27,12 +27,12 @@ public class AssetSearch
         int procCount = Environment.ProcessorCount;
 
         // Data structure to hold names of subfolders to be examined for files.
-        Stack<string> dirs = new Stack<string>();
+        Stack<string?> dirs = new Stack<string?>();
 
         if (!Directory.Exists(root))
         {
             logger.LogError($"Directory {root} does not exist.");
-            return;
+            return directories;
         }
 
         dirs.Push(root);
@@ -40,8 +40,8 @@ public class AssetSearch
 
         while (dirs.Count > 0)
         {
-            string currentDir = dirs.Pop();
-            string[] subDirs;
+            string? currentDir = dirs.Pop();
+            string?[] subDirs;
 
             try
             {
@@ -64,9 +64,9 @@ public class AssetSearch
 
             // Push the subdirectories onto the stack for traversal.
             // This could also be done before handing the files.
-            foreach (string subDir in subDirs)
+            foreach (string? subDir in subDirs)
             {
-                if (IgnoreDirectories.Contains(Path.GetFileName(subDir)))
+                if (ignoreDirectoryNames.Contains(Path.GetFileName(subDir)))
                 {
                     continue;
                 }
@@ -76,19 +76,22 @@ public class AssetSearch
                 //logger.LogInformation(subDir);
             }
         }
-        progressContext.Increment(100f);
+        progressContext.SetMaxValue(directories.Count);
+        progressContext.StartTask();
+        progressContext.Increment(directories.Count);
         progressContext.StopTask();
         // For diagnostic purposes.
         logger.LogInformation($"Processed {directories.Count} directories in {sw.ElapsedMilliseconds} milliseconds");
         await Task.CompletedTask;
+        return directories;
     }
 
-    public static async Task MakeMetaListAsync(
-        Dictionary<int, string> directories,
-        ConcurrentBag<UnityMetaFileInfo> metaFiles,
+    public static async Task<ConcurrentBag<UnityMetaFileInfo>> MakeMetaListAsync(
+        Dictionary<int, string?> directories,
         ILogger logger,
         IProgressContext progressContext)
     {
+        ConcurrentBag<UnityMetaFileInfo> metaFiles = new();
         progressContext.StartTask();
         progressContext.SetMaxValue(directories.Count);
         var sw = Stopwatch.StartNew();
@@ -111,16 +114,17 @@ public class AssetSearch
                 {
                     continue;
                 }
-                metaFiles.Add(new UnityMetaFileInfo() { DirNum = directory.Key, Filename = Path.GetFileName(file) });
+                metaFiles.Add(new UnityMetaFileInfo() { DirNum = directory.Key, MetaFilename = Path.GetFileName(file) });
             }
         });
         logger.LogInformation($"Processed {metaFiles.Count} files in {sw.ElapsedMilliseconds} milliseconds");
         progressContext.StopTask();
         await Task.CompletedTask;
+        return metaFiles;
     }
 
     public static async Task MetaYamlAsync(
-        Dictionary<int, string> directories,
+        Dictionary<int, string?> directories,
         ConcurrentBag<UnityMetaFileInfo> metaFiles,
         ILogger logger,
         IProgressContext progressContext,
@@ -132,9 +136,10 @@ public class AssetSearch
         Parallel.ForEach(metaFiles, (metaFile, cancelToken) =>
         {
             progressContext.Increment(1f);
-            if (directories.TryGetValue(metaFile.DirNum, out string dir))
+            string? dir;
+            if (directories.TryGetValue(metaFile.DirNum, out dir))
             {
-                var filePath = Path.Combine(dir, metaFile.Filename);
+                var filePath = Path.Combine(dir, metaFile.MetaFilename);
                 if (File.Exists(filePath))
                 {
                     try
@@ -153,7 +158,7 @@ public class AssetSearch
                         }
                         else
                         {
-                            logger.LogError($"GUID를 찾을 수 없습니다. {filePath}");
+                            logger.LogError($"{filePath} GUID를 찾을 수 없습니다.");
                         }
                     }
                     catch (Exception e)
@@ -163,6 +168,71 @@ public class AssetSearch
                 }
             }
         });
+        progressContext.StopTask();
+        await Task.CompletedTask;
+    }
+
+    public static async Task YamlAnalyzeAsync(
+        Dictionary<int, string?> directories,
+        ConcurrentBag<UnityMetaFileInfo> metaFiles,
+        string[] extNames,
+        string[] ignoreGuids,
+        ILogger logger,
+        IProgressContext progressContext,
+        CancellationToken cancellationToken = default)
+    {
+        progressContext.SetMaxValue(metaFiles.Count);
+        progressContext.StartTask();
+        for (int i = 0; i < metaFiles.Count; ++i)
+        {
+            progressContext.Increment(1);
+            var metafile = metaFiles.ElementAt(i);
+            if (extNames.Contains(metafile.Extension) == false)
+                continue;
+            string dir;
+            if (directories.TryGetValue(metafile.DirNum, out dir) == false)
+            {
+                logger.LogError($"Unknown directory: {metafile.DirNum} {metafile.MetaFilename}");
+                continue;
+            }
+            var filePath = Path.Combine(dir, metafile.Filename);
+            if (File.Exists(filePath) == false)
+            {
+                logger.LogError($"File {filePath} does not exist.");
+                continue;
+            }
+            // 파일의 각 줄을 비동기적으로 읽습니다.
+            await foreach (var line in File.ReadLinesAsync(filePath, cancellationToken))
+            {
+                if (line.Contains("guid") == false)
+                    continue;
+                string pattern = @"\{(.*?)\}";
+
+                // 정규 표현식 객체 생성
+                Regex regex1 = new Regex(pattern);
+
+                // 매칭 결과
+                Match match1 = regex1.Match(line);
+                if (match1.Success)
+                {
+                    // 중괄호 내부의 문자열 추출
+                    string result = match1.Groups[1].Value;
+                    //logger.LogInformation($"{filePath} {result}");
+                    
+                    string pattern2 = @"guid:\s*([a-f0-9]{32})";
+                    Regex regex2 = new Regex(pattern2);
+                    Match match2 = regex2.Match(line);
+                    if (match2.Success)
+                    {
+                        string result2 = match2.Groups[1].Value;
+                        if (ignoreGuids.Contains(result2))
+                            continue;
+                        metafile.Dependencies.Add(result2);
+                        //logger.LogInformation($"{filePath} {result2}");   
+                    }
+                }
+            }
+        }
         progressContext.StopTask();
         await Task.CompletedTask;
     }
