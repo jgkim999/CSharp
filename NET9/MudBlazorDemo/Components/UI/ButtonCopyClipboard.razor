@@ -1,0 +1,43 @@
+﻿<MudButtonGroup>
+    <MudIconButton Variant="Variant.Outlined"
+                   Color="Color.Primary"
+                   Size="@Size"
+                   Class="@Class"
+                   Style="@Style"
+                   Icon="@Icons.Material.Filled.ContentCopy"
+                   OnClick="@CopyToClipboard"/>
+    <MudPopover Open="_open"
+                AnchorOrigin="@AnchorOrigin"
+                TransformOrigin="@TransformOrigin"
+                Paper="true"
+                Class="border-solid border-1 mud-border-primary pa-2"
+                Elevation="0">
+        <MudPaper Class="border-solid border-2 mud-border-primary pa-1" Elevation="0">
+            <MudText Color="Color.Primary" Typo="Typo.body1">Copied!</MudText>
+        </MudPaper>
+    </MudPopover>
+</MudButtonGroup>
+
+@code {
+    [Inject] public IJSRuntime JsRuntime { get; set; }
+
+    [Parameter] public string CopyText { get; set; } = string.Empty;
+    [Parameter] public Size Size { get; set; } = Size.Small;
+    [Parameter] public string Class { get; set; } = string.Empty;
+    [Parameter] public string Style { get; set; } = string.Empty;
+    [Parameter] public Origin AnchorOrigin { get; set; } = Origin.TopCenter;
+    [Parameter] public Origin TransformOrigin { get; set; } = Origin.BottomCenter;
+
+    private bool _open = false;
+
+    private async Task CopyToClipboard()
+    {
+        await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", CopyText);
+        _open = true;
+        StateHasChanged();
+        await Task.Delay(1000);
+        _open = false;
+        StateHasChanged();
+    }
+
+}

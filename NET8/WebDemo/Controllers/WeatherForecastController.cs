@@ -1,7 +1,15 @@
+using System.Diagnostics;
 using System.Text;
 using Consul;
+using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+
+using WebDemo.Application;
+using WebDemo.Application.Repositories;
+using WebDemo.Application.WeatherService;
 using WebDemo.Domain.Extentions;
+using WebDemo.Domain.Models;
 
 namespace WebDemo.Controllers
 {
@@ -10,43 +18,76 @@ namespace WebDemo.Controllers
     public class WeatherForecastController : ControllerBase
     {
         private readonly IConsulClient _consulClient;
-        
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
+        private readonly IWeatherForecastRepository _weatherForecastRepo;
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly ActivityManager _activityManager;
+        private readonly IMediator _mediator;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, IConsulClient consulClient)
+        public WeatherForecastController(
+            ILogger<WeatherForecastController> logger,
+            //IConsulClient consulClient,
+            ActivityManager activityManager,
+            IWeatherForecastRepository weatherForecastRepo,
+            IMediator mediator)
         {
             _logger = logger;
-            _consulClient = consulClient;
+            //_consulClient = consulClient;
+            _activityManager = activityManager;
+            _mediator = mediator;
+            _weatherForecastRepo = weatherForecastRepo;
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        public async Task<IEnumerable<WeatherForecast>> Get()
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+            HttpContext.Response.Headers.Add("Request-id", Activity.Current?.TraceId.ToString() ?? string.Empty);
+
+            var traceId = Activity.Current?.TraceId.ToString() ?? ControllerContext.HttpContext.TraceIdentifier;
+            GlobalLogger.GetLogger<WeatherForecastController>().Information("TraceIdentifier:{traceId}", traceId);
+            using Activity? activity = _activityManager.StartActivity(nameof(WeatherForecast));
+            activity?.SetParentId(traceId);
+            return await _weatherForecastRepo.GetAsync(traceId);
         }
 
         [HttpGet]
-        public async Task<string> Get2Async()
+        public async Task<IEnumerable<WeatherForecast>> Mediator()
         {
+            HttpContext.Response.Headers.Add("Request-id", Activity.Current?.TraceId.ToString() ?? string.Empty);
+
+            /*
             var queryResult = await _consulClient.Agent.Services();
             queryResult.Response.TryGetValue("webDemoId", out var service);
             return service.ToString();
+            */
+            var traceId = Activity.Current?.TraceId.ToString() ?? ControllerContext.HttpContext.TraceIdentifier;
+            using Activity? activity = _activityManager.StartActivity(nameof(WeatherForecast));
+            activity?.SetParentId(traceId);
+            GlobalLogger.GetLogger<WeatherForecastController>(activity).Information("traceId:{traceId}", traceId);
+            return await _mediator.Send(new WeatherRequest(activity?.TraceId.ToString()));
+            //return await _weatherForecastRepo.GetAsync(activity);
+        }
+
+        [HttpGet]
+        public async Task<IEnumerable<WeatherForecast>> MassTransit()
+        {
+            HttpContext.Response.Headers.Add("Request-id", Activity.Current?.TraceId.ToString() ?? string.Empty);
+
+            string traceId = Activity.Current?.TraceId.ToString() ?? ControllerContext.HttpContext.TraceIdentifier;
+            using var activity = _activityManager.StartActivity(nameof(WeatherForecast));
+            activity?.SetParentId(traceId);
+            activity?.SetTag("http.method", "GET");
+            activity?.SetTag("http.route", "/WeatherForecast/MassTransit");
+
+            GlobalLogger.GetLogger<WeatherForecastController>(activity).Information("traceId:{traceId}", traceId);
+
+            return await _mediator.Send(new WeatherMassTransitRequest(activity?.TraceId.ToString()));
         }
 
         [HttpGet]
         public async Task<string> Get3Async()
         {
+            HttpContext.Response.Headers.Add("Request-id", Activity.Current?.TraceId.ToString() ?? string.Empty);
+
             StringBuilder sb = new();
             var queryResult = await _consulClient.Catalog.Services();
             var services = queryResult.Response;

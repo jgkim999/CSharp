@@ -1,0 +1,23 @@
+shape: sequence_diagram
+
+p: WebDemo
+r: RabbitMQ
+c: WebDemoComsumer
+repo: Repository
+j: Jaeger
+o: OpenSearch
+d: OpenSearchDashboard
+
+Request {
+  p.t1 -> r.t1 -> c.t1: Request
+  c.t1 -> repo.t1 -> c.t1.a: Query
+  c.t1.a -> r.t2 -> p.t1.a: Response
+}
+
+Trace {
+  p -> j : Trace
+  c -> j : Trace
+  j -> o : Save
+  d -> o : Query
+}
+
