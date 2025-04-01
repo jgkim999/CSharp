@@ -15,7 +15,7 @@ public class SqliteDependencyDb : IDependencyDb
     {
         _logger = logger;
 
-        var databasePath = Path.Combine("f:\\temp\\", dbname);
+        var databasePath = dbname; //Path.Combine("f:\\temp\\", dbname);
         _db = new SQLiteConnection(databasePath);
         _db.CreateTable<AssetDirectory>();
         _db.CreateTable<AssetFile>();
