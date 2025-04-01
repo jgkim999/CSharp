@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 using Unity.Tools;
+using Unity.Tools.Repositories;
 
 namespace SpectreDemo;
 
@@ -61,23 +62,25 @@ class Program
                 .StartAsync(async ctx =>
                 {
                     // Define tasks
-                    var task1 = ctx.AddTask("[green]Search Directories[/]");
-                    var task2 = ctx.AddTask("[green]Make meta guid[/]");
-                    var task3 = ctx.AddTask("[green]Find Meta's guid[/]");
-                    var task4 = ctx.AddTask("[green]Find guid dependency[/]");
+                    var directoryTask = ctx.AddTask("[green]Search Directories[/]");
+                    var metaListTask = ctx.AddTask("[green]Make meta guid[/]");
+                    var metaGuidTask = ctx.AddTask("[green]Find Meta's guid[/]");
+                    var assetDependencyTask = ctx.AddTask("[green]Find guid dependency[/]");
+                    var sqliteTask = ctx.AddTask("[green]Make Sqlite DB[/]");
                     
-                    SpectreProgressContext task1Progress = new(task1);
-                    SpectreProgressContext task2Progress = new(task2);
-                    SpectreProgressContext task3Progress = new(task3);
-                    SpectreProgressContext task4Progress = new(task4);
+                    SpectreProgressContext directoryTaskProgress = new(directoryTask);
+                    SpectreProgressContext metaListTaskProgress = new(metaListTask);
+                    SpectreProgressContext metaGuidTaskProgress = new(metaGuidTask);
+                    SpectreProgressContext assetDependencyTaskProgress = new(assetDependencyTask);
+                    SpectreProgressContext sqliteTaskProgress = new(sqliteTask);
 
                     List<string> directories = await AssetSearch.DirectorySearchAsync(
                         configOption.BaseDir,
                         assetSearchLogger,
                         configOption.IgnoreDirectoryNames,
-                        task1Progress);
+                        directoryTaskProgress);
 
-                    Dictionary<int, string?> directoryMap = new();
+                    Dictionary<int, string> directoryMap = new();
                     for (int i = 1; i <= directories.Count; ++i)
                     {
                         directoryMap.Add(i, directories[i - 1]);
@@ -86,13 +89,13 @@ class Program
                     fileList = await AssetSearch.MakeMetaListAsync(
                         directoryMap,
                         assetSearchLogger,
-                        task2Progress);
+                        metaListTaskProgress);
                     
                     await AssetSearch.MetaYamlAsync(
                         directoryMap,
                         fileList,
                         assetSearchLogger,
-                        task3Progress,
+                        metaGuidTaskProgress,
                         cancellationTokenSource.Token);
                     
                     await AssetSearch.YamlAnalyzeAsync(
@@ -101,8 +104,12 @@ class Program
                         configOption.FileExtAnalyze,
                         configOption.IgnoreGuids,
                         assetSearchLogger,
-                        task4Progress,
+                        assetDependencyTaskProgress,
                         cancellationTokenSource.Token);
+
+                    sqliteTaskProgress.SetMaxValue(directoryMap.Count);
+                    IDependencyDb dependencyDb = new SqliteDependencyDb($"DependencyDb-{DateTime.Now:yyyyMMdd-HHmm}", assetSearchLogger);
+                    dependencyDb.AddDirectory(directoryMap, sqliteTaskProgress);
                 })
                 .ConfigureAwait(false)
                 .GetAwaiter()
@@ -133,3 +140,4 @@ class Program
         }
     }
 }
+ 

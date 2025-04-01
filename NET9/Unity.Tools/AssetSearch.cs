@@ -87,7 +87,7 @@ public class AssetSearch
     }
 
     public static async Task<ConcurrentBag<UnityMetaFileInfo>> MakeMetaListAsync(
-        Dictionary<int, string?> directories,
+        Dictionary<int, string> directories,
         ILogger logger,
         IProgressContext progressContext)
     {
@@ -124,7 +124,7 @@ public class AssetSearch
     }
 
     public static async Task MetaYamlAsync(
-        Dictionary<int, string?> directories,
+        Dictionary<int, string> directories,
         ConcurrentBag<UnityMetaFileInfo> metaFiles,
         ILogger logger,
         IProgressContext progressContext,
@@ -173,7 +173,7 @@ public class AssetSearch
     }
 
     public static async Task YamlAnalyzeAsync(
-        Dictionary<int, string?> directories,
+        Dictionary<int, string> directories,
         ConcurrentBag<UnityMetaFileInfo> metaFiles,
         string[] extNames,
         string[] ignoreGuids,
