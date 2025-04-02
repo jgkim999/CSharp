@@ -47,7 +47,7 @@ class Program
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             microsoftLogger.LogInformation("Directory listing creation complete.");
 
-            ConcurrentBag<UnityMetaFileInfo> fileList = new();
+            ConcurrentBag<UnityMetaFileInfo> assetFiles = new();
 
             AnsiConsole.Progress()
                 .AutoClear(false)
@@ -86,31 +86,35 @@ class Program
                         directoryMap.Add(i, directories[i - 1]);
                     }
                     
-                    fileList = await AssetSearch.MakeMetaListAsync(
+                    assetFiles = await AssetSearch.MakeMetaListAsync(
                         directoryMap,
                         assetSearchLogger,
                         metaListTaskProgress);
                     
                     await AssetSearch.MetaYamlAsync(
                         directoryMap,
-                        fileList,
+                        assetFiles,
                         assetSearchLogger,
                         metaGuidTaskProgress,
                         cancellationTokenSource.Token);
                     
                     await AssetSearch.YamlAnalyzeAsync(
                         directoryMap,
-                        fileList,
+                        assetFiles,
                         configOption.FileExtAnalyze,
                         configOption.IgnoreGuids,
                         assetSearchLogger,
                         assetDependencyTaskProgress,
                         cancellationTokenSource.Token);
 
-                    sqliteTaskProgress.SetMaxValue(directoryMap.Count);
+                    sqliteTaskProgress.SetMaxValue(directoryMap.Count + assetFiles.Count);
                     var dbPath = Path.Combine(configOption.DbPath, $"DependencyDb-{DateTime.Now:yyyyMMdd-HHmm}");
                     IDependencyDb dependencyDb = new SqliteDependencyDb(dbPath, assetSearchLogger);
+                    
                     dependencyDb.AddDirectory(directoryMap, sqliteTaskProgress);
+                    dependencyDb.AddAsset(assetFiles, sqliteTaskProgress);
+
+                    AnsiConsole.MarkupLine($"[green]DB File Path: {dbPath}[/]");
                 })
                 .ConfigureAwait(false)
                 .GetAwaiter()

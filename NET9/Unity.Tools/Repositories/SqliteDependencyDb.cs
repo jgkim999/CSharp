@@ -2,6 +2,8 @@
 
 using SQLite;
 
+using System.Collections.Concurrent;
+
 using Unity.Tools.Models;
 
 namespace Unity.Tools.Repositories;
@@ -50,6 +52,51 @@ public class SqliteDependencyDb : IDependencyDb
         }
 
         // 마지막 남은 데이터 커밋
+        _db.Commit();
+    }
+
+    public void AddAsset(ConcurrentBag<UnityMetaFileInfo> assetFiles, IProgressContext progressContext)
+    {
+        int assetCommitCount = 0;
+        List<AssetFile> assetObjs = new();
+        List<AssetDependency> dependencyObjs = new();
+        _db.BeginTransaction();
+        foreach (var assetFile in assetFiles)
+        {
+            ++assetCommitCount;
+            progressContext.Increment(1);
+            try
+            {
+                var insertObj = new AssetFile() { Guid = assetFile.Guid, DirId = assetFile.DirNum, Filename = assetFile.Filename };
+                assetObjs.Add(insertObj);
+                
+                dependencyObjs.Clear();
+                foreach (var dependency in assetFile.Dependencies)
+                {
+                    dependencyObjs.Add(new AssetDependency() { Guid = assetFile.Guid, DependencyGuid = dependency });
+                }
+                if (dependencyObjs.Count > 0)
+                {
+                    _db.InsertAll(dependencyObjs);
+                }
+                // 트랜잭션이 너무 커지지 않도록 주기적으로 커밋
+                if (assetCommitCount % 100 == 0)
+                {
+                    _db.InsertAll(assetObjs);
+                    assetObjs.Clear();
+                    _db.Commit();
+                    _db.BeginTransaction();
+                }
+            }
+            catch (Exception e)
+            {
+                _db.Rollback();
+                _logger.LogError(e, "Failed to add asset in bulk");
+            }
+        }
+
+        // 마지막 남은 데이터 커밋
+        _db.InsertAll(assetObjs);
         _db.Commit();
     }
 }
