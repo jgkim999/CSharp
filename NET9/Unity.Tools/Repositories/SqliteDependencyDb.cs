@@ -67,7 +67,13 @@ public class SqliteDependencyDb : IDependencyDb
             progressContext.Increment(1);
             try
             {
-                var insertObj = new AssetFile() { Guid = assetFile.Guid, DirId = assetFile.DirNum, Filename = assetFile.Filename };
+                var insertObj = new AssetFile()
+                {
+                    Guid = assetFile.Guid,
+                    DirId = assetFile.DirNum,
+                    Filename = assetFile.Filename,
+                    DependencyCount = assetFile.DependencyCount
+                };
                 assetObjs.Add(insertObj);
                 
                 dependencyObjs.Clear();
@@ -80,7 +86,7 @@ public class SqliteDependencyDb : IDependencyDb
                     _db.InsertAll(dependencyObjs);
                 }
                 // 트랜잭션이 너무 커지지 않도록 주기적으로 커밋
-                if (assetCommitCount % 100 == 0)
+                if (assetCommitCount % 300 == 0)
                 {
                     _db.InsertAll(assetObjs);
                     assetObjs.Clear();

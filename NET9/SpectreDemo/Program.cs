@@ -108,7 +108,7 @@ class Program
                         cancellationTokenSource.Token);
 
                     sqliteTaskProgress.SetMaxValue(directoryMap.Count + assetFiles.Count);
-                    var dbPath = Path.Combine(configOption.DbPath, $"DependencyDb-{DateTime.Now:yyyyMMdd-HHmm}");
+                    var dbPath = Path.Combine(configOption.DbPath, $"DependencyDb-{DateTime.Now:yyyyMMdd-HHmm}.sqlite");
                     IDependencyDb dependencyDb = new SqliteDependencyDb(dbPath, assetSearchLogger);
                     
                     dependencyDb.AddDirectory(directoryMap, sqliteTaskProgress);
