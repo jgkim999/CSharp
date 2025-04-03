@@ -13,7 +13,7 @@ using Unity.Tools.Models;
 using Unity.Tools.Repositories;
 using Unity.Tools.Utils;
 
-namespace SpectreDemo;
+namespace SpectreDemo.Command;
 
 internal class MakeBuildDbCommand
 {
@@ -32,6 +32,7 @@ internal class MakeBuildDbCommand
     {
         Dictionary<int, string> directoryMap = new();
         await AnsiConsole.Status()
+            .Spinner(Spinner.Known.BouncingBar)
             .StartAsync("[green]1/3 Search Directories[/]", async ctx =>
             {
                 string[] ignore = [];

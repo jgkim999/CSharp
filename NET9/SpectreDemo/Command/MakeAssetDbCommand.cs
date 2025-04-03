@@ -8,7 +8,7 @@ using Unity.Tools;
 using Unity.Tools.Models;
 using Unity.Tools.Repositories;
 
-namespace SpectreDemo;
+namespace SpectreDemo.Command;
 
 internal class MakeAssetDbCommand
 {

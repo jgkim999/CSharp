@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Text;
 
 using Unity.Tools.Models;
+using Unity.Tools.Models.Sqlite;
 
 namespace Unity.Tools.Repositories;
 

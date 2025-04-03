@@ -7,6 +7,8 @@ using Serilog.Extensions.Logging;
 
 using Spectre.Console;
 
+using SpectreDemo.Command;
+
 using System.Diagnostics;
 
 using Unity.Tools;
@@ -67,6 +69,7 @@ class Program
                 AnsiConsole.Write(table);
 
                 string buildCacheMenu = "BuildCache DB 만들기";
+                string buildCacheCompareMenu = "BuildCache DB 비교하기";
                 string assetMenu = "Asset DB 만들기";
                 string quitMenu = "종료";
 
@@ -75,7 +78,13 @@ class Program
                         .Title("원하는 [green]메뉴를 선택하세요 [/]?")
                         .PageSize(10)
                         .MoreChoicesText("[grey](Move up and down to reveal more fruits)[/]")
-                        .AddChoices(new[] { buildCacheMenu, assetMenu, quitMenu }));
+                        .AddChoices(new[]
+                        {
+                            buildCacheMenu,
+                            buildCacheCompareMenu,
+                            assetMenu,
+                            quitMenu
+                        }));
 
                 if (selectedMenu is null)
                 {
@@ -85,6 +94,14 @@ class Program
                 CancellationTokenSource cancellationTokenSource = new();
 
                 if (selectedMenu == buildCacheMenu)
+                {
+                    MakeBuildDbCommand cmd = new(configOption, assetSearchLogger, cancellationTokenSource);
+                    cmd.ExecuteAsync()
+                        .ConfigureAwait(false)
+                        .GetAwaiter()
+                        .GetResult();
+                }
+                else if (selectedMenu == buildCacheCompareMenu)
                 {
                     MakeBuildDbCommand cmd = new(configOption, assetSearchLogger, cancellationTokenSource);
                     cmd.ExecuteAsync()

@@ -1,6 +1,6 @@
 ﻿using SQLite;
 
-namespace Unity.Tools.Models;
+namespace Unity.Tools.Models.Sqlite;
 
 public class AssetFile
 {
