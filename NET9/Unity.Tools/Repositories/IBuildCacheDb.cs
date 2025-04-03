@@ -4,8 +4,8 @@ using Unity.Tools.Models;
 
 namespace Unity.Tools.Repositories;
 
-public interface IDependencyDb
+public interface IBuildCacheDb
 {
     Task AddDirectoryAsync(Dictionary<int, string> directoryMap, IProgressContext progressContext);
-    Task AddAssetAsync(ConcurrentBag<UnityMetaFileInfo> assetFiles, IProgressContext progressContext);
+    Task AddFileAsync(ConcurrentBag<UnityCacheFileInfo> files, IProgressContext progressContext);
 }

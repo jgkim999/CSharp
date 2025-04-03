@@ -7,12 +7,9 @@ using Serilog.Extensions.Logging;
 
 using Spectre.Console;
 
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 using Unity.Tools;
-using Unity.Tools.Repositories;
 
 namespace SpectreDemo;
 
@@ -40,99 +37,80 @@ class Program
                 .GetSection("ConfigOption")
                 .Get<ConfigOption>();
             Debug.Assert(configOption != null, nameof(configOption) + " == null");
-            
-            var assetSearchLogger = new SerilogLoggerFactory(inner)
+
+            ILogger<AssetSearch> assetSearchLogger = new SerilogLoggerFactory(inner)
                 .CreateLogger<AssetSearch>();
-            
-            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            microsoftLogger.LogInformation("Directory listing creation complete.");
 
-            ConcurrentBag<UnityMetaFileInfo> assetFiles = new();
+            bool menuRun = true;
 
-            AnsiConsole.Progress()
-                .AutoClear(false)
-                .Columns(new ProgressColumn[]
+            while (menuRun)
+            {
+                AnsiConsole.Clear();
+
+                // Create a table
+                var table = new Table();
+
+                // Add some columns
+                table.AddColumn("Section");
+                table.AddColumn("Value");
+
+                // Add rows
+                table.AddRow("AssetPath", $"[green]{configOption.AssetPath}[/]");
+                table.AddRow("AssetDbPath", $"[green]{configOption.AssetDbPath}[/]");
+                table.AddRow("BuildCachePath", $"[green]{configOption.BuildCachePath}[/]");
+                table.AddRow("BuildCacheDbPath", $"[green]{configOption.BuildCacheDbPath}[/]");
+                table.AddRow("Ignore Directory", $"[green]{string.Join(" ", configOption.IgnoreDirectoryNames)}[/]");
+                table.AddRow("Analyze File Ext", $"[green]{string.Join(" ", configOption.FileExtAnalyze)}[/]");
+                table.AddRow("Ignore Guid", $"[green]{string.Join(" ", configOption.IgnoreGuids)}[/]");
+
+                // Render the table to the console
+                AnsiConsole.Write(table);
+
+                string buildCacheMenu = "BuildCache DB 만들기";
+                string assetMenu = "Asset DB 만들기";
+                string quitMenu = "종료";
+
+                var selectedMenu = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("원하는 [green]메뉴를 선택하세요 [/]?")
+                        .PageSize(10)
+                        .MoreChoicesText("[grey](Move up and down to reveal more fruits)[/]")
+                        .AddChoices(new[] { buildCacheMenu, assetMenu, quitMenu }));
+
+                if (selectedMenu is null)
                 {
-                    new TaskDescriptionColumn(),
-                    new ProgressBarColumn(),
-                    new PercentageColumn(),
-                    new ElapsedTimeColumn(),
-                    new SpinnerColumn()
-                })
-                .StartAsync(async ctx =>
+                    throw new ArgumentNullException(nameof(selectedMenu));
+                }
+
+                CancellationTokenSource cancellationTokenSource = new();
+
+                if (selectedMenu == buildCacheMenu)
                 {
-                    // Define tasks
-                    var directoryTask = ctx.AddTask("[green]Search Directories[/]");
-                    var metaListTask = ctx.AddTask("[green]Make meta guid[/]");
-                    var metaGuidTask = ctx.AddTask("[green]Find Meta's guid[/]");
-                    var assetDependencyTask = ctx.AddTask("[green]Find guid dependency[/]");
-                    var sqliteTask = ctx.AddTask("[green]Make Sqlite DB[/]");
-                    
-                    SpectreProgressContext directoryTaskProgress = new(directoryTask);
-                    SpectreProgressContext metaListTaskProgress = new(metaListTask);
-                    SpectreProgressContext metaGuidTaskProgress = new(metaGuidTask);
-                    SpectreProgressContext assetDependencyTaskProgress = new(assetDependencyTask);
-                    SpectreProgressContext sqliteTaskProgress = new(sqliteTask);
+                    MakeBuildDbCommand cmd = new(configOption, assetSearchLogger, cancellationTokenSource);
+                    cmd.ExecuteAsync()
+                        .ConfigureAwait(false)
+                        .GetAwaiter()
+                        .GetResult();
+                }
+                else if (selectedMenu == assetMenu)
+                {
+                    MakeAssetDbCommand cmd = new(configOption, assetSearchLogger, cancellationTokenSource);
+                    cmd.ExecuteAsync()
+                        .ConfigureAwait(false)
+                        .GetAwaiter()
+                        .GetResult();
+                }
+                else if (selectedMenu == quitMenu)
+                {
+                    Log.Information("종료합니다.");
+                    menuRun = false;
+                }
+                else
+                {
+                    throw new ArgumentException("Invalid menu selection.");
+                }
+            }
 
-                    List<string> directories = await AssetSearch.DirectorySearchAsync(
-                        configOption.BaseDir,
-                        assetSearchLogger,
-                        configOption.IgnoreDirectoryNames,
-                        directoryTaskProgress);
-
-                    Dictionary<int, string> directoryMap = new();
-                    for (int i = 1; i <= directories.Count; ++i)
-                    {
-                        directoryMap.Add(i, directories[i - 1]);
-                    }
-                    
-                    assetFiles = await AssetSearch.MakeMetaListAsync(
-                        directoryMap,
-                        assetSearchLogger,
-                        metaListTaskProgress);
-                    
-                    await AssetSearch.MetaYamlAsync(
-                        directoryMap,
-                        assetFiles,
-                        assetSearchLogger,
-                        metaGuidTaskProgress,
-                        cancellationTokenSource.Token);
-                    
-                    await AssetSearch.YamlAnalyzeAsync(
-                        directoryMap,
-                        assetFiles,
-                        configOption.FileExtAnalyze,
-                        configOption.IgnoreGuids,
-                        assetSearchLogger,
-                        assetDependencyTaskProgress,
-                        cancellationTokenSource.Token);
-
-                    sqliteTaskProgress.SetMaxValue(directoryMap.Count + assetFiles.Count);
-                    var dbPath = Path.Combine(configOption.DbPath, $"DependencyDb-{DateTime.Now:yyyyMMdd-HHmm}.sqlite");
-                    IDependencyDb dependencyDb = new SqliteDependencyDb(dbPath, assetSearchLogger);
-                    
-                    dependencyDb.AddDirectory(directoryMap, sqliteTaskProgress);
-                    dependencyDb.AddAsset(assetFiles, sqliteTaskProgress);
-
-                    AnsiConsole.MarkupLine($"[green]DB File Path: {dbPath}[/]");
-                })
-                .ConfigureAwait(false)
-                .GetAwaiter()
-                .GetResult();
-
-            //foreach (var file in fileList)
-            //{
-            //    if (file.DependencyCount > 0)
-            //    {
-            //        AnsiConsole.MarkupLine($"File: {file.Filename} has {file.DependencyCount} dependencies.");
-            //        foreach (var dependency in file.Dependencies)
-            //        {
-            //            AnsiConsole.MarkupLine($"Dependency: {dependency}");
-            //        }
-            //    }
-            //}
-
-            microsoftLogger.LogInformation("File listing creation complete.");
             Task.Delay(2000).ConfigureAwait(false).GetAwaiter().GetResult();
         }
         catch (Exception e)
@@ -145,4 +123,3 @@ class Program
         }
     }
 }
- 

@@ -2,8 +2,9 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
+
+using Unity.Tools.Models;
 
 using YamlDotNet.RepresentationModel;
 
@@ -13,11 +14,16 @@ public class AssetSearch
 {
     static string[] MetaExtensions = new string[] { ".meta" };
     
+    static string YamlPattern = @"\{(.*?)\}";
+    private static Regex YamlRegex = new (YamlPattern);
+    
+    static string GuidPattern = @"guid:\s*([a-f0-9]{32})";
+    private static Regex GuidRegex = new (GuidPattern);
+
     public static async Task<List<string>> DirectorySearchAsync(
         string? root,
         ILogger logger,
-        string[] ignoreDirectoryNames,
-        IProgressContext progressContext)
+        string[] ignoreDirectoryNames)
     {
         List<string> directories = new();
         // Count of files traversed and timer for diagnostic output
@@ -76,10 +82,6 @@ public class AssetSearch
                 //logger.LogInformation(subDir);
             }
         }
-        progressContext.SetMaxValue(directories.Count);
-        progressContext.StartTask();
-        progressContext.Increment(directories.Count);
-        progressContext.StopTask();
         // For diagnostic purposes.
         logger.LogInformation($"Processed {directories.Count} directories in {sw.ElapsedMilliseconds} milliseconds");
         await Task.CompletedTask;
@@ -121,6 +123,33 @@ public class AssetSearch
         progressContext.StopTask();
         await Task.CompletedTask;
         return metaFiles;
+    }
+
+    public static async Task<ConcurrentBag<UnityCacheFileInfo>> MakeBuildCacheFileListAsync(
+        Dictionary<int, string> directories,
+        ILogger logger,
+        IProgressContext progressContext)
+    {
+        ConcurrentBag<UnityCacheFileInfo> buildCacheFiles = new();
+        progressContext.StartTask();
+        progressContext.SetMaxValue(directories.Count);
+        var sw = Stopwatch.StartNew();
+
+        Parallel.ForEach(directories, directory =>
+        {
+            progressContext.Increment(1);
+
+            //logger.LogInformation(directory.Value);
+            var files = Directory.GetFiles(directory.Value);
+            foreach (var file in files)
+            {
+                buildCacheFiles.Add(new UnityCacheFileInfo() { DirNum = directory.Key,Filename = Path.GetFileName(file) });
+            }
+        });
+        logger.LogInformation($"Processed {buildCacheFiles.Count} files in {sw.ElapsedMilliseconds} milliseconds");
+        progressContext.StopTask();
+        await Task.CompletedTask;
+        return buildCacheFiles;
     }
 
     public static async Task MetaYamlAsync(
@@ -207,22 +236,15 @@ public class AssetSearch
             {
                 if (line.Contains("guid") == false)
                     continue;
-                string pattern = @"\{(.*?)\}";
-
-                // 정규 표현식 객체 생성
-                Regex regex1 = new Regex(pattern);
-
                 // 매칭 결과
-                Match match1 = regex1.Match(line);
+                Match match1 = YamlRegex.Match(line);
                 if (match1.Success)
                 {
                     // 중괄호 내부의 문자열 추출
                     string result = match1.Groups[1].Value;
                     //logger.LogInformation($"{filePath} {result}");
 
-                    string pattern2 = @"guid:\s*([a-f0-9]{32})";
-                    Regex regex2 = new Regex(pattern2);
-                    Match match2 = regex2.Match(line);
+                    Match match2 = GuidRegex.Match(line);
                     if (match2.Success)
                     {
                         string result2 = match2.Groups[1].Value;

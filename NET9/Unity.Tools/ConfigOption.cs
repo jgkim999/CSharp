@@ -2,8 +2,10 @@
 
 public class ConfigOption
 {
-    public string BaseDir { get; set; } = string.Empty;
-    public string DbPath { get; set; } = string.Empty;
+    public string AssetPath { get; set; } = string.Empty;
+    public string AssetDbPath { get; set; } = string.Empty;
+    public string BuildCachePath { get; set; } = string.Empty;
+    public string BuildCacheDbPath { get; set; } = string.Empty;
     public string[] IgnoreDirectoryNames { get; set; } = [];
     public string[] FileExtAnalyze { get; set; } = [];
     public string[] IgnoreGuids { get; set; } = [];
