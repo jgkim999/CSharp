@@ -2,8 +2,9 @@
 
 using Spectre.Console;
 
+using System.IO;
+
 using Unity.Tools.Models.Sqlite;
-using Unity.Tools;
 using Unity.Tools.Repositories;
 
 using ConfigOption = Unity.Tools.ConfigOption;
@@ -31,21 +32,33 @@ public class BuildDbCompareCommand
         string srcDbFileName = string.Empty;
         string targetDbFileName = string.Empty;
 
-        var dbFiles = Directory.GetFiles(_option.BuildCacheDbPath);
+        var dirFiles = Directory.GetFiles(_option.BuildCacheDbPath);
+        if (dirFiles.Length == 0)
+        {
+            AnsiConsole.MarkupLine("[red]DB 파일이 없습니다.[/]");
+            AnsiConsole.Console.Input.ReadKey(false);
+            return;
+        }
+        var dbFileNames = new List<string>();
+        foreach (var dirFile in dirFiles)
+        {
+            if (Path.GetExtension(dirFile) == ".sqlite")
+                dbFileNames.Add(dirFile);
+        }
 
         srcDbFileName = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("소스 [green]DB 파일을 선택하세요 [/]?")
                 .PageSize(10)
                 .MoreChoicesText("[grey](Move up and down)[/]")
-                .AddChoices(dbFiles));
+                .AddChoices(dbFileNames));
 
         targetDbFileName = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("비교할 타겟 [green]DB 파일을 선택하세요 [/]?")
                 .PageSize(10)
                 .MoreChoicesText("[grey](Move up and down)[/]")
-                .AddChoices(dbFiles));
+                .AddChoices(dbFileNames));
 
         var table = new Table();
 
@@ -64,6 +77,10 @@ public class BuildDbCompareCommand
         var srcFiles = await srcDb.GetFilesAsync();
         var targetFiles = await targetDb.GetFilesAsync();
 
+        List<BuildCacheFileDirectory> deleteFiles = new();
+        List<BuildCacheFileDirectory> newFiles = new();
+        List<(BuildCacheFileDirectory src, BuildCacheFileDirectory target)> updateFiles = new();
+
         await AnsiConsole.Progress()
                 .AutoClear(false)
                 .Columns(new ProgressColumn[]
@@ -79,22 +96,79 @@ public class BuildDbCompareCommand
                     // Define tasks
                     var checkTask = ctx.AddTask("[green]Check[/]");
                     SpectreProgressContext checkTaskProgress = new(checkTask);
-
-
+                    
                     checkTaskProgress.SetMaxValue(srcFiles.Count + targetFiles.Count);
 
                     foreach (var srcFile in srcFiles)
                     {
                         checkTaskProgress.Increment(1);
+                        List<BuildCacheFileDirectory> rows = await targetDb.GetFilesAsync(srcFile.Filename);
+                        if (rows.Count == 0)
+                        {
+                            // Delete
+                            deleteFiles.Add(srcFile);
+                        }
+                        else if (rows.Count == 1 && rows[0].IsEqual(srcFile) == false)
+                        {
+                            // Update
+                            updateFiles.Add((srcFile, rows[0]));
+                        }
+                        else
+                        {
+                            foreach (var row in rows)
+                            {
+                                if (row.IsEqual(srcFile) == false)
+                                {
+                                    // Update
+                                    updateFiles.Add((srcFile, row));
+                                }
+                            }
+                        }
                     }
 
                     foreach (var targetFile in targetFiles)
                     {
                         checkTaskProgress.Increment(1);
+                        // New
+                        var rows = await srcDb.GetFilesAsync(targetFile.Filename);
+                        if (rows.Count == 0)
+                        {
+                            newFiles.Add(targetFile);
+                        }
                     }
                     checkTaskProgress.StopTask();
                 });
-        AnsiConsole.MarkupLine("[green]비교가 완료되었습니다.[/]");
+        
+        string diffFileName = Path.Combine(_option.BuildCacheDbPath, $"Diff-{DateTime.Now:yyyyMMdd-HHmm}.csv");
+        await using (StreamWriter writeText = new(diffFileName))
+        {
+            await writeText.WriteLineAsync("Type,Path,Length,CreationTimeUtc,LastWriteTimeUtc,LastAccessTimeUtc");
+            foreach (BuildCacheFileDirectory file in deleteFiles)
+            {
+                string path = Path.Combine(file.Dirname, file.Filename);
+                await writeText.WriteLineAsync(
+                    $"del,{path},{file.Length},'{file.CreationTimeUtc}','{file.LastWriteTimeUtc}','{file.LastAccessTimeUtc}'");
+            }
+
+            foreach (BuildCacheFileDirectory file in newFiles)
+            {
+                string path = Path.Combine(file.Dirname, file.Filename);
+                await writeText.WriteLineAsync(
+                    $"new,{path},{file.Length},'{file.CreationTimeUtc}','{file.LastWriteTimeUtc}','{file.LastAccessTimeUtc}'");
+            }
+
+            foreach (var (src, target) in updateFiles)
+            {
+                string srcPath = Path.Combine(src.Dirname, src.Filename);
+                string targetPath = Path.Combine(target.Dirname, target.Filename);
+                await writeText.WriteLineAsync(
+                    $"update src,{srcPath},{src.Length},'{src.CreationTimeUtc}','{src.LastWriteTimeUtc}','{src.LastAccessTimeUtc}'");
+                await writeText.WriteLineAsync(
+                    $"update target,{targetPath},{target.Length},'{target.CreationTimeUtc}','{target.LastWriteTimeUtc}','{target.LastAccessTimeUtc}'");
+            }
+        }
+        
+        AnsiConsole.MarkupLine($"[green]비교 파일이 생성 완료되었습니다. {diffFileName}[/]");
         AnsiConsole.Console.Input.ReadKey(false);
     }
 }

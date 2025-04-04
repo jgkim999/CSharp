@@ -99,7 +99,8 @@ internal class MakeAssetDbCommand
                     await dependencyDb.AddDirectoryAsync(directoryMap, sqliteTaskProgress);
                     await dependencyDb.AddAssetAsync(assetFiles, sqliteTaskProgress);
 
-                    AnsiConsole.MarkupLine($"[green]DB File Path: {dbPath}[/]");
+                    AnsiConsole.MarkupLine($"[green]DB 생성이 완료되었습니다. {dbPath}[/]");
+                    AnsiConsole.Console.Input.ReadKey(false);
                 });
     }
 }

@@ -13,12 +13,12 @@ namespace Unity.Tools;
 public class AssetSearch
 {
     static string[] MetaExtensions = new string[] { ".meta" };
-    
+
     static string YamlPattern = @"\{(.*?)\}";
-    private static Regex YamlRegex = new (YamlPattern);
-    
+    private static Regex YamlRegex = new(YamlPattern);
+
     static string GuidPattern = @"guid:\s*([a-f0-9]{32})";
-    private static Regex GuidRegex = new (GuidPattern);
+    private static Regex GuidRegex = new(GuidPattern);
 
     public static async Task<List<string>> DirectorySearchAsync(
         string? root,
@@ -37,7 +37,7 @@ public class AssetSearch
 
         if (!Directory.Exists(root))
         {
-            logger.LogError($"Directory {root} does not exist.");
+            logger.LogError("Directory {Root} does not exist.", root);
             return directories;
         }
 
@@ -56,15 +56,13 @@ public class AssetSearch
             // Thrown if we do not have discovery permission on the directory.
             catch (UnauthorizedAccessException e)
             {
-                logger.LogError($"Directory.GetDirectories UnauthorizedAccessException: {currentDir}");
-                logger.LogError(e.Message);
+                logger.LogError(e, "Directory.GetDirectories UnauthorizedAccessException: {CurrentDir}", currentDir);
                 continue;
             }
             // Thrown if another process has deleted the directory after we retrieved its name.
             catch (DirectoryNotFoundException e)
             {
-                logger.LogError($"DirectoryNotFoundException: {currentDir}");
-                logger.LogError(e.Message);
+                logger.LogError(e, "DirectoryNotFoundException: {CurrentDir}", currentDir);
                 continue;
             }
 
@@ -83,7 +81,9 @@ public class AssetSearch
             }
         }
         // For diagnostic purposes.
-        logger.LogInformation($"Processed {directories.Count} directories in {sw.ElapsedMilliseconds} milliseconds");
+        logger.LogInformation(
+            "Processed {DirectoriesCount} directories in {ElapsedMilliseconds} milliseconds",
+            directories.Count, sw.ElapsedMilliseconds);
         await Task.CompletedTask;
         return directories;
     }
@@ -97,7 +97,7 @@ public class AssetSearch
         progressContext.StartTask();
         progressContext.SetMaxValue(directories.Count);
         var sw = Stopwatch.StartNew();
-        
+
         Parallel.ForEach(directories, directory =>
         {
             progressContext.Increment(1);
@@ -119,7 +119,10 @@ public class AssetSearch
                 metaFiles.Add(new UnityMetaFileInfo() { DirNum = directory.Key, MetaFilename = Path.GetFileName(file) });
             }
         });
-        logger.LogInformation($"Processed {metaFiles.Count} files in {sw.ElapsedMilliseconds} milliseconds");
+        logger.LogInformation(
+            "Processed {MetaFilesCount} files in {ElapsedMilliseconds} milliseconds",
+            metaFiles.Count,
+            sw.ElapsedMilliseconds);
         progressContext.StopTask();
         await Task.CompletedTask;
         return metaFiles;
@@ -144,7 +147,7 @@ public class AssetSearch
             foreach (var file in files)
             {
                 var fileInfo = new FileInfo(file);
-                
+
                 buildCacheFiles.Add(new UnityCacheFileInfo()
                 {
                     DirNum = directory.Key,
@@ -156,7 +159,10 @@ public class AssetSearch
                 });
             }
         });
-        logger.LogInformation($"Processed {buildCacheFiles.Count} files in {sw.ElapsedMilliseconds} milliseconds");
+        logger.LogInformation(
+            "Processed {BuildCacheFilesCount} files in {ElapsedMilliseconds} milliseconds",
+            buildCacheFiles.Count,
+            sw.ElapsedMilliseconds);
         progressContext.StopTask();
         await Task.CompletedTask;
         return buildCacheFiles;
@@ -197,12 +203,12 @@ public class AssetSearch
                         }
                         else
                         {
-                            logger.LogError($"{filePath} GUID를 찾을 수 없습니다.");
+                            logger.LogError("{FilePath} GUID를 찾을 수 없습니다.", filePath);
                         }
                     }
                     catch (Exception e)
                     {
-                        logger.LogError($"{filePath} {e.Message}");
+                        logger.LogError(e, "{FilePath}", filePath);
                     }
                 }
             }
@@ -230,14 +236,17 @@ public class AssetSearch
             string dir;
             if (directories.TryGetValue(metafile.DirNum, out dir) == false)
             {
-                logger.LogError($"Unknown directory: {metafile.DirNum} {metafile.MetaFilename}");
+                logger.LogError(
+                    "Unknown directory: {DirNum} {MetaFilename}",
+                    metafile.DirNum,
+                    metafile.MetaFilename);
                 return;
             }
 
             var filePath = Path.Combine(dir, metafile.Filename);
             if (File.Exists(filePath) == false)
             {
-                logger.LogError($"File {filePath} does not exist.");
+                logger.LogError("File {FilePath} does not exist.", filePath);
                 return;
             }
 
@@ -266,7 +275,9 @@ public class AssetSearch
                 }
             }
             if (metafile.Dependencies.Count > 0)
-                logger.LogInformation($"{filePath} Dependencies: {metafile.Dependencies.Count}");
+                logger.LogInformation(
+                    "{FilePath} Dependencies: {DependencyCount}",
+                    filePath, metafile.Dependencies.Count);
         });
         progressContext.StopTask();
         await Task.CompletedTask;

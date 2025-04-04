@@ -157,8 +157,21 @@ public class SqliteBuildCacheDb : IBuildCacheDb
     public async Task<List<BuildCacheFileDirectory>> GetFilesAsync()
     {
         await Task.CompletedTask;
-        string query = "SELECT A.DirId, B.Name AS Dirname, A.Filename FROM BuildCacheFile AS A" +
+        string query = "SELECT A.DirId, B.Name AS Dirname, A.Filename, A.Length," +
+                       " A.CreationTimeUtc, A.LastWriteTimeUtc, A.LastAccessTimeUtc" +
+                       " FROM BuildCacheFile AS A" +
                        " JOIN BuildCacheDirectory AS B ON A.DirId = B.Id;";
+        return _db.Query<BuildCacheFileDirectory>(query);
+    }
+
+    public async Task<List<BuildCacheFileDirectory>> GetFilesAsync(string filename)
+    {
+        await Task.CompletedTask;
+        string query = "SELECT A.DirId, B.Name AS Dirname, A.Filename, A.Length," +
+                       " A.CreationTimeUtc, A.LastWriteTimeUtc, A.LastAccessTimeUtc" +
+                       " FROM BuildCacheFile AS A" +
+                       " JOIN BuildCacheDirectory AS B ON A.DirId = B.Id" +
+                       $" WHERE A.Filename = '{filename}';";
         return _db.Query<BuildCacheFileDirectory>(query);
     }
 }

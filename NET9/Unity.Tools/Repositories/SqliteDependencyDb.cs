@@ -47,7 +47,7 @@ public class SqliteDependencyDb : IDependencyDb
                     sb.AppendLine($" ('{item.Id}','{item.Name}')");
             }
 
-            sb.AppendLine($";");
+            sb.AppendLine(";");
             return sb.ToString();
         }
         finally
@@ -65,22 +65,22 @@ public class SqliteDependencyDb : IDependencyDb
         {
             ++commitCount;
             progressContext.Increment(1);
-            try
+            var assetDirectory = new AssetDirectory() { Id = directory.Key, Name = directory.Value };
+            assetDirectories.Add(assetDirectory);
+
+            // 트랜잭션이 너무 커지지 않도록 주기적으로 커밋
+            if (commitCount % 100 == 0)
             {
-                var assetDirectory = new AssetDirectory() { Id = directory.Key, Name = directory.Value };
-                assetDirectories.Add(assetDirectory);
-                
-                // 트랜잭션이 너무 커지지 않도록 주기적으로 커밋
-                if (commitCount % 100 == 0)
+                string insertQuery1 = MakeAssetDirectoryQuery(assetDirectories);
+                try
                 {
-                    string insertQuery1 = MakeAssetDirectoryQuery(assetDirectories);
                     _db.Execute(insertQuery1);
                     assetDirectories.Clear();
                 }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Failed to add directories in bulk");
+                catch (Exception e)
+                {
+                    _logger.LogError(e, insertQuery1);
+                }
             }
         }
 

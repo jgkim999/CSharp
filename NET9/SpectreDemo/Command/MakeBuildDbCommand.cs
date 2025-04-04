@@ -42,8 +42,11 @@ internal class MakeBuildDbCommand
             .AutoClear(false)
             .Columns(new ProgressColumn[]
             {
-                new TaskDescriptionColumn(), new ProgressBarColumn(), new PercentageColumn(),
-                new ElapsedTimeColumn(), new SpinnerColumn()
+                new TaskDescriptionColumn(),
+                new ProgressBarColumn(),
+                new PercentageColumn(),
+                new ElapsedTimeColumn(),
+                new SpinnerColumn()
             })
             .StartAsync(async ctx =>
             {
@@ -71,7 +74,7 @@ internal class MakeBuildDbCommand
                 await buildCacheDb.AddDirectoryAsync(directoryMap, sqliteTaskProgress);
                 await buildCacheDb.AddFileAsync(files, sqliteTaskProgress);
 
-                AnsiConsole.MarkupLine($"[green]DB 파일 생성이 완료되었습니다. {dbPath}[/]");
+                AnsiConsole.MarkupLine($"[green]DB 생성이 완료되었습니다. {dbPath}[/]");
                 AnsiConsole.Console.Input.ReadKey(false);
             });
 
