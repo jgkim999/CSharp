@@ -57,12 +57,9 @@ public class SqliteBuildCacheDb : IBuildCacheDb
 
     public async Task AddDirectoryAsync(Dictionary<int, string> directoryMap, IProgressContext progressContext)
     {
-        int commitCount = 0;
-
         List<BuildCacheDirectory> buildCacheDirectories = new();
         foreach (var directory in directoryMap)
         {
-            ++commitCount;
             progressContext.Increment(1);
             try
             {
@@ -70,7 +67,7 @@ public class SqliteBuildCacheDb : IBuildCacheDb
                 buildCacheDirectories.Add(buildCacheDirectory);
 
                 // 트랜잭션이 너무 커지지 않도록 주기적으로 커밋
-                if (commitCount % 100 == 0)
+                if (buildCacheDirectories.Count >= 100)
                 {
                     string insertQuery1 = MakeBuildCacheDirectoryQuery(buildCacheDirectories);
                     _db.Execute(insertQuery1);
@@ -94,14 +91,14 @@ public class SqliteBuildCacheDb : IBuildCacheDb
         var sb = _stringBuilderPool.Get();
         try
         {
-            sb.AppendLine($"INSERT INTO BuildCacheFile (DirId, Filename) VALUES");
+            sb.AppendLine($"INSERT INTO BuildCacheFile (DirId, Filename, Length, CreationTimeUtc, LastWriteTimeUtc, LastAccessTimeUtc) VALUES");
             for (int i = 0; i < cacheFiles.Count; ++i)
             {
                 var item = cacheFiles[i];
                 if (i != (cacheFiles.Count - 1))
-                    sb.AppendLine($" ({item.DirId}, '{item.Filename}'),");
+                    sb.AppendLine($" ({item.DirId},'{item.Filename}',{item.Length},'{item.CreationTimeUtc}','{item.LastWriteTimeUtc}','{item.LastAccessTimeUtc}'),");
                 else
-                    sb.AppendLine($" ({item.DirId}, '{item.Filename}')");
+                    sb.AppendLine($" ({item.DirId},'{item.Filename}',{item.Length},'{item.CreationTimeUtc}','{item.LastWriteTimeUtc}','{item.LastAccessTimeUtc}')");
             }
 
             sb.AppendLine(";");
@@ -115,35 +112,39 @@ public class SqliteBuildCacheDb : IBuildCacheDb
 
     public async Task AddFileAsync(ConcurrentBag<UnityCacheFileInfo> files, IProgressContext progressContext)
     {
-        int commitCount = 0;
         List<BuildCacheFile> insertFiles = new();
-        
+
         foreach (var file in files)
         {
-            ++commitCount;
             progressContext.Increment(1);
-            try
-            {
-                if (string.IsNullOrEmpty(file.Filename))
-                    continue;
-                var insertObj = new BuildCacheFile()
-                {
-                    DirId = file.DirNum,
-                    Filename = file.Filename
-                };
-                insertFiles.Add(insertObj);
 
-                // 주기적으로 커밋
-                if (commitCount % 100 == 0)
+            if (string.IsNullOrEmpty(file.Filename))
+                continue;
+            var insertObj = new BuildCacheFile()
+            {
+                DirId = file.DirNum,
+                Filename = file.Filename,
+                Length = file.Length,
+                CreationTimeUtc = file.CreationTimeUtcStr,
+                LastWriteTimeUtc = file.LastWriteTimeUtcStr,
+                LastAccessTimeUtc = file.LastAccessTimeUtcStr
+            };
+            insertFiles.Add(insertObj);
+            
+            // 주기적으로 커밋
+            if (insertFiles.Count >= 100)
+            {
+                string assetQuery1 = MakeCacheFileQuery(insertFiles);
+                try
                 {
-                    string assetQuery1 = MakeCacheFileQuery(insertFiles);
                     _db.Execute(assetQuery1);
                     insertFiles.Clear();
                 }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Failed to add cache file in bulk");
+                catch (Exception e)
+                {
+                    _logger.LogError(e, assetQuery1);
+                    insertFiles.Clear();
+                }
             }
         }
 
@@ -151,5 +152,13 @@ public class SqliteBuildCacheDb : IBuildCacheDb
         string assetQuery2 = MakeCacheFileQuery(insertFiles);
         _db.Execute(assetQuery2);
         await Task.CompletedTask;
+    }
+
+    public async Task<List<BuildCacheFileDirectory>> GetFilesAsync()
+    {
+        await Task.CompletedTask;
+        string query = "SELECT A.DirId, B.Name AS Dirname, A.Filename FROM BuildCacheFile AS A" +
+                       " JOIN BuildCacheDirectory AS B ON A.DirId = B.Id;";
+        return _db.Query<BuildCacheFileDirectory>(query);
     }
 }

@@ -40,7 +40,7 @@ class Program
                 .Get<ConfigOption>();
             Debug.Assert(configOption != null, nameof(configOption) + " == null");
 
-            ILogger<AssetSearch> assetSearchLogger = new SerilogLoggerFactory(inner)
+            ILogger<AssetSearch> cmdLogger = new SerilogLoggerFactory(inner)
                 .CreateLogger<AssetSearch>();
 
             bool menuRun = true;
@@ -95,7 +95,7 @@ class Program
 
                 if (selectedMenu == buildCacheMenu)
                 {
-                    MakeBuildDbCommand cmd = new(configOption, assetSearchLogger, cancellationTokenSource);
+                    MakeBuildDbCommand cmd = new(configOption, cmdLogger, cancellationTokenSource);
                     cmd.ExecuteAsync()
                         .ConfigureAwait(false)
                         .GetAwaiter()
@@ -103,7 +103,7 @@ class Program
                 }
                 else if (selectedMenu == buildCacheCompareMenu)
                 {
-                    MakeBuildDbCommand cmd = new(configOption, assetSearchLogger, cancellationTokenSource);
+                    BuildDbCompareCommand cmd = new(configOption, cmdLogger, cancellationTokenSource);
                     cmd.ExecuteAsync()
                         .ConfigureAwait(false)
                         .GetAwaiter()
@@ -111,7 +111,7 @@ class Program
                 }
                 else if (selectedMenu == assetMenu)
                 {
-                    MakeAssetDbCommand cmd = new(configOption, assetSearchLogger, cancellationTokenSource);
+                    MakeAssetDbCommand cmd = new(configOption, cmdLogger, cancellationTokenSource);
                     cmd.ExecuteAsync()
                         .ConfigureAwait(false)
                         .GetAwaiter()

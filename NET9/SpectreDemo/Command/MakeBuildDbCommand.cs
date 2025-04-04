@@ -2,16 +2,8 @@
 
 using Spectre.Console;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Unity.Tools;
-using Unity.Tools.Models;
 using Unity.Tools.Repositories;
-using Unity.Tools.Utils;
 
 namespace SpectreDemo.Command;
 
@@ -79,7 +71,8 @@ internal class MakeBuildDbCommand
                 await buildCacheDb.AddDirectoryAsync(directoryMap, sqliteTaskProgress);
                 await buildCacheDb.AddFileAsync(files, sqliteTaskProgress);
 
-                AnsiConsole.MarkupLine($"[green]DB File Path: {dbPath}[/]");
+                AnsiConsole.MarkupLine($"[green]DB 파일 생성이 완료되었습니다. {dbPath}[/]");
+                AnsiConsole.Console.Input.ReadKey(false);
             });
 
         //HashFunc.GetSpookyHash("hello");

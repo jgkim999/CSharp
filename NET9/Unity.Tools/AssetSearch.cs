@@ -143,7 +143,17 @@ public class AssetSearch
             var files = Directory.GetFiles(directory.Value);
             foreach (var file in files)
             {
-                buildCacheFiles.Add(new UnityCacheFileInfo() { DirNum = directory.Key,Filename = Path.GetFileName(file) });
+                var fileInfo = new FileInfo(file);
+                
+                buildCacheFiles.Add(new UnityCacheFileInfo()
+                {
+                    DirNum = directory.Key,
+                    Filename = Path.GetFileName(file),
+                    Length = fileInfo.Length,
+                    CreationTimeUtc = fileInfo.CreationTimeUtc,
+                    LastWriteTimeUtc = fileInfo.LastAccessTimeUtc,
+                    LastAccessTimeUtc = fileInfo.LastWriteTimeUtc
+                });
             }
         });
         logger.LogInformation($"Processed {buildCacheFiles.Count} files in {sw.ElapsedMilliseconds} milliseconds");
