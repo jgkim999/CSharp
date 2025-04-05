@@ -14,3 +14,4 @@ NET9/eShop
 Docker/mysql
 Docker/portainer
 Docker/redis
+.DS_Store
