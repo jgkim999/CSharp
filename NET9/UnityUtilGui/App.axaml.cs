@@ -25,7 +25,7 @@ namespace UnityUtilGui;
 
 public partial class App : Application
 {
-    public static ILogger Logger;
+    public static ILogger? Logger;
     
     public override void Initialize()
     {
@@ -41,8 +41,9 @@ public partial class App : Application
             .Build();
         Debug.Assert(configuration != null, nameof(configuration) + " == null");
 
-        ConfigOption configOption = configuration
-            .GetSection("ConfigOption").Get<ConfigOption>();
+        ConfigOption? configOption = configuration
+            .GetSection("ConfigOption")
+            .Get<ConfigOption>();
         Debug.Assert(configOption != null, nameof(configOption) + " == null");
         
         var logger = new LoggerConfiguration()
@@ -54,6 +55,7 @@ public partial class App : Application
 
         // Register all the services needed for the application to run
         var collection = new ServiceCollection();
+        collection.AddLogging(x => x.AddSerilog(logger));
         collection.AddSingleton<ConfigOption>(configOption);
 
         ServiceProvider services = collection.BuildServiceProvider();
