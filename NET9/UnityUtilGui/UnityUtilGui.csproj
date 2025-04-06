@@ -27,6 +27,19 @@
         <PackageReference Include="Material.Avalonia" Version="3.10.1" />
         <PackageReference Include="Material.Avalonia.DataGrid" Version="3.10.1" />
         <PackageReference Include="Material.Avalonia.Dialogs" Version="3.10.1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.3" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.3" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.3" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Unity.Tools\Unity.Tools.csproj" />
     </ItemGroup>
 </Project>
