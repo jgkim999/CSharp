@@ -4,10 +4,11 @@ using Spectre.Console;
 
 using System.IO;
 
+using Unity.Tools;
 using Unity.Tools.Models.Sqlite;
 using Unity.Tools.Repositories;
 
-using ConfigOption = Unity.Tools.ConfigOption;
+
 
 namespace SpectreDemo.Command;
 

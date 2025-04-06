@@ -4,9 +4,30 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:vm="using:UnityUtilGui.ViewModels"
-             x:Class="UnityUtilGui.Views.AssetDbMakeView">
+             xmlns:viewModels="clr-namespace:UnityUtilGui.ViewModels"
+             x:Class="UnityUtilGui.Views.AssetDbMakeView"
+             x:DataType="viewModels:AssetDbMakeViewModel">
     <Design.DataContext>
         <vm:AssetDbMakeViewModel />
     </Design.DataContext>
-    <Label Content="AssetDbMakeViewModel"/>
+    <Grid RowDefinitions="36, *">
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <TextBlock Margin="0, 0, 5, 0" VerticalAlignment="Center">Asset 경로:</TextBlock>
+            <TextBox Width="300"
+                     Watermark="Choose a directory"
+                     
+                     Text="{Binding SelectedFolder}" />
+            <Button Content="Select Directory" Width="150" Height="30"
+                    Click="Button_OnClick"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Margin="0,5,0,0">
+            <ProgressBar  Margin="0 10" Height="20" 
+                          Minimum="0" Maximum="100" Value="14"
+                          ShowProgressText="True"/>
+            <ProgressBar  Margin="0 10" Height="20"
+                          Minimum="0" Maximum="100" Value="92"
+                          Foreground="Red"
+                          ShowProgressText="True"/>
+        </StackPanel>
+    </Grid>
 </UserControl>
