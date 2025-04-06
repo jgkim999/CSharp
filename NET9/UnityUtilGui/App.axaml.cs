@@ -1,27 +1,32 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
-
-using System.Linq;
-
 using Avalonia.Markup.Xaml;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+using Serilog;
+using Serilog.Extensions.Logging;
 
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 using Unity.Tools;
 
 using UnityUtilGui.ViewModels;
 using UnityUtilGui.Views;
 
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+
 namespace UnityUtilGui;
 
 public partial class App : Application
 {
+    public static ILogger Logger;
+    
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -38,13 +43,21 @@ public partial class App : Application
 
         ConfigOption configOption = configuration
             .GetSection("ConfigOption").Get<ConfigOption>();
+        Debug.Assert(configOption != null, nameof(configOption) + " == null");
         
+        var logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .CreateLogger();
+        
+        Logger = new SerilogLoggerFactory(logger)
+            .CreateLogger<Application>();
+
         // Register all the services needed for the application to run
         var collection = new ServiceCollection();
         collection.AddSingleton<ConfigOption>(configOption);
-        
+
         ServiceProvider services = collection.BuildServiceProvider();
-        
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 

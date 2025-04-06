@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using System;
 
@@ -39,6 +40,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _assetDbViewPage = new AssetDbViewModel(_services);
     
         CurrentPage = _assetDbMakePage;
+        
+        App.Logger!.LogInformation("Hello Log");
     }
     
     [RelayCommand]
