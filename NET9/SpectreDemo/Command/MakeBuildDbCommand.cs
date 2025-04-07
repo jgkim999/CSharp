@@ -74,6 +74,8 @@ internal class MakeBuildDbCommand
                 await buildCacheDb.AddDirectoryAsync(directoryMap, sqliteTaskProgress);
                 await buildCacheDb.AddFileAsync(files, sqliteTaskProgress);
 
+                sqliteTaskProgress.StopTask();
+
                 AnsiConsole.MarkupLine($"[green]DB 생성이 완료되었습니다. {dbPath}[/]");
                 AnsiConsole.Console.Input.ReadKey(false);
             });
