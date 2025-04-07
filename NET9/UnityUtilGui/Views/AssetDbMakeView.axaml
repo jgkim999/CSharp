@@ -19,8 +19,9 @@
                 <Label Grid.Row="0" Grid.ColumnSpan="5"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Stretch"
-                       Background="YellowGreen"
-                       Foreground="Indigo"
+                       Background="#B200FF"
+                       Foreground="White"
+                       CornerRadius="5"
                        FontWeight="Bold">
                     설정은 appsettings.json 을 이용하세요. 
                 </Label>
@@ -30,10 +31,12 @@
                        HorizontalAlignment="Right">Asset 경로
                 </Label>
                 <TextBox Grid.Row="1" Grid.Column="1"
+                         CornerRadius="5"
                          Margin="5, 5, 5, 5"
                          IsReadOnly="True"
                          Text="{Binding AssetDirectory}" />
                 <Button Grid.Row="1" Grid.Column="2"
+                        CornerRadius="5"
                         Content="선택"
                         Margin="5, 5, 5, 5"
                         Width="150"
@@ -42,16 +45,19 @@
                         VerticalContentAlignment="Center"
                         Click="AssetDirectoryButton_OnClick" />
                 <Label Grid.Row="2" Grid.Column="0"
+                       CornerRadius="5"
                        Margin="5, 5, 5, 5"
                        HorizontalAlignment="Right"
                        VerticalAlignment="Center">
                     Asset DB 경로
                 </Label>
                 <TextBox Grid.Row="2" Grid.Column="1"
+                         CornerRadius="5"
                          Margin="5, 5, 5, 5"
                          IsReadOnly="True"
                          Text="{Binding AssetDbDirectory}" />
                 <Button Grid.Row="2" Grid.Column="2"
+                        CornerRadius="5"
                         Content="선택"
                         Margin="5, 5, 5, 5"
                         Width="150"
@@ -60,6 +66,7 @@
                         VerticalContentAlignment="Center"
                         Click="AssetDbDirectoryButton_OnClick" />
                 <Button Grid.Row="3" Grid.Column="1"
+                        CornerRadius="5"
                         Content="DB 생성"
                         Margin="5, 5, 5, 5"
                         Width="150"
@@ -80,6 +87,7 @@
                     Meta 파일 찾기
                 </Label>
                 <ProgressBar Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2"
+                             CornerRadius="5"
                              Margin="5, 5, 5, 5"
                              Height="20"
                              Minimum="0"
@@ -93,6 +101,7 @@
                     Guid 찾기
                 </Label>
                 <ProgressBar Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2"
+                             CornerRadius="5"
                              Margin="5, 5, 5, 5"
                              Height="20"
                              Minimum="0"
@@ -106,6 +115,7 @@
                     Meta 파일 의존성 분석
                 </Label>
                 <ProgressBar Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2"
+                             CornerRadius="5"
                              Margin="5, 5, 5, 5"
                              Height="20"
                              Minimum="0"
@@ -119,6 +129,7 @@
                     DB 생성
                 </Label>
                 <ProgressBar Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2"
+                             CornerRadius="5"
                              Margin="5, 5, 5, 5"
                              Height="20"
                              Minimum="0"
@@ -128,6 +139,7 @@
                              ShowProgressText="True" />
                 <TextBox Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="2"
                          Margin="5, 5, 5, 5"
+                         CornerRadius="5"
                          VerticalAlignment="Center"
                          HorizontalAlignment="Stretch"
                          Text="{Binding DbPath}"/>

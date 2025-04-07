@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia.Controls.ApplicationLifetimes;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -161,5 +163,5 @@ public partial class AssetDbMakeViewModel : ViewModelBase
         DbPath = dbPath;
         
         _canExecute = true;
-    } 
+    }
 }

@@ -21,6 +21,7 @@
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center" />
             <Button Content="Asset DB 만들기" Margin="5"
+                    CornerRadius="5"
                     Foreground="#FFFFFF"
                     HorizontalAlignment="Stretch"
                     Command="{Binding GoToAssetDbMakePageCommand}">
@@ -32,14 +33,18 @@
                 </Button.Background>
             </Button>
             <Button Content="Asset DB 검색" Margin="5"
+                    CornerRadius="5"
                     HorizontalAlignment="Stretch"
                     Command="{Binding GoToAssetDbSearchPageCommand}">
             </Button>
             <Button Content="Build Cache DB 만들기" Margin="5"
+                    CornerRadius="5"
                     HorizontalAlignment="Stretch" />
             <Button Content="Build Cache DB 비교" Margin="5"
+                    CornerRadius="5"
                     HorizontalAlignment="Stretch" />
             <Button Content="Build Cache DB 검색" Margin="5"
+                    CornerRadius="5"
                     HorizontalAlignment="Stretch" />
         </StackPanel>
         <GridSplitter Grid.Row="0" Grid.Column="1" ResizeDirection="Columns" Background="Gray" />
