@@ -35,4 +35,8 @@
       <ProjectReference Include="..\Unity.Tools\Unity.Tools.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Logs\" />
+    </ItemGroup>
+
 </Project>

@@ -61,28 +61,31 @@ public class SqliteDependencyDb : IDependencyDb
         int commitCount = 0;
         
         List<AssetDirectory> assetDirectories = new();
-        foreach (var directory in directoryMap)
+        await Task.Run(() =>
         {
-            ++commitCount;
-            progressContext.Increment(1);
-            var assetDirectory = new AssetDirectory() { Id = directory.Key, Name = directory.Value };
-            assetDirectories.Add(assetDirectory);
-
-            // 트랜잭션이 너무 커지지 않도록 주기적으로 커밋
-            if (commitCount % 100 == 0)
+            foreach (var directory in directoryMap)
             {
-                string insertQuery1 = MakeAssetDirectoryQuery(assetDirectories);
-                try
+                ++commitCount;
+                progressContext.Increment(1);
+                var assetDirectory = new AssetDirectory() { Id = directory.Key, Name = directory.Value };
+                assetDirectories.Add(assetDirectory);
+
+                // 트랜잭션이 너무 커지지 않도록 주기적으로 커밋
+                if (commitCount % 100 == 0)
                 {
-                    _db.Execute(insertQuery1);
-                    assetDirectories.Clear();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, insertQuery1);
+                    string insertQuery1 = MakeAssetDirectoryQuery(assetDirectories);
+                    try
+                    {
+                        _db.Execute(insertQuery1);
+                        assetDirectories.Clear();
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, insertQuery1);
+                    }
                 }
             }
-        }
+        });
 
         // 마지막 남은 데이터 처리
         string insertQuery2 = MakeAssetDirectoryQuery(assetDirectories);
@@ -143,47 +146,48 @@ public class SqliteDependencyDb : IDependencyDb
         int assetCommitCount = 0;
         List<AssetFile> insertAssetFiles = new();
         List<AssetDependency> insertDependencies = new();
-        
-        foreach (var assetFile in assetFiles)
+        await Task.Run(() =>
         {
-            ++assetCommitCount;
-            progressContext.Increment(1);
-            try
+            foreach (var assetFile in assetFiles)
             {
-                if (string.IsNullOrEmpty(assetFile.Guid))
-                    continue;
-                var insertObj = new AssetFile()
+                ++assetCommitCount;
+                progressContext.Increment(1);
+                try
                 {
-                    Guid = assetFile.Guid,
-                    DirId = assetFile.DirNum,
-                    Filename = assetFile.Filename,
-                    DependencyCount = assetFile.DependencyCount
-                };
-                insertAssetFiles.Add(insertObj);
-                
-                insertDependencies.Clear();
-                if (assetFile.DependencyCount > 0)
-                {
-                    string dependencyQuery = MakeDependencyQuery(assetFile.Guid, assetFile.Dependencies);
-                    _db.Execute(dependencyQuery);
-                }
-                // 주기적으로 커밋
-                if (assetCommitCount % 100 == 0)
-                {
-                    string assetQuery1 = MakeAssetFileQuery(insertAssetFiles);
-                    _db.Execute(assetQuery1);
-                    insertAssetFiles.Clear();
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Failed to add asset in bulk");
-            }
-        }
+                    if (string.IsNullOrEmpty(assetFile.Guid))
+                        continue;
+                    var insertObj = new AssetFile()
+                    {
+                        Guid = assetFile.Guid,
+                        DirId = assetFile.DirNum,
+                        Filename = assetFile.Filename,
+                        DependencyCount = assetFile.DependencyCount
+                    };
+                    insertAssetFiles.Add(insertObj);
 
+                    insertDependencies.Clear();
+                    if (assetFile.DependencyCount > 0)
+                    {
+                        string dependencyQuery = MakeDependencyQuery(assetFile.Guid, assetFile.Dependencies);
+                        _db.Execute(dependencyQuery);
+                    }
+
+                    // 주기적으로 커밋
+                    if (assetCommitCount % 100 == 0)
+                    {
+                        string assetQuery1 = MakeAssetFileQuery(insertAssetFiles);
+                        _db.Execute(assetQuery1);
+                        insertAssetFiles.Clear();
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Failed to add asset in bulk");
+                }
+            }
+        });
         // 마지막 남은 데이터 커밋
         string assetQuery2 = MakeAssetFileQuery(insertAssetFiles);
         _db.Execute(assetQuery2);
-        await Task.CompletedTask;
     }
 }

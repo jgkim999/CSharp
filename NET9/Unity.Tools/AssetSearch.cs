@@ -44,47 +44,51 @@ public class AssetSearch
         dirs.Push(root);
         directories.Add(root);
 
-        while (dirs.Count > 0)
+        await Task.Run(() =>
         {
-            string? currentDir = dirs.Pop();
-            string?[] subDirs;
+            while (dirs.Count > 0)
+            {
+                string? currentDir = dirs.Pop();
+                string?[] subDirs;
 
-            try
-            {
-                subDirs = Directory.GetDirectories(currentDir);
-            }
-            // Thrown if we do not have discovery permission on the directory.
-            catch (UnauthorizedAccessException e)
-            {
-                logger.LogError(e, "Directory.GetDirectories UnauthorizedAccessException: {CurrentDir}", currentDir);
-                continue;
-            }
-            // Thrown if another process has deleted the directory after we retrieved its name.
-            catch (DirectoryNotFoundException e)
-            {
-                logger.LogError(e, "DirectoryNotFoundException: {CurrentDir}", currentDir);
-                continue;
-            }
-
-            // Push the subdirectories onto the stack for traversal.
-            // This could also be done before handing the files.
-            foreach (string? subDir in subDirs)
-            {
-                if (ignoreDirectoryNames.Contains(Path.GetFileName(subDir)))
+                try
                 {
+                    subDirs = Directory.GetDirectories(currentDir);
+                }
+                // Thrown if we do not have discovery permission on the directory.
+                catch (UnauthorizedAccessException e)
+                {
+                    logger.LogError(e, "Directory.GetDirectories UnauthorizedAccessException: {CurrentDir}",
+                        currentDir);
+                    continue;
+                }
+                // Thrown if another process has deleted the directory after we retrieved its name.
+                catch (DirectoryNotFoundException e)
+                {
+                    logger.LogError(e, "DirectoryNotFoundException: {CurrentDir}", currentDir);
                     continue;
                 }
 
-                dirs.Push(subDir);
-                directories.Add(subDir);
-                //logger.LogInformation(subDir);
+                // Push the subdirectories onto the stack for traversal.
+                // This could also be done before handing the files.
+                foreach (string? subDir in subDirs)
+                {
+                    if (ignoreDirectoryNames.Contains(Path.GetFileName(subDir)))
+                    {
+                        continue;
+                    }
+
+                    dirs.Push(subDir);
+                    directories.Add(subDir);
+                    //logger.LogInformation(subDir);
+                }
             }
-        }
+        });
+
         // For diagnostic purposes.
         logger.LogInformation(
             "Processed {DirectoriesCount} directories in {ElapsedMilliseconds} milliseconds",
             directories.Count, sw.ElapsedMilliseconds);
-        await Task.CompletedTask;
         return directories;
     }
 
@@ -98,33 +102,39 @@ public class AssetSearch
         progressContext.SetMaxValue(directories.Count);
         var sw = Stopwatch.StartNew();
 
-        Parallel.ForEach(directories, directory =>
+        await Task.Run(() =>
         {
-            progressContext.Increment(1);
-
-            //logger.LogInformation(directory.Value);
-            var files = Directory.GetFiles(directory.Value);
-            foreach (var file in files)
+            Parallel.ForEach(directories, directory =>
             {
-                if (Path.HasExtension(file) == false)
-                {
-                    continue;
-                }
+                progressContext.Increment(1);
 
-                var ext = Path.GetExtension(file);
-                if (MetaExtensions.Contains(ext) == false)
+                //logger.LogInformation(directory.Value);
+                var files = Directory.GetFiles(directory.Value);
+                foreach (var file in files)
                 {
-                    continue;
+                    if (Path.HasExtension(file) == false)
+                    {
+                        continue;
+                    }
+
+                    var ext = Path.GetExtension(file);
+                    if (MetaExtensions.Contains(ext) == false)
+                    {
+                        continue;
+                    }
+
+                    metaFiles.Add(new UnityMetaFileInfo()
+                    {
+                        DirNum = directory.Key, MetaFilename = Path.GetFileName(file)
+                    });
                 }
-                metaFiles.Add(new UnityMetaFileInfo() { DirNum = directory.Key, MetaFilename = Path.GetFileName(file) });
-            }
+            });
         });
         logger.LogInformation(
             "Processed {MetaFilesCount} files in {ElapsedMilliseconds} milliseconds",
             metaFiles.Count,
             sw.ElapsedMilliseconds);
         progressContext.StopTask();
-        await Task.CompletedTask;
         return metaFiles;
     }
 
@@ -138,37 +148,39 @@ public class AssetSearch
         progressContext.SetMaxValue(directories.Count);
         var sw = Stopwatch.StartNew();
 
-        Parallel.ForEach(directories, directory =>
+        await Task.Run(() =>
         {
-            progressContext.Increment(1);
-
-            //logger.LogInformation(directory.Value);
-            var files = Directory.GetFiles(directory.Value);
-            foreach (var file in files)
+            Parallel.ForEach(directories, directory =>
             {
-                var fileInfo = new FileInfo(file);
+                progressContext.Increment(1);
 
-                buildCacheFiles.Add(new UnityCacheFileInfo()
+                //logger.LogInformation(directory.Value);
+                var files = Directory.GetFiles(directory.Value);
+                foreach (var file in files)
                 {
-                    DirNum = directory.Key,
-                    Filename = Path.GetFileName(file),
-                    Length = fileInfo.Length,
-                    CreationTimeUtc = fileInfo.CreationTimeUtc,
-                    LastWriteTimeUtc = fileInfo.LastAccessTimeUtc,
-                    LastAccessTimeUtc = fileInfo.LastWriteTimeUtc
-                });
-            }
+                    var fileInfo = new FileInfo(file);
+
+                    buildCacheFiles.Add(new UnityCacheFileInfo()
+                    {
+                        DirNum = directory.Key,
+                        Filename = Path.GetFileName(file),
+                        Length = fileInfo.Length,
+                        CreationTimeUtc = fileInfo.CreationTimeUtc,
+                        LastWriteTimeUtc = fileInfo.LastAccessTimeUtc,
+                        LastAccessTimeUtc = fileInfo.LastWriteTimeUtc
+                    });
+                }
+            });
         });
         logger.LogInformation(
             "Processed {BuildCacheFilesCount} files in {ElapsedMilliseconds} milliseconds",
             buildCacheFiles.Count,
             sw.ElapsedMilliseconds);
         progressContext.StopTask();
-        await Task.CompletedTask;
         return buildCacheFiles;
     }
 
-    public static async Task MetaYamlAsync(
+    public static async Task MakeMetaGuidAsync(
         Dictionary<int, string> directories,
         ConcurrentBag<UnityMetaFileInfo> metaFiles,
         ILogger logger,
@@ -178,46 +190,48 @@ public class AssetSearch
         progressContext.SetMaxValue(metaFiles.Count);
         progressContext.StartTask();
 
-        Parallel.ForEach(metaFiles, (metaFile, cancelToken) =>
+        await Task.Run(() =>
         {
-            progressContext.Increment(1f);
-            string? dir;
-            if (directories.TryGetValue(metaFile.DirNum, out dir))
+            Parallel.ForEach(metaFiles, (metaFile, cancelToken) =>
             {
-                var filePath = Path.Combine(dir, metaFile.MetaFilename);
-                if (File.Exists(filePath))
+                progressContext.Increment(1f);
+                string? dir;
+                if (directories.TryGetValue(metaFile.DirNum, out dir))
                 {
-                    try
+                    var filePath = Path.Combine(dir, metaFile.MetaFilename);
+                    if (File.Exists(filePath))
                     {
-                        var yamlContent = File.ReadAllText(filePath);
-                        var yaml = new YamlStream();
-                        yaml.Load(new StringReader(yamlContent));
-
-                        // YAML 문서의 루트 노드를 가져옵니다.
-                        var rootNode = (YamlMappingNode)yaml.Documents[0].RootNode;
-
-                        // GUID 값을 가져옵니다.
-                        if (rootNode.Children.TryGetValue(new YamlScalarNode("guid"), out var guidNode))
+                        try
                         {
-                            metaFile.Guid = guidNode.ToString();
+                            var yamlContent = File.ReadAllText(filePath);
+                            var yaml = new YamlStream();
+                            yaml.Load(new StringReader(yamlContent));
+
+                            // YAML 문서의 루트 노드를 가져옵니다.
+                            var rootNode = (YamlMappingNode)yaml.Documents[0].RootNode;
+
+                            // GUID 값을 가져옵니다.
+                            if (rootNode.Children.TryGetValue(new YamlScalarNode("guid"), out var guidNode))
+                            {
+                                metaFile.Guid = guidNode.ToString();
+                            }
+                            else
+                            {
+                                logger.LogError("{FilePath} GUID를 찾을 수 없습니다.", filePath);
+                            }
                         }
-                        else
+                        catch (Exception e)
                         {
-                            logger.LogError("{FilePath} GUID를 찾을 수 없습니다.", filePath);
+                            logger.LogError(e, "{FilePath}", filePath);
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError(e, "{FilePath}", filePath);
                     }
                 }
-            }
+            });
         });
         progressContext.StopTask();
-        await Task.CompletedTask;
     }
 
-    public static async Task YamlAnalyzeAsync(
+    public static async Task MakeDependencyAsync(
         Dictionary<int, string> directories,
         ConcurrentBag<UnityMetaFileInfo> metaFiles,
         string[] extNames,
@@ -228,58 +242,61 @@ public class AssetSearch
     {
         progressContext.SetMaxValue(metaFiles.Count);
         progressContext.StartTask();
-        Parallel.ForEach(metaFiles, (metafile, cancelToken) =>
+        await Task.Run(() =>
         {
-            progressContext.Increment(1);
-            if (extNames.Contains(metafile.Extension) == false)
-                return;
-            string dir;
-            if (directories.TryGetValue(metafile.DirNum, out dir) == false)
+            Parallel.ForEach(metaFiles, (metafile, cancelToken) =>
             {
-                logger.LogError(
-                    "Unknown directory: {DirNum} {MetaFilename}",
-                    metafile.DirNum,
-                    metafile.MetaFilename);
-                return;
-            }
-
-            var filePath = Path.Combine(dir, metafile.Filename);
-            if (File.Exists(filePath) == false)
-            {
-                logger.LogError("File {FilePath} does not exist.", filePath);
-                return;
-            }
-
-            // 파일의 각 줄을 비동기적으로 읽습니다.
-            foreach (var line in File.ReadLines(filePath))
-            {
-                if (line.Contains("guid") == false)
-                    continue;
-                // 매칭 결과
-                Match match1 = YamlRegex.Match(line);
-                if (match1.Success)
+                progressContext.Increment(1);
+                if (extNames.Contains(metafile.Extension) == false)
+                    return;
+                string dir;
+                if (directories.TryGetValue(metafile.DirNum, out dir) == false)
                 {
-                    // 중괄호 내부의 문자열 추출
-                    string result = match1.Groups[1].Value;
-                    //logger.LogInformation($"{filePath} {result}");
+                    logger.LogError(
+                        "Unknown directory: {DirNum} {MetaFilename}",
+                        metafile.DirNum,
+                        metafile.MetaFilename);
+                    return;
+                }
 
-                    Match match2 = GuidRegex.Match(line);
-                    if (match2.Success)
+                var filePath = Path.Combine(dir, metafile.Filename);
+                if (File.Exists(filePath) == false)
+                {
+                    logger.LogError("File {FilePath} does not exist.", filePath);
+                    return;
+                }
+
+                // 파일의 각 줄을 비동기적으로 읽습니다.
+                foreach (var line in File.ReadLines(filePath))
+                {
+                    if (line.Contains("guid") == false)
+                        continue;
+                    // 매칭 결과
+                    Match match1 = YamlRegex.Match(line);
+                    if (match1.Success)
                     {
-                        string result2 = match2.Groups[1].Value;
-                        if (ignoreGuids.Contains(result2))
-                            continue;
-                        metafile.Dependencies.Add(result2);
-                        //logger.LogInformation($"{filePath} {result2}");   
+                        // 중괄호 내부의 문자열 추출
+                        string result = match1.Groups[1].Value;
+                        //logger.LogInformation($"{filePath} {result}");
+
+                        Match match2 = GuidRegex.Match(line);
+                        if (match2.Success)
+                        {
+                            string result2 = match2.Groups[1].Value;
+                            if (ignoreGuids.Contains(result2))
+                                continue;
+                            metafile.Dependencies.Add(result2);
+                            //logger.LogInformation($"{filePath} {result2}");   
+                        }
                     }
                 }
-            }
-            if (metafile.Dependencies.Count > 0)
-                logger.LogInformation(
-                    "{FilePath} Dependencies: {DependencyCount}",
-                    filePath, metafile.Dependencies.Count);
+
+                if (metafile.Dependencies.Count > 0)
+                    logger.LogInformation(
+                        "{FilePath} Dependencies: {DependencyCount}",
+                        filePath, metafile.Dependencies.Count);
+            });
         });
         progressContext.StopTask();
-        await Task.CompletedTask;
     }
 }

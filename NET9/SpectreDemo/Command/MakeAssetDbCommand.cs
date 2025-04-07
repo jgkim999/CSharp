@@ -71,14 +71,14 @@ internal class MakeAssetDbCommand
                         _logger,
                         metaListTaskProgress);
                     
-                    await AssetSearch.MetaYamlAsync(
+                    await AssetSearch.MakeMetaGuidAsync(
                         directoryMap,
                         assetFiles,
                         _logger,
                         metaGuidTaskProgress,
                         _cancellationTokenSource.Token);
                     
-                    await AssetSearch.YamlAnalyzeAsync(
+                    await AssetSearch.MakeDependencyAsync(
                         directoryMap,
                         assetFiles,
                         _option.FileExtAnalyze,
