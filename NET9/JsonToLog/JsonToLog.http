@@ -13,12 +13,11 @@ Accept: application/json
 GET {{JsonToLog_HostAddress}}/api/test/v2
 Accept: application/json
 ###
-POST {{JsonToLog_HostAddress}}/api/test/v2
+POST {{JsonToLog_HostAddress}}/api/log/v1
 Content-Type: application/json
 
 {
-  "name": "test",
-  "value": 123
+  "payload": "{\"name\":\"test\",\"value\":123}"
 }
 > {%
     console.log(`headers: ${JSON.stringify(request.headers.all())}`)

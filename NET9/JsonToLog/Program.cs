@@ -1,6 +1,5 @@
 
 using FastEndpoints;
-using FastEndpoints.Swagger;
 
 using JsonToLog.Configs;
 using JsonToLog.Services;
@@ -10,10 +9,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-using Scalar.AspNetCore;
-
 using Serilog;
-using Serilog.Sinks.OpenTelemetry;
 
 IConfiguration configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -114,9 +110,14 @@ try
     builder.Services
         .AddFastEndpoints();
 
+    builder.Services.AddSingleton<LogSendProcessor>();
+    builder.Services.AddHostedService<LogSendProcessor>(p => p.GetRequiredService<LogSendProcessor>());
+    
     var app = builder.Build();
 
-    app.UseFastEndpoints(c =>
+    app
+        .UseDefaultExceptionHandler()
+        .UseFastEndpoints(c =>
     {
         c.Versioning.Prefix = "v";
     });

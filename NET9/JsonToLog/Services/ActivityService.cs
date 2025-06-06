@@ -37,7 +37,24 @@ public static class ActivityService
             return null; // No listeners for internal activities
         }
         // Start a new activity with the provided name and kind
-        var activity = _activeSource.StartActivity(name, kind);
-        return activity;
+        return _activeSource.StartActivity(name, kind);
+    }
+    
+    public static Activity? StartActivity(string name, ActivityKind kind, ActivityContext activityContext)
+    {
+        if (_activeSource == null)
+        {
+            Log.Logger.Error("ActiveSourceService is not initialized. Call Initialize() first. {Name}", name);
+            return null;
+        }
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            Log.Logger.Error("Activity name cannot be null or empty. {Name}", name);
+            return null;
+        }
+        return _activeSource.StartActivity(
+            name,
+            kind,
+            activityContext);
     }
 }
