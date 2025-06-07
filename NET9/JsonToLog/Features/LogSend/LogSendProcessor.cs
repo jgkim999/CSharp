@@ -45,7 +45,7 @@ public class LogSendProcessor : BackgroundService
                         // Process each log item
                         await _logRepository.SendLogAsync(item);
                         _logSendMetrics.RecordLogSendDuration(Stopwatch.GetElapsedTime(startTime));
-                        _logger.LogInformation("Processing log data: {@LogData} {ElapsedTime}", item, Stopwatch.GetElapsedTime(startTime).TotalMilliseconds);
+                        _logger.LogInformation("Processing log data: {@LogData} {ElapsedTime}", item.LogData, Stopwatch.GetElapsedTime(startTime).TotalMilliseconds);
                     }
                     catch (Exception e)
                     {

@@ -48,8 +48,22 @@ public class LogRepositoryOpenSearch : ILogRepository
             JsonObject jObj = new();
             foreach (var (key, value) in task.LogData)
             {
-                if (value != null)
+                if (value is string)
                     jObj[key] = value.ToString();
+                else if (value is int i)
+                    jObj[key] = i;
+                else if (value is double d)
+                    jObj[key] = d;
+                else if (value is long l)
+                    jObj[key] = l;
+                else if (value is float f)
+                    jObj[key] = f;
+                else if (value is bool b)
+                    jObj[key] = b;
+                else if (value is DateTime dt)
+                    jObj[key] = dt.ToString("o"); // ISO 8601 format
+                else
+                    jObj[key] = value?.ToString() ?? "null"; // Handle nulls and other types)
             }
             jObj["ts"] = DateTime.UtcNow.ToString("o"); // ISO 8601 format
             string json = System.Text.Json.JsonSerializer.Serialize(jObj);

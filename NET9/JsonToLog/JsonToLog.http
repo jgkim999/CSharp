@@ -13,6 +13,9 @@ Accept: application/json
 GET {{JsonToLog_HostAddress}}/api/test/v2
 Accept: application/json
 ###
+GET {{JsonToLog_HostAddress}}/api/fake/v1/100
+Accept: application/json
+###
 POST {{JsonToLog_HostAddress}}/api/log/v1
 Content-Type: application/json
 
