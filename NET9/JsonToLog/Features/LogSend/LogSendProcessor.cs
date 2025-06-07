@@ -11,10 +11,12 @@ public class LogSendProcessor : BackgroundService
 {
     private readonly Channel<LogSendTask> _logChannel = Channel.CreateUnbounded<LogSendTask>();
     private readonly ILogger<LogSendProcessor> _logger;
+    private readonly LogSendMetrics _logSendMetrics;
     
-    public LogSendProcessor(ILogger<LogSendProcessor> logger)
+    public LogSendProcessor(ILogger<LogSendProcessor> logger, LogSendMetrics logSendMetrics)
     {
         _logger = logger;
+        _logSendMetrics = logSendMetrics;
     }
     
     public async Task SendLogAsync(LogSendTask task)
@@ -32,10 +34,13 @@ public class LogSendProcessor : BackgroundService
                 {
                     try
                     {
+                        long startTime = Stopwatch.GetTimestamp();
                         Baggage.Current = item.PropagationContext.Baggage;
                         using var activity = ActivityService.StartActivity("LogSendProcessor.ExecuteAsync", ActivityKind.Consumer, item.PropagationContext.ActivityContext);
                         // Process each log item
-                        _logger.LogInformation("Processing log data: {@LogData}", item);
+                        
+                        _logSendMetrics.RecordLogSendDuration(Stopwatch.GetElapsedTime(startTime));
+                        _logger.LogInformation("Processing log data: {@LogData} {ElapsedTime}", item, Stopwatch.GetElapsedTime(startTime).TotalMilliseconds);
                     }
                     catch (Exception e)
                     {

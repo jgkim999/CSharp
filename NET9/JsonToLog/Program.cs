@@ -74,6 +74,9 @@ try
         metrics.SetResourceBuilder(ResourceBuilder
             .CreateDefault()
             .AddService(applicationConfig.ServiceName));
+        // Add custom ActivitySource for metrics
+        metrics.AddMeter(LogSendMetrics.METER_NAME);
+        
         // Metrics provider from OpenTelemetry
         metrics.AddAspNetCoreInstrumentation();
         metrics.AddProcessInstrumentation();
@@ -116,6 +119,7 @@ try
 
     builder.Services.AddSingleton<LogSendProcessor>();
     builder.Services.AddHostedService<LogSendProcessor>(p => p.GetRequiredService<LogSendProcessor>());
+    builder.Services.AddSingleton<LogSendMetrics>();
     
     var app = builder.Build();
 
