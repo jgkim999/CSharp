@@ -33,6 +33,12 @@ if (applicationConfig is null)
     throw new NullReferenceException("Application configuration is missing");
 }
 
+OpenSearchConfig? openSearchConfig = configuration.GetSection("OpenSearch").Get<OpenSearchConfig>();
+if (openSearchConfig is null)
+{
+    throw new NullReferenceException("OpenSearch configuration is missing");
+}
+
 Dictionary<string, object> otelAttributes = new()
 {
     { "service.name", applicationConfig.ServiceName },
@@ -117,9 +123,11 @@ try
     builder.Services
         .AddFastEndpoints();
 
+    builder.Services.AddSingleton(openSearchConfig);
     builder.Services.AddSingleton<LogSendProcessor>();
     builder.Services.AddHostedService<LogSendProcessor>(p => p.GetRequiredService<LogSendProcessor>());
     builder.Services.AddSingleton<LogSendMetrics>();
+    builder.Services.AddTransient<ILogRepository, LogRepositoryOpenSearch>();
     
     var app = builder.Build();
 
