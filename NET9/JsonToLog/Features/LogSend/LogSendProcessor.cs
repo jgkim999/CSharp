@@ -1,9 +1,11 @@
+using JsonToLog.Services;
+
 using OpenTelemetry;
 
 using System.Diagnostics;
 using System.Threading.Channels;
 
-namespace JsonToLog.Services;
+namespace JsonToLog.Features.LogSend;
 
 public class LogSendProcessor : BackgroundService
 {

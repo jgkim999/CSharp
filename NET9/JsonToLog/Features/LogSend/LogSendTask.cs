@@ -1,8 +1,6 @@
 using OpenTelemetry.Context.Propagation;
 
-using System.Diagnostics;
-
-namespace JsonToLog.Services;
+namespace JsonToLog.Features.LogSend;
 
 public class LogSendTask
 {

@@ -1,17 +1,17 @@
 using FastEndpoints;
 
-namespace JsonToLog.Endpoints.Test;
+namespace JsonToLog.Features.Test;
 
-public class TestEndpointV2 : EndpointWithoutRequest
+public class TestEndpointV1 : EndpointWithoutRequest
 {
     public override void Configure()
     {
         Get("/api/test");
         AllowAnonymous();
-        Version(2);
+        Version(1);
         Description(x => x
-            .WithName("TestEndpoint V2")
-            .WithSummary("A simple test endpoint V2")
+            .WithName("TestEndpoint V1")
+            .WithSummary("A simple test endpoint")
             .Produces<object>(200)
             .Produces(500));
     }
@@ -20,6 +20,6 @@ public class TestEndpointV2 : EndpointWithoutRequest
     {
         // Simulate some processing
         await Task.Delay(100, ct);
-        await SendOkAsync(new { Message = "Test successful V2" }, ct);
+        await SendOkAsync(new { Message = "Test successful V1" }, ct);
     }
 }

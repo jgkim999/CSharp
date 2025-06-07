@@ -6,12 +6,9 @@ using JsonToLog.Utils;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 
-using Serilog.Context;
-
 using System.Diagnostics;
-using System.Text.Json;
 
-namespace JsonToLog.Endpoints.Log;
+namespace JsonToLog.Features.LogSend;
 
 public class LogEndpointV1 : Endpoint<LogRequest>
 {

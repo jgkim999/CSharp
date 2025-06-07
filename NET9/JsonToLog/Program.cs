@@ -2,6 +2,7 @@
 using FastEndpoints;
 
 using JsonToLog.Configs;
+using JsonToLog.Features.LogSend;
 using JsonToLog.Services;
 
 using OpenTelemetry.Exporter;
@@ -70,6 +71,9 @@ try
     
     otel.WithMetrics(metrics =>
     {
+        metrics.SetResourceBuilder(ResourceBuilder
+            .CreateDefault()
+            .AddService(applicationConfig.ServiceName));
         // Metrics provider from OpenTelemetry
         metrics.AddAspNetCoreInstrumentation();
         metrics.AddProcessInstrumentation();

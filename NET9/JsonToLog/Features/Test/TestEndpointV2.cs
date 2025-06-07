@@ -1,19 +1,17 @@
 using FastEndpoints;
 
-using NSwag.AspNetCore;
+namespace JsonToLog.Features.Test;
 
-namespace JsonToLog.Endpoints.Test;
-
-public class TestEndpointV1 : EndpointWithoutRequest
+public class TestEndpointV2 : EndpointWithoutRequest
 {
     public override void Configure()
     {
         Get("/api/test");
         AllowAnonymous();
-        Version(1);
+        Version(2);
         Description(x => x
-            .WithName("TestEndpoint V1")
-            .WithSummary("A simple test endpoint")
+            .WithName("TestEndpoint V2")
+            .WithSummary("A simple test endpoint V2")
             .Produces<object>(200)
             .Produces(500));
     }
@@ -22,6 +20,6 @@ public class TestEndpointV1 : EndpointWithoutRequest
     {
         // Simulate some processing
         await Task.Delay(100, ct);
-        await SendOkAsync(new { Message = "Test successful V1" }, ct);
+        await SendOkAsync(new { Message = "Test successful V2" }, ct);
     }
 }

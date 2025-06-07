@@ -1,4 +1,4 @@
-namespace JsonToLog.Endpoints.Log;
+namespace JsonToLog.Features.LogSend;
 
 public class LogRequest
 {
