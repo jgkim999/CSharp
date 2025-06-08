@@ -1,5 +1,6 @@
 using FastEndpoints;
 
+using JsonToLog.Models;
 using JsonToLog.Services;
 using JsonToLog.Utils;
 

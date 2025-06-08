@@ -2,7 +2,8 @@
 using FastEndpoints;
 
 using JsonToLog.Configs;
-using JsonToLog.Features.LogSend;
+using JsonToLog.Metrics;
+using JsonToLog.Repositories;
 using JsonToLog.Services;
 
 using OpenTelemetry.Exporter;
@@ -123,6 +124,7 @@ try
     builder.Services
         .AddFastEndpoints();
 
+    builder.Services.AddSingleton<IP2LocationService>();
     builder.Services.AddSingleton(openSearchConfig);
     builder.Services.AddSingleton<LogSendProcessor>();
     builder.Services.AddHostedService<LogSendProcessor>(p => p.GetRequiredService<LogSendProcessor>());
@@ -139,7 +141,8 @@ try
     });
     
     app.MapPrometheusScrapingEndpoint();
-    
+
+    app.UseStaticFiles();
     app.Run();
 }
 catch (Exception e)

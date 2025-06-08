@@ -1,14 +1,17 @@
 using FluentResults;
 using Serilog;
+
+using System.Collections;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace JsonToLog.Utils;
 
 public static class JsonProcessor
 {
-    public static Result<Dictionary<string, object?>> ExtractKeyValues(string jsonString)
+    public static Result<Dictionary<string, object>> ExtractKeyValues(string jsonString)
     {
-        var dictionary = new Dictionary<string, object?>();
+        var dictionary = new Dictionary<string, object>();
         if (string.IsNullOrWhiteSpace(jsonString))
         {
             return Result.Fail("JSON string is null or empty");
@@ -31,7 +34,7 @@ public static class JsonProcessor
     }
 
     private static void ProcessJsonElement(JsonElement element, string? currentPath,
-        Dictionary<string, object?> accumulator)
+        Dictionary<string, object> accumulator)
     {
         switch (element.ValueKind)
         {
@@ -60,7 +63,7 @@ public static class JsonProcessor
                 // }
                 break;
             case JsonValueKind.String:
-                accumulator[currentPath!] = element.GetString();
+                accumulator[currentPath!] = element.GetString() ?? throw new InvalidOperationException();
                 break;
             case JsonValueKind.Number:
                 // 숫자는 double로 우선 저장하거나, 필요에 따라 GetInt32, GetInt64, GetDecimal 등으로 분기
@@ -85,6 +88,49 @@ public static class JsonProcessor
                 // Console.WriteLine($"Unhandled JsonValueKind: {element.ValueKind} at path {currentPath}");
                 accumulator[currentPath ?? "unknown"] = element.ToString(); // 안전하게 문자열로 저장
                 break;
+        }
+    }
+    
+    public static JsonObject ConvertToJsonObject(Dictionary<string, object> dict)
+    {
+        var jsonObj = new JsonObject();
+        foreach (var kvp in dict)
+        {
+            jsonObj[kvp.Key] = ConvertToJsonNode(kvp.Value);
+        }
+        return jsonObj;
+    }
+
+    static JsonNode? ConvertToJsonNode(object value)
+    {
+        switch (value)
+        {
+            case null:
+                return null;
+            case string s:
+                return JsonValue.Create(s);
+            case int i:
+                return JsonValue.Create(i);
+            case long l:
+                return JsonValue.Create(l);
+            case float f:
+                return JsonValue.Create(f);
+            case double d:
+                return JsonValue.Create(d);
+            case bool b:
+                return JsonValue.Create(b);
+            case Dictionary<string, object> dict:
+                return ConvertToJsonObject(dict);
+            case IEnumerable list:
+                var jsonArray = new JsonArray();
+                foreach (var item in list)
+                {
+                    jsonArray.Add(ConvertToJsonNode(item));
+                }
+                return jsonArray;
+            default:
+                // 기타 타입은 JSON 직렬화 시도
+                return JsonValue.Create(value);
         }
     }
 }
