@@ -6,13 +6,14 @@ namespace GamePulse.EndPoints;
 /// <summary>
 /// Creates a new user
 /// </summary>
-public class MyEndpoint : Endpoint<MyRequest, MyResponse>
+public class MyEndpoint_v2 : Endpoint<MyRequest, MyResponse>
 {
     /// <summary>
     /// Configure
     /// </summary>
     public override void Configure()
     {
+        Version(2).StartingRelease(2);;
         Post("/api/user/create");
         AllowAnonymous();
         Summary(s => {
@@ -31,7 +32,7 @@ public class MyEndpoint : Endpoint<MyRequest, MyResponse>
     {
         await Send.OkAsync(new()
         {
-            FullName = req.FirstName + " " + req.LastName,
+            FullName = req.FirstName + " " + req.LastName + " v2",
             IsOver18 = req.Age > 18
         });
     }
