@@ -6,21 +6,27 @@ using GamePulse.Repositories.Jwt;
 using GamePulse.Services;
 using Scalar.AspNetCore;
 using Serilog;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+
+var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
-
 try
 {
+    var otelConfig = builder.Configuration.GetSection("OpenTelemetry").Get<OtelConfig>();
+    if (otelConfig is null)
+        throw new NullReferenceException();
+    
     Log.Information("Starting application");
     
-    var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddSerilog((services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)
         .ReadFrom.Services(services)
-        .Enrich.FromLogContext()
-        .WriteTo.Console());
+        .Enrich.FromLogContext());
     
     var section = builder.Configuration.GetSection("Jwt");
     var jwtConfig = section.Get<JwtConfig>();
@@ -74,6 +80,19 @@ try
 
     builder.Services.AddSingleton<IAuthService, AuthService>();
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
+
+    builder.Services.AddOpenTelemetry()
+        .WithTracing(tracing => tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddConsoleExporter())
+        .WithMetrics(metrics => metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddConsoleExporter());
+
+    builder.Logging.AddOpenTelemetry(logging => logging
+        .AddConsoleExporter());
 
     var app = builder.Build();
     app.UseAuthentication();
