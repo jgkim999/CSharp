@@ -11,4 +11,12 @@ public class JwtConfig
     /// JWT를 대칭적으로 서명하는 데 사용되는 키 또는 JWT가 비대칭적으로 서명될 때 사용되는 Base64로 인코딩된 개인 키.
     /// </summary>
     public string PrivateKey { get; set; } = string.Empty;
+    /// <summary>
+    /// Redis connection string
+    /// </summary>
+    public string RedisConnectionString { get; set; } = string.Empty;
+    /// <summary>
+    /// Redis cache key prefix
+    /// </summary>
+    public string? KeyPrefix { get; set; } = string.Empty;
 }

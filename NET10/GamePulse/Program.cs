@@ -2,6 +2,7 @@ using FastEndpoints;
 using FastEndpoints.Swagger;
 using FastEndpoints.Security;
 using GamePulse.Configs;
+using GamePulse.Repositories.Jwt;
 using GamePulse.Services;
 using Scalar.AspNetCore;
 using Serilog;
@@ -72,6 +73,7 @@ try
     builder.Services.AddOpenApi("v2");
 
     builder.Services.AddSingleton<IAuthService, AuthService>();
+    builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
 
     var app = builder.Build();
     app.UseAuthentication();

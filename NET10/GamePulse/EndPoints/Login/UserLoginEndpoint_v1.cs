@@ -9,7 +9,7 @@ namespace GamePulse.EndPoints.Login;
 /// <summary>
 /// 
 /// </summary>
-public class UserLoginEndpoint_v1 : Endpoint<LoginRequest>
+public class UserLoginEndpoint_v1 : Endpoint<LoginRequest, TokenResponse>
 {
     private readonly IAuthService _authService;
     private readonly ILogger<UserLoginEndpoint_v1> _logger;
@@ -52,23 +52,16 @@ public class UserLoginEndpoint_v1 : Endpoint<LoginRequest>
         if (await _authService.CredentialsAreValidAsync(req.Username, req.Password, ct) == false)
         {
             ThrowError("Invalid username and password");
-            return;
         }
-
-        var jwtToken = JwtBearer.CreateToken(o =>
+        
+        var faker = new Faker();
+        var userId = faker.Random.Uuid().ToString();
+        Response = await CreateTokenWith<MyTokenService>(userId, u =>
         {
-            var faker = new Faker();
-            o.ExpireAt = DateTime.UtcNow.AddDays(1);
-            o.User.Roles.Add("Manager", "Auditor");
-            o.User.Claims.Add(("UserName", req.Username));
-            o.User["UserId"] = faker.Hashids.EncodeLong(faker.Random.Long(1, long.MaxValue));
+            u.Roles.AddRange(new [] {"Admin", "Manager"});
+            u.Permissions.Add("Write");
+            u.Claims.Add(new ("UserName", req.Username));
+            u.Claims.Add(new ("UserId", userId));
         });
-
-        await Send.OkAsync(
-            new
-            {
-                req.Username,
-                Token = jwtToken
-            });
     }
 }
