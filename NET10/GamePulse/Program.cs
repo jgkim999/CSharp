@@ -1,11 +1,17 @@
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using FastEndpoints.Security;
+using GamePulse.Services;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services
-    .AddFastEndpoints()
-    .SwaggerDocument(o =>
+builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = "h5B9P5bUdk3BXucIR48bv5GmmMcOWYsE");
+builder.Services.AddAuthorization();
+
+builder.Services.Configure<JwtCreationOptions>(o => o.SigningKey = "HPItTeUcM1n5BnQcPPozDyjtA51Bqmqh");
+
+builder.Services.AddFastEndpoints();
+builder.Services.SwaggerDocument(o =>
     {
         o.DocumentSettings = s => 
         {
@@ -42,7 +48,11 @@ builder.Services
 builder.Services.AddOpenApi("v1");
 builder.Services.AddOpenApi("v2");
 
+builder.Services.AddSingleton<IAuthService, AuthService>();
+
 var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthentication();
 app.UseFastEndpoints(c =>
 {
     c.Versioning.Prefix = "v";
