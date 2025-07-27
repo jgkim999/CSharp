@@ -1,14 +1,23 @@
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using FastEndpoints.Security;
+using GamePulse.Configs;
 using GamePulse.Services;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = "h5B9P5bUdk3BXucIR48bv5GmmMcOWYsE");
+
+var section = builder.Configuration.GetSection("Jwt");
+var jwtConfig = section.Get<JwtConfig>();
+if (jwtConfig == null)
+{
+    throw new NullReferenceException();
+}
+
+builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = jwtConfig.PublicKey);
 builder.Services.AddAuthorization();
 
-builder.Services.Configure<JwtCreationOptions>(o => o.SigningKey = "HPItTeUcM1n5BnQcPPozDyjtA51Bqmqh");
+builder.Services.Configure<JwtCreationOptions>(o => o.SigningKey = jwtConfig.PrivateKey);
 
 builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument(o =>
