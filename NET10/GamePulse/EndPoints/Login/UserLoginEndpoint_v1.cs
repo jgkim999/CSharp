@@ -12,13 +12,16 @@ namespace GamePulse.EndPoints.Login;
 public class UserLoginEndpoint_v1 : Endpoint<LoginRequest>
 {
     private readonly IAuthService _authService;
-    
+    private readonly ILogger<UserLoginEndpoint_v1> _logger;
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="authService"></param>
-    public UserLoginEndpoint_v1(IAuthService authService)
+    /// <param name="logger"></param>
+    public UserLoginEndpoint_v1(IAuthService authService, ILogger<UserLoginEndpoint_v1> logger)
     {
+        _logger = logger;
         _authService = authService;
     }
     
@@ -44,6 +47,8 @@ public class UserLoginEndpoint_v1 : Endpoint<LoginRequest>
     /// <param name="ct"></param>
     public override async Task HandleAsync(LoginRequest req, CancellationToken ct)
     {
+        _logger.LogInformation("{@Request}", req);
+        
         if (await _authService.CredentialsAreValidAsync(req.Username, req.Password, ct) == false)
         {
             ThrowError("Invalid username and password");

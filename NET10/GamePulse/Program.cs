@@ -15,8 +15,12 @@ try
     Log.Information("Starting application");
     
     var builder = WebApplication.CreateBuilder(args);
-    builder.Services.AddSerilog();
-
+    builder.Services.AddSerilog((services, lc) => lc
+        .ReadFrom.Configuration(builder.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Console());
+    
     var section = builder.Configuration.GetSection("Jwt");
     var jwtConfig = section.Get<JwtConfig>();
     if (jwtConfig == null)
