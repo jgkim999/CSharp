@@ -1,0 +1,13 @@
+@GamePulse_HostAddress = http://localhost:5198
+
+POST {{GamePulse_HostAddress}}/api/user/create
+Content-Type: application/json
+Accept: application/json
+
+{
+  "FirstName": "Marlon",
+  "LastName": "Brando",
+  "Age": 40
+}
+
+###
