@@ -1,6 +1,0 @@
-@WebDemoConsumer_HostAddress = http://localhost:5051
-
-GET {{WebDemoConsumer_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
