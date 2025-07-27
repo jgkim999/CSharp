@@ -1,6 +1,8 @@
 using System.Text.Json;
 using FastEndpoints.Security;
 using GamePulse.Configs;
+using OpenTelemetry.Instrumentation.StackExchangeRedis;
+using OpenTelemetry.Trace;
 using StackExchange.Redis;
 
 namespace GamePulse.Repositories.Jwt;
@@ -13,15 +15,22 @@ public class RedisJwtRepository : IJwtRepository
     private static ConnectionMultiplexer? _multiplexer;
     private static string? _keyPrefix;
     private static IDatabase? _database;
+    private readonly Tracer _tracer;
+    private readonly StackExchangeRedisInstrumentation _redisInstrumentation;
+
     /// <summary>
     /// 
     /// </summary>
     /// <param name="config"></param>
     /// <param name="logger"></param>
+    /// <param name="tracer"></param>
+    /// <param name="redisInstrumentation"></param>
     /// <exception cref="Exception"></exception>
     /// <exception cref="InvalidDataException"></exception>
-    public RedisJwtRepository(IConfiguration config, ILogger<RedisJwtRepository> logger)
+    public RedisJwtRepository(IConfiguration config, ILogger<RedisJwtRepository> logger, Tracer tracer, StackExchangeRedisInstrumentation redisInstrumentation)
     {
+        _redisInstrumentation = redisInstrumentation;
+        _tracer = tracer;
         _logger = logger;
         var jwtConfig = config.GetSection("Jwt").Get<JwtConfig>();
         if (jwtConfig == null)
@@ -33,6 +42,7 @@ public class RedisJwtRepository : IJwtRepository
             if (_multiplexer != null)
                 return;
             _multiplexer = ConnectionMultiplexer.Connect(jwtConfig.RedisConnectionString);
+            _redisInstrumentation.AddConnection(_multiplexer);
             _keyPrefix = jwtConfig.KeyPrefix;
             _database = _multiplexer.GetDatabase();
             var faker = new Bogus.Faker();
@@ -70,6 +80,7 @@ public class RedisJwtRepository : IJwtRepository
     {
         try
         {
+            using var span = _tracer.StartActiveSpan("StoreTokenAsync");
             if (_database is null)
                 throw new NullReferenceException();
             await _database.StringSetAsync(MakeKey(response.UserId), response.RefreshToken, TimeSpan.FromDays(1));
@@ -91,6 +102,7 @@ public class RedisJwtRepository : IJwtRepository
     {
         try
         {
+            using var span = _tracer.StartActiveSpan("TokenIsValidAsync");
             if (_database is null)
                 throw new NullReferenceException();
             var token = await _database.StringGetAsync(MakeKey(userId));

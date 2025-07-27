@@ -1,14 +1,11 @@
 using FastEndpoints;
-using FastEndpoints.Swagger;
 using FastEndpoints.Security;
+using GamePulse;
 using GamePulse.Configs;
 using GamePulse.Repositories.Jwt;
 using GamePulse.Services;
 using Scalar.AspNetCore;
 using Serilog;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,58 +38,13 @@ try
     builder.Services.Configure<JwtCreationOptions>(o => o.SigningKey = jwtConfig.PrivateKey);
 
     builder.Services.AddFastEndpoints();
-    builder.Services.SwaggerDocument(o =>
-        {
-            o.DocumentSettings = s =>
-            {
-                s.SchemaSettings.SchemaNameGenerator = new NJsonSchema.Generation.DefaultSchemaNameGenerator();
-                s.DocumentName = "Initial version";
-                s.Title = "My API";
-                s.Version = "v0";
-            };
-        })
-        .SwaggerDocument(o =>
-        {
-            o.MaxEndpointVersion = 1;
-            o.DocumentSettings = s =>
-            {
-                s.SchemaSettings.SchemaNameGenerator = new NJsonSchema.Generation.DefaultSchemaNameGenerator();
-                s.DocumentName = "Release 1";
-                s.Title = "My API";
-                s.Version = "v1";
-            };
-        })
-        .SwaggerDocument(o =>
-        {
-            o.MaxEndpointVersion = 2;
-            o.DocumentSettings = s =>
-            {
-                s.SchemaSettings.SchemaNameGenerator = new NJsonSchema.Generation.DefaultSchemaNameGenerator();
-                s.DocumentName = "Release 2";
-                s.Title = "My API";
-                s.Version = "v2";
-            };
-        });
-    // Add services to the container.
-    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-    builder.Services.AddOpenApi("v1");
-    builder.Services.AddOpenApi("v2");
 
+    builder.Services.AddOpenApiServices();
+    
     builder.Services.AddSingleton<IAuthService, AuthService>();
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
 
-    builder.Services.AddOpenTelemetry()
-        .WithTracing(tracing => tracing
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddConsoleExporter())
-        .WithMetrics(metrics => metrics
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddConsoleExporter());
-
-    builder.Logging.AddOpenTelemetry(logging => logging
-        .AddConsoleExporter());
+    builder.Services.AddOpenTelemetryServices(otelConfig);
 
     var app = builder.Build();
     app.UseAuthentication();

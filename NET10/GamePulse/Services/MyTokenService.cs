@@ -2,6 +2,7 @@ using FastEndpoints;
 using FastEndpoints.Security;
 using GamePulse.Configs;
 using GamePulse.Repositories.Jwt;
+using OpenTelemetry.Trace;
 
 namespace GamePulse.Services;
 
@@ -12,6 +13,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
 {
     private readonly ILogger<MyTokenService> _logger;
     private readonly IJwtRepository _jwtRepository;
+    private readonly Tracer _tracer;
 
     /// <summary>
     /// 
@@ -19,8 +21,10 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <param name="config"></param>
     /// <param name="logger"></param>
     /// <param name="jwtRepository"></param>
-    public MyTokenService(IConfiguration config, ILogger<MyTokenService> logger, IJwtRepository jwtRepository)
+    /// <param name="tracer"></param>
+    public MyTokenService(IConfiguration config, ILogger<MyTokenService> logger, IJwtRepository jwtRepository, Tracer tracer)
     {
+        _tracer = tracer;
         _logger = logger;
         _jwtRepository = jwtRepository;
         
@@ -50,6 +54,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <exception cref="NotImplementedException"></exception>
     public override async Task PersistTokenAsync(TokenResponse response)
     {
+        using var span = _tracer.StartActiveSpan("PersistTokenAsync");
         await _jwtRepository.StoreTokenAsync(response);
     }
 
@@ -65,6 +70,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <exception cref="NotImplementedException"></exception>
     public override async Task RefreshRequestValidationAsync(TokenRequest req)
     {
+        using var span = _tracer.StartActiveSpan("RefreshRequestValidationAsync");
         if (await _jwtRepository.TokenIsValidAsync(req.UserId, req.RefreshToken) == false)
             AddError(r => r.RefreshToken, "Refresh token is invalid");
     }
@@ -81,6 +87,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <exception cref="NotImplementedException"></exception>
     public override async Task SetRenewalPrivilegesAsync(TokenRequest request, UserPrivileges privileges)
     {
+        using var span = _tracer.StartActiveSpan("SetRenewalPrivilegesAsync");
         privileges.Roles.Add("Manager");
         privileges.Claims.Add(new("UserId", request.UserId));
         privileges.Permissions.Add("Manager_Permission");

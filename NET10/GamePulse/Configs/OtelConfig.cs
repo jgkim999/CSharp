@@ -13,4 +13,12 @@ public class OtelConfig
     /// 
     /// </summary>
     public string TracesSamplerArg { get; set; } = string.Empty;
+    /// <summary>
+    /// 
+    /// </summary>
+    public string ServiceName { get; set; } = string.Empty;
+    /// <summary>
+    /// 
+    /// </summary>
+    public string ServiceVersion { get; set; } = string.Empty;
 }

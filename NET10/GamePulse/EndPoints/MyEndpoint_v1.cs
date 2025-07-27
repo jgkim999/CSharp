@@ -1,5 +1,6 @@
 using FastEndpoints;
 using GamePulse.DTO;
+using OpenTelemetry.Trace;
 
 namespace GamePulse.EndPoints;
 
@@ -8,6 +9,17 @@ namespace GamePulse.EndPoints;
 /// </summary>
 public class MyEndpoint_v1 : Endpoint<MyRequest, MyResponse>
 {
+    private readonly Tracer _tracer;
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="tracer"></param>
+    public MyEndpoint_v1(Tracer tracer)
+    {
+        _tracer = tracer;
+    }
+    
     /// <summary>
     /// Configure
     /// </summary>
@@ -30,6 +42,8 @@ public class MyEndpoint_v1 : Endpoint<MyRequest, MyResponse>
     /// <param name="ct">Cancellation token</param>
     public override async Task HandleAsync(MyRequest req, CancellationToken ct)
     {
+        using var span = _tracer.StartActiveSpan(nameof(MyEndpoint_v1));
+        
         await Send.OkAsync(new()
         {
             FullName = req.FirstName + " " + req.LastName,
