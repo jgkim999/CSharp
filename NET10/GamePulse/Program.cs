@@ -21,12 +21,12 @@ try
     if (otelConfig is null)
         throw new NullReferenceException();
     
-    Log.Information("Starting application");
-    
     builder.Services.AddSerilog((services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext());
+    
+    Log.Information("Starting application");
     
     var section = builder.Configuration.GetSection("Jwt");
     var jwtConfig = section.Get<JwtConfig>();
