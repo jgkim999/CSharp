@@ -9,6 +9,13 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 환경별 설정 파일 추가
+var environment = builder.Environment.EnvironmentName;
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables(); // 환경 변수가 JSON 설정을 오버라이드
+
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateLogger();
