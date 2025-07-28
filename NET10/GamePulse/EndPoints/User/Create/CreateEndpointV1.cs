@@ -1,13 +1,14 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 using GamePulse.DTO;
+using GamePulse.Processors;
 using OpenTelemetry.Trace;
 
-namespace GamePulse.EndPoints;
+namespace GamePulse.EndPoints.User.Create;
 
 /// <summary>
 /// Creates a new user
 /// </summary>
-public class MyEndpoint_v1 : Endpoint<MyRequest, MyResponse>
+public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
 {
     private readonly Tracer _tracer;
     
@@ -15,7 +16,7 @@ public class MyEndpoint_v1 : Endpoint<MyRequest, MyResponse>
     /// 
     /// </summary>
     /// <param name="tracer"></param>
-    public MyEndpoint_v1(Tracer tracer)
+    public CreateEndpointV1(Tracer tracer)
     {
         _tracer = tracer;
     }
@@ -25,8 +26,9 @@ public class MyEndpoint_v1 : Endpoint<MyRequest, MyResponse>
     /// </summary>
     public override void Configure()
     {
-        Version(1).StartingRelease(1).DeprecateAt(2);
         Post("/api/user/create");
+        Version(1).StartingRelease(1).DeprecateAt(2);
+        PreProcessor<ValidationErrorLogger<MyRequest>>();
         AllowAnonymous();
         Summary(s => {
             s.Summary = "사용자 생성";
@@ -42,7 +44,7 @@ public class MyEndpoint_v1 : Endpoint<MyRequest, MyResponse>
     /// <param name="ct">Cancellation token</param>
     public override async Task HandleAsync(MyRequest req, CancellationToken ct)
     {
-        using var span = _tracer.StartActiveSpan(nameof(MyEndpoint_v1));
+        using var span = _tracer.StartActiveSpan(nameof(CreateEndpointV1));
         
         await Send.OkAsync(new()
         {
