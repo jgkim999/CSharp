@@ -54,7 +54,7 @@ try
     
     builder.Services.AddSingleton<IAuthService, AuthService>();
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
-    builder.Services.AddSingleton<IpToNationService>();
+    builder.Services.AddSingleton<IIpToNationService, IpToNationService>();
     
     builder.Services.AddSod();
     

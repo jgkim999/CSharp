@@ -12,7 +12,7 @@ public class SodBackgroundWorker : BackgroundService
     private readonly ISodBackgroundTaskQueue _taskQueue;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SodBackgroundWorker> _logger;
-    
+
     /// <summary>
     /// 
     /// </summary>
@@ -23,7 +23,10 @@ public class SodBackgroundWorker : BackgroundService
     /// </summary>
     /// <param name="serviceProvider">The service provider used to resolve scoped services for background tasks.</param>
     /// <param name="taskQueue">The queue from which background work items are dequeued and executed.</param>
-    public SodBackgroundWorker(IServiceProvider serviceProvider, ISodBackgroundTaskQueue taskQueue, ILogger<SodBackgroundWorker> logger)
+    public SodBackgroundWorker(
+        IServiceProvider serviceProvider,
+        ISodBackgroundTaskQueue taskQueue,
+        ILogger<SodBackgroundWorker> logger)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;

@@ -37,8 +37,14 @@ public class RttCommand : SodCommand
     public override async Task ExecuteAsync(IServiceProvider serviceProvider, CancellationToken ct)
     {
         var logger = serviceProvider.GetService<ILogger<RttCommand>>();
+        var ipToNationService = serviceProvider.GetService<IIpToNationService>();
         using var span = GamePulseActivitySource.StartActivity(nameof(RttCommand), ActivityKind.Internal, parentActivity: ParentActivity);
         logger?.LogInformation("{ClientIp}", ClientIp);
+        span?.AddTag("ClientIp", ClientIp);
+
+        // IP 주소를 국가 코드로 변환
+        var nationCode = await ipToNationService.GetNationCodeAsync(ClientIp, ct);
+
         // RTT 처리
         await Task.CompletedTask;
     }
