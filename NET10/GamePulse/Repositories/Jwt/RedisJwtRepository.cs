@@ -27,8 +27,8 @@ public class RedisJwtRepository : IJwtRepository
     /// <exception cref="InvalidDataException">Thrown when Redis connection test fails</exception>
     public RedisJwtRepository(
         ILogger<RedisJwtRepository> logger,
-        IOptions<RedisConfig> redisConfig,
-        StackExchangeRedisInstrumentation redisInstrumentation)
+        IOptions<RedisConfig>? redisConfig,
+        StackExchangeRedisInstrumentation? redisInstrumentation)
     {
         _logger = logger;
         
@@ -36,8 +36,10 @@ public class RedisJwtRepository : IJwtRepository
         {
             if (_multiplexer != null)
                 return;
+            if (redisConfig is null)
+                throw new ArgumentNullException();
             _multiplexer = ConnectionMultiplexer.Connect(redisConfig.Value.JwtConnectionString);
-            redisInstrumentation.AddConnection(_multiplexer);
+            redisInstrumentation?.AddConnection(_multiplexer);
             _keyPrefix = redisConfig.Value.KeyPrefix;
             _database = _multiplexer.GetDatabase();
             var faker = new Bogus.Faker();

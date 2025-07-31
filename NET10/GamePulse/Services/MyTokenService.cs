@@ -13,8 +13,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
 {
     private readonly ILogger<MyTokenService> _logger;
     private readonly IJwtRepository _jwtRepository;
-    private readonly Tracer _tracer;
-
+    
     /// <summary>
     /// 
     /// </summary>
@@ -22,9 +21,10 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <param name="logger"></param>
     /// <param name="jwtRepository"></param>
     /// <param name="tracer"></param>
-    public MyTokenService(IConfiguration config, ILogger<MyTokenService> logger, IJwtRepository jwtRepository, Tracer tracer)
+    public MyTokenService(IConfiguration config, ILogger<MyTokenService> logger, IJwtRepository jwtRepository)
     {
-        _tracer = tracer;
+        if (config is null || logger is null || jwtRepository is null)
+            throw new NullReferenceException();
         _logger = logger;
         _jwtRepository = jwtRepository;
         
@@ -54,7 +54,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <exception cref="NotImplementedException"></exception>
     public override async Task PersistTokenAsync(TokenResponse response)
     {
-        using var span = _tracer.StartActiveSpan("PersistTokenAsync");
+        using var span = GamePulseActivitySource.StartActivity("PersistTokenAsync");
         await _jwtRepository.StoreTokenAsync(response);
     }
 
@@ -70,7 +70,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <exception cref="NotImplementedException"></exception>
     public override async Task RefreshRequestValidationAsync(TokenRequest req)
     {
-        using var span = _tracer.StartActiveSpan("RefreshRequestValidationAsync");
+        using var span = GamePulseActivitySource.StartActivity("RefreshRequestValidationAsync");
         if (await _jwtRepository.TokenIsValidAsync(req.UserId, req.RefreshToken) == false)
             AddError(r => r.RefreshToken, "Refresh token is invalid");
     }
@@ -87,7 +87,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <exception cref="NotImplementedException"></exception>
     public override async Task SetRenewalPrivilegesAsync(TokenRequest request, UserPrivileges privileges)
     {
-        using var span = _tracer.StartActiveSpan("SetRenewalPrivilegesAsync");
+        using var span = GamePulseActivitySource.StartActivity("SetRenewalPrivilegesAsync");
         privileges.Roles.Add("Manager");
         privileges.Claims.Add(new("UserId", request.UserId));
         privileges.Permissions.Add("Manager_Permission");
