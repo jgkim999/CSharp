@@ -1,4 +1,7 @@
 using GamePulse.Configs;
+using GamePulse.Services;
+using GamePulse.Sod;
+
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Metrics;
@@ -25,7 +28,9 @@ public static class OpenTelemetryInitialize
             probability = 1.0f;
         
         StackExchangeRedisInstrumentation? redisInstrumentation = null;
-        
+
+        GamePulseActivitySource.Initialize(config.ServiceName, config.ServiceVersion);
+            
         openTelemetryBuilder.WithTracing(tracing =>
         {
             tracing.AddSource(config.ServiceName);

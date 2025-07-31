@@ -1,7 +1,8 @@
 ﻿using FastEndpoints;
+
 using FluentValidation;
 
-namespace GamePulse.EndPoints.Sod.Rtt;
+namespace GamePulse.Sod.Endpoints.Rtt;
 
 /// <summary>
 /// Rtt 저장 요청

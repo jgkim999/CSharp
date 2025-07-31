@@ -1,10 +1,14 @@
 using FastEndpoints;
 using FastEndpoints.Security;
+
 using GamePulse;
 using GamePulse.Configs;
 using GamePulse.Repositories.Jwt;
 using GamePulse.Services;
+using GamePulse.Sod;
+                                
 using Scalar.AspNetCore;
+
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,12 +49,15 @@ try
     builder.Services.Configure<JwtCreationOptions>(o => o.SigningKey = jwtConfig.PrivateKey);
 
     builder.Services.AddFastEndpoints();
-
+    
     builder.Services.AddOpenApiServices();
     
     builder.Services.AddSingleton<IAuthService, AuthService>();
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
-
+    builder.Services.AddSingleton<IpToNationService>();
+    
+    builder.Services.AddSod();
+    
     builder.Services.AddOpenTelemetryServices(otelConfig);
 
     var app = builder.Build();
