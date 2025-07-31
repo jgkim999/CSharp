@@ -1,13 +1,24 @@
 using FastEndpoints;
 using FastEndpoints.Security;
+
 using GamePulse;
 using GamePulse.Configs;
 using GamePulse.Repositories.Jwt;
 using GamePulse.Services;
+using GamePulse.Sod;
+                                    
 using Scalar.AspNetCore;
+
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 환경별 설정 파일 추가
+var environment = builder.Environment.EnvironmentName;
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables(); // 환경 변수가 JSON 설정을 오버라이드
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -38,19 +49,22 @@ try
     builder.Services.Configure<JwtCreationOptions>(o => o.SigningKey = jwtConfig.PrivateKey);
 
     builder.Services.AddFastEndpoints();
-
+    
     builder.Services.AddOpenApiServices();
     
     builder.Services.AddSingleton<IAuthService, AuthService>();
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
-
+    builder.Services.AddSingleton<IpToNationService>();
+    
+    builder.Services.AddSod();
+    
     builder.Services.AddOpenTelemetryServices(otelConfig);
 
     var app = builder.Build();
     app.UseAuthentication();
     app.UseAuthentication();
-    app.UseFastEndpoints(c => { c.Versioning.Prefix = "v"; });
-
+    app.UseFastEndpointsInitialize();
+    
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {

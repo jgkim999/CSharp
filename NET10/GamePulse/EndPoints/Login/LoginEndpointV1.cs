@@ -3,6 +3,7 @@ using FastEndpoints.Security;
 using GamePulse.DTO;
 using GamePulse.Services;
 using Bogus;
+using GamePulse.Processors;
 using OpenTelemetry.Trace;
 
 namespace GamePulse.EndPoints.Login;
@@ -10,10 +11,10 @@ namespace GamePulse.EndPoints.Login;
 /// <summary>
 /// 
 /// </summary>
-public class Endpoint_v1 : Endpoint<LoginRequest, TokenResponse>
+public class LoginEndpointV1 : Endpoint<LoginRequest, TokenResponse>
 {
     private readonly IAuthService _authService;
-    private readonly ILogger<Endpoint_v1> _logger;
+    private readonly ILogger<LoginEndpointV1> _logger;
     private readonly Tracer _tracer;
 
     /// <summary>
@@ -22,7 +23,7 @@ public class Endpoint_v1 : Endpoint<LoginRequest, TokenResponse>
     /// <param name="authService"></param>
     /// <param name="logger"></param>
     /// <param name="tracer"></param>
-    public Endpoint_v1(IAuthService authService, ILogger<Endpoint_v1> logger, Tracer tracer)
+    public LoginEndpointV1(IAuthService authService, ILogger<LoginEndpointV1> logger, Tracer tracer)
     {
         _logger = logger;
         _authService = authService;
@@ -37,7 +38,18 @@ public class Endpoint_v1 : Endpoint<LoginRequest, TokenResponse>
         Version(1);
         Post("/api/login");
         AllowAnonymous();
-        Summary(s => {
+        
+        PreProcessor<ValidationErrorLogger<LoginRequest>>();
+        // 헤더 이름은 원하는 대로 설정할 수 있습니다.
+        // 지정하지 않으면 라이브러리는 들어오는 요청에서 X-Forwarded-For 헤더의 값을 읽으려고 시도합니다.
+        // 실패하면 요청을 하는 클라이언트를 고유하게 식별하기 위해 HttpContext.Connection.RemoteIpAddress 를 읽으려고 시도합니다.
+        // 모든 시도가 실패하면 403 Forbidden 응답이 전송됩니다.
+        // https://fast-endpoints.com/docs/rate-limiting#header-name
+        Throttle(
+            hitLimit: 60,
+            durationSeconds: 60);
+        Summary(s => 
+        {
             s.Summary = "사용자 로그인";
             s.Description = "입력한 정보를 바탕으로 로그인을 수행합니다.";
             s.Response<MyResponse>(200, "Login successfully");

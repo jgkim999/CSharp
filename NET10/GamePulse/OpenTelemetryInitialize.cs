@@ -1,4 +1,6 @@
 using GamePulse.Configs;
+using GamePulse.Services;
+
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Metrics;
@@ -20,13 +22,15 @@ public static class OpenTelemetryInitialize
     /// <returns></returns>
     public static IServiceCollection AddOpenTelemetryServices(this IServiceCollection service, OtelConfig config)
     {
-        var builder = service.AddOpenTelemetry();
+        var openTelemetryBuilder = service.AddOpenTelemetry();
         if (double.TryParse(config.TracesSamplerArg, out var probability) == false)
             probability = 1.0f;
         
         StackExchangeRedisInstrumentation? redisInstrumentation = null;
-        
-        builder.WithTracing(tracing =>
+
+        GamePulseActivitySource.Initialize(config.ServiceName, config.ServiceVersion);
+            
+        openTelemetryBuilder.WithTracing(tracing =>
         {
             tracing.AddSource(config.ServiceName);
             tracing.SetResourceBuilder(
@@ -37,9 +41,6 @@ public static class OpenTelemetryInitialize
             tracing.AddHttpClientInstrumentation();
             tracing.AddRedisInstrumentation()
                 .ConfigureRedisInstrumentation(instrumentation => redisInstrumentation = instrumentation);
-            
-            
-            
             tracing.AddOtlpExporter(o =>
             {
                 o.Endpoint = new Uri(config.Endpoint);
@@ -49,11 +50,11 @@ public static class OpenTelemetryInitialize
         });
 
         if (redisInstrumentation is not null)
-            builder.Services.AddSingleton(redisInstrumentation);
+            openTelemetryBuilder.Services.AddSingleton(redisInstrumentation);
         
-        builder.Services.AddSingleton(TracerProvider.Default.GetTracer(config.ServiceName));
+        openTelemetryBuilder.Services.AddSingleton(TracerProvider.Default.GetTracer(config.ServiceName));
         
-        builder.WithMetrics(metrics =>
+        openTelemetryBuilder.WithMetrics(metrics =>
         {
             metrics.AddAspNetCoreInstrumentation();
             metrics.AddRuntimeInstrumentation();
