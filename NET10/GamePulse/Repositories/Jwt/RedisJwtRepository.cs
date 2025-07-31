@@ -1,13 +1,14 @@
-using System.Text.Json;
 using FastEndpoints.Security;
 using GamePulse.Configs;
+using GamePulse.Services;
+using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
-using OpenTelemetry.Trace;
 using StackExchange.Redis;
 
 namespace GamePulse.Repositories.Jwt;
+
 /// <summary>
-/// 
+/// Redis-based JWT token repository for storing and validating refresh tokens
 /// </summary>
 public class RedisJwtRepository : IJwtRepository
 {
@@ -15,35 +16,29 @@ public class RedisJwtRepository : IJwtRepository
     private static ConnectionMultiplexer? _multiplexer;
     private static string? _keyPrefix;
     private static IDatabase? _database;
-    private readonly Tracer _tracer;
-    private readonly StackExchangeRedisInstrumentation _redisInstrumentation;
-
+    
     /// <summary>
-    /// 
+    /// Initializes a new instance of the RedisJwtRepository class
     /// </summary>
-    /// <param name="config"></param>
-    /// <param name="logger"></param>
-    /// <param name="tracer"></param>
-    /// <param name="redisInstrumentation"></param>
-    /// <exception cref="Exception"></exception>
-    /// <exception cref="InvalidDataException"></exception>
-    public RedisJwtRepository(IConfiguration config, ILogger<RedisJwtRepository> logger, Tracer tracer, StackExchangeRedisInstrumentation redisInstrumentation)
+    /// <param name="logger">Logger instance</param>
+    /// <param name="redisConfig">Redis configuration options</param>
+    /// <param name="redisInstrumentation">Redis instrumentation for telemetry</param>
+    /// <exception cref="Exception">Thrown when Redis connection fails</exception>
+    /// <exception cref="InvalidDataException">Thrown when Redis connection test fails</exception>
+    public RedisJwtRepository(
+        ILogger<RedisJwtRepository> logger,
+        IOptions<RedisConfig> redisConfig,
+        StackExchangeRedisInstrumentation redisInstrumentation)
     {
-        _redisInstrumentation = redisInstrumentation;
-        _tracer = tracer;
         _logger = logger;
-        var jwtConfig = config.GetSection("Jwt").Get<JwtConfig>();
-        if (jwtConfig == null)
-        {
-            throw new Exception("Jwt config not found");
-        }
+        
         try
         {
             if (_multiplexer != null)
                 return;
-            _multiplexer = ConnectionMultiplexer.Connect(jwtConfig.RedisConnectionString);
-            _redisInstrumentation.AddConnection(_multiplexer);
-            _keyPrefix = jwtConfig.KeyPrefix;
+            _multiplexer = ConnectionMultiplexer.Connect(redisConfig.Value.JwtConnectionString);
+            redisInstrumentation.AddConnection(_multiplexer);
+            _keyPrefix = redisConfig.Value.KeyPrefix;
             _database = _multiplexer.GetDatabase();
             var faker = new Bogus.Faker();
             var key = MakeKey(faker.Random.Uuid().ToString());
@@ -63,6 +58,11 @@ public class RedisJwtRepository : IJwtRepository
         }
     }
     
+    /// <summary>
+    /// Creates a Redis key for JWT token storage
+    /// </summary>
+    /// <param name="key">User ID or token identifier</param>
+    /// <returns>Formatted Redis key</returns>
     private static string MakeKey(string key)
     {
         return string.IsNullOrEmpty(_keyPrefix) ? 
@@ -71,16 +71,15 @@ public class RedisJwtRepository : IJwtRepository
     }
     
     /// <summary>
-    /// 
+    /// Stores a refresh token in Redis for the specified user
     /// </summary>
-    /// <param name="response"></param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <param name="response">Token response containing user ID and refresh token</param>
+    /// <returns>Task representing the asynchronous operation</returns>
     public async Task StoreTokenAsync(TokenResponse response)
     {
         try
         {
-            using var span = _tracer.StartActiveSpan("StoreTokenAsync");
+            using var span = GamePulseActivitySource.StartActivity("StoreTokenAsync");
             if (_database is null)
                 throw new NullReferenceException();
             await _database.StringSetAsync(MakeKey(response.UserId), response.RefreshToken, TimeSpan.FromDays(1));
@@ -93,16 +92,16 @@ public class RedisJwtRepository : IJwtRepository
     }
 
     /// <summary>
-    /// 
+    /// Validates if the provided refresh token matches the stored token for the user
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="refreshToken"></param>
-    /// <returns></returns>
+    /// <param name="userId">User identifier</param>
+    /// <param name="refreshToken">Refresh token to validate</param>
+    /// <returns>True if token is valid, false otherwise</returns>
     public async Task<bool> TokenIsValidAsync(string userId, string refreshToken)
     {
         try
         {
-            using var span = _tracer.StartActiveSpan("TokenIsValidAsync");
+            using var span = GamePulseActivitySource.StartActivity("TokenIsValidAsync");
             if (_database is null)
                 throw new NullReferenceException();
             var token = await _database.StringGetAsync(MakeKey(userId));
