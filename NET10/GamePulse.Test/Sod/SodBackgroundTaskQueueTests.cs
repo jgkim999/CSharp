@@ -1,7 +1,6 @@
 using FluentAssertions;
 using GamePulse.Sod.Commands;
 using GamePulse.Sod.Services;
-using System.Diagnostics;
 
 namespace GamePulse.Test.Sod;
 

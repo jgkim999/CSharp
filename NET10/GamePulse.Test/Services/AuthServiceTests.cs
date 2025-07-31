@@ -1,8 +1,6 @@
 using FluentAssertions;
 using GamePulse.Services;
-using Moq;
 using OpenTelemetry.Trace;
-using System.Diagnostics;
 using OpenTelemetry;
 
 namespace GamePulse.Test.Services;

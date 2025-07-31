@@ -1,6 +1,5 @@
 using GamePulse.Configs;
 using GamePulse.Services;
-using GamePulse.Sod;
 
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
