@@ -20,7 +20,12 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <param name="config"></param>
     /// <param name="logger"></param>
     /// <param name="jwtRepository"></param>
-    /// <param name="tracer"></param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MyTokenService"/> class, configuring JWT token parameters and refresh token endpoint settings.
+    /// </summary>
+    /// <exception cref="NullReferenceException">
+    /// Thrown if <paramref name="config"/>, <paramref name="logger"/>, <paramref name="jwtRepository"/>, or the "Jwt" configuration section is null.
+    /// </exception>
     public MyTokenService(IConfiguration config, ILogger<MyTokenService> logger, IJwtRepository jwtRepository)
     {
         if (config is null || logger is null || jwtRepository is null)
@@ -51,7 +56,10 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// </summary>
     /// <param name="response"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <summary>
+    /// Persists the generated access and refresh tokens along with their expiration details.
+    /// </summary>
+    /// <param name="response">The token response containing the tokens and their metadata to be stored.</param>
     public override async Task PersistTokenAsync(TokenResponse response)
     {
         using var span = GamePulseActivitySource.StartActivity("PersistTokenAsync");
@@ -67,7 +75,9 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// </summary>
     /// <param name="req"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <summary>
+    /// Validates the refresh token in the incoming request and adds a validation error if the token is invalid.
+    /// </summary>
     public override async Task RefreshRequestValidationAsync(TokenRequest req)
     {
         using var span = GamePulseActivitySource.StartActivity("RefreshRequestValidationAsync");
@@ -84,7 +94,11 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <param name="request"></param>
     /// <param name="privileges"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <summary>
+    /// Assigns renewal privileges to a user during token refresh, adding the "Manager" role, a "UserId" claim, and the "Manager_Permission" permission.
+    /// </summary>
+    /// <param name="request">The token request containing user information.</param>
+    /// <param name="privileges">The user privileges object to be updated.</param>
     public override async Task SetRenewalPrivilegesAsync(TokenRequest request, UserPrivileges privileges)
     {
         using var span = GamePulseActivitySource.StartActivity("SetRenewalPrivilegesAsync");
