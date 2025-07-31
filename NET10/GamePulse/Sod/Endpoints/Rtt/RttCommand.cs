@@ -39,10 +39,16 @@ public class RttCommand : SodCommand
         var logger = serviceProvider.GetService<ILogger<RttCommand>>();
         var ipToNationService = serviceProvider.GetService<IIpToNationService>();
         using var span = GamePulseActivitySource.StartActivity(nameof(RttCommand), ActivityKind.Internal, parentActivity: ParentActivity);
+
+        var faker = new Bogus.Faker();
+        //ClientIp = faker.Internet.Ip();
+        ClientIp = $"{faker.Random.Number(211, 212)}.{faker.Random.Number(185, 186)}.{faker.Random.Number(5, 6)}.{faker.Random.Number(45, 46)}";
+        
         logger?.LogInformation("{ClientIp}", ClientIp);
         span?.AddTag("ClientIp", ClientIp);
 
         // IP 주소를 국가 코드로 변환
+        Debug.Assert(ipToNationService != null, nameof(ipToNationService) + " != null");
         var nationCode = await ipToNationService.GetNationCodeAsync(ClientIp, ct);
 
         // RTT 처리
