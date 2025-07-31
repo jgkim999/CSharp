@@ -1,4 +1,4 @@
-﻿using FastEndpoints;
+using FastEndpoints;
 using FluentValidation;
 
 namespace GamePulse.DTO;
@@ -10,6 +10,8 @@ public class LoginRequestValidator : Validator<LoginRequest>
 {
     /// <summary>
     /// 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LoginRequestValidator"/> class, defining validation rules for <c>Username</c> and <c>Password</c> properties of a <see cref="LoginRequest"/>.
     /// </summary>
     public LoginRequestValidator()
     {

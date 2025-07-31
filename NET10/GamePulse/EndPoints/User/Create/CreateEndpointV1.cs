@@ -1,4 +1,4 @@
-﻿using FastEndpoints;
+using FastEndpoints;
 using GamePulse.DTO;
 using GamePulse.Processors;
 using OpenTelemetry.Trace;
@@ -15,7 +15,9 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="tracer"></param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CreateEndpointV1"/> class with the specified OpenTelemetry tracer.
+    /// </summary>
     public CreateEndpointV1(Tracer tracer)
     {
         _tracer = tracer;
@@ -23,6 +25,8 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
     
     /// <summary>
     /// Configure
+    /// <summary>
+    /// Configures the endpoint for creating a new user, including route, versioning, validation, access permissions, and metadata.
     /// </summary>
     public override void Configure()
     {
@@ -41,7 +45,11 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
     /// Handles user creation request
     /// </summary>
     /// <param name="req">User creation request</param>
-    /// <param name="ct">Cancellation token</param>
+    /// <summary>
+    /// Processes a user creation request and responds with the user's full name and age status.
+    /// </summary>
+    /// <param name="req">The user creation request containing first name, last name, and age.</param>
+    /// <param name="ct">A token to monitor for cancellation requests.</param>
     public override async Task HandleAsync(MyRequest req, CancellationToken ct)
     {
         using var span = _tracer.StartActiveSpan(nameof(CreateEndpointV1));
