@@ -1,4 +1,4 @@
-﻿using FastEndpoints;
+using FastEndpoints;
 
 using FluentValidation;
 
@@ -37,6 +37,8 @@ public class RttRequestValidator : Validator<RttRequest>
     
     /// <summary>
     /// 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RttRequestValidator"/> class, defining validation rules for <see cref="RttRequest"/> properties.
     /// </summary>
     public RttRequestValidator()
     {

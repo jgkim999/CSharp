@@ -1,4 +1,4 @@
-﻿using FastEndpoints;
+using FastEndpoints;
 using GamePulse.DTO;
 using GamePulse.Processors;
 
@@ -12,6 +12,8 @@ public class CreateEndpointV2 : Endpoint<MyRequest, MyResponse>
 {
     /// <summary>
     /// Configure
+    /// <summary>
+    /// Configures the endpoint for creating a user, including route, versioning, pre-processing, and API documentation metadata.
     /// </summary>
     public override void Configure()
     {
@@ -30,7 +32,12 @@ public class CreateEndpointV2 : Endpoint<MyRequest, MyResponse>
     /// Handles user creation request
     /// </summary>
     /// <param name="req">User creation request</param>
-    /// <param name="ct">Cancellation token</param>
+    /// <summary>
+    /// Processes a user creation request and returns a response containing the user's full name and age status.
+    /// </summary>
+    /// <param name="req">The user creation request data.</param>
+    /// <param name="ct">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public override async Task HandleAsync(MyRequest req, CancellationToken ct)
     {
         await Send.OkAsync(new()

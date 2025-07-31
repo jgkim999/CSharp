@@ -19,7 +19,11 @@ public static class OpenTelemetryInitialize
     /// </summary>
     /// <param name="service"></param>
     /// <param name="config"></param>
-    /// <returns></returns>
+    /// <summary>
+    /// Configures and adds OpenTelemetry tracing and metrics services to the dependency injection container using the specified configuration.
+    /// </summary>
+    /// <param name="config">The OpenTelemetry configuration settings, including service name, version, endpoint, and trace sampling argument.</param>
+    /// <returns>The updated <see cref="IServiceCollection"/> with OpenTelemetry services registered.</returns>
     public static IServiceCollection AddOpenTelemetryServices(this IServiceCollection service, OtelConfig config)
     {
         var openTelemetryBuilder = service.AddOpenTelemetry();

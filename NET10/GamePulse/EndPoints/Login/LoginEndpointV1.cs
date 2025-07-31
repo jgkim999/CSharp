@@ -22,7 +22,9 @@ public class LoginEndpointV1 : Endpoint<LoginRequest, TokenResponse>
     /// </summary>
     /// <param name="authService"></param>
     /// <param name="logger"></param>
-    /// <param name="tracer"></param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LoginEndpointV1"/> class with the specified authentication service, logger, and tracer.
+    /// </summary>
     public LoginEndpointV1(IAuthService authService, ILogger<LoginEndpointV1> logger, Tracer tracer)
     {
         _logger = logger;
@@ -32,6 +34,8 @@ public class LoginEndpointV1 : Endpoint<LoginRequest, TokenResponse>
     
     /// <summary>
     /// 
+    /// <summary>
+    /// Configures the login endpoint with versioning, route, anonymous access, validation error logging, rate limiting, and API documentation summary.
     /// </summary>
     public override void Configure()
     {
