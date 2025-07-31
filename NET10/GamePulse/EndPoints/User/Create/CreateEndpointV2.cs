@@ -1,20 +1,23 @@
-using FastEndpoints;
+﻿using FastEndpoints;
 using GamePulse.DTO;
+using GamePulse.Processors;
 
-namespace GamePulse.EndPoints;
+namespace GamePulse.EndPoints.User.Create;
+
 
 /// <summary>
 /// Creates a new user
 /// </summary>
-public class MyEndpoint_v2 : Endpoint<MyRequest, MyResponse>
+public class CreateEndpointV2 : Endpoint<MyRequest, MyResponse>
 {
     /// <summary>
     /// Configure
     /// </summary>
     public override void Configure()
     {
-        Version(2).StartingRelease(2);;
+        Version(2).StartingRelease(2);
         Post("/api/user/create");
+        PreProcessor<ValidationErrorLogger<MyRequest>>();
         AllowAnonymous();
         Summary(s => {
             s.Summary = "사용자 생성";

@@ -1,3 +1,6 @@
+using FastEndpoints;
+using FluentValidation;
+
 namespace GamePulse.DTO;
 
 /// <summary>
