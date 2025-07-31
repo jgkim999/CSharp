@@ -6,7 +6,7 @@ using GamePulse.Configs;
 using GamePulse.Repositories.Jwt;
 using GamePulse.Services;
 using GamePulse.Sod;
-                                
+                                    
 using Scalar.AspNetCore;
 
 using Serilog;
