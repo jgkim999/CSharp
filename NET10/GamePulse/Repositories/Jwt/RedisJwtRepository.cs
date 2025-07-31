@@ -24,7 +24,14 @@ public class RedisJwtRepository : IJwtRepository
     /// <param name="redisConfig">Redis configuration options</param>
     /// <param name="redisInstrumentation">Redis instrumentation for telemetry</param>
     /// <exception cref="Exception">Thrown when Redis connection fails</exception>
-    /// <exception cref="InvalidDataException">Thrown when Redis connection test fails</exception>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RedisJwtRepository"/> class, establishing a Redis connection for JWT token storage and validation.
+    /// </summary>
+    /// <param name="logger">Logger for recording operational events and errors.</param>
+    /// <param name="redisConfig">Redis configuration options. Must not be null.</param>
+    /// <param name="redisInstrumentation">Optional telemetry instrumentation for Redis connections.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="redisConfig"/> is null.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Redis connection test fails.</exception>
     public RedisJwtRepository(
         ILogger<RedisJwtRepository> logger,
         IOptions<RedisConfig>? redisConfig,
