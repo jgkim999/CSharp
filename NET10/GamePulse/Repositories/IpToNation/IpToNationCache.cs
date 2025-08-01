@@ -60,7 +60,11 @@ public class IpToNationCache : IIpToNationCache
     /// Gets the country code for the specified IP address from cache
     /// </summary>
     /// <param name="clientIp">Client IP address</param>
-    /// <returns>Result containing country code or failure</returns>
+    /// <summary>
+    /// Asynchronously retrieves the cached country code for the specified client IP address.
+    /// </summary>
+    /// <param name="clientIp">The IP address to look up in the cache.</param>
+    /// <returns>A Result containing the country code if found; otherwise, a failure Result with the message "Not found".</returns>
     public async Task<Result<string>> GetAsync(string clientIp)
     {
         Debug.Assert(_database != null, nameof(_database) + " != null");
