@@ -1,6 +1,6 @@
 using OpenTelemetry.Trace;
 
-namespace GamePulse.Services;
+namespace GamePulse.Services.Auth;
 
 /// <summary>
 /// 
