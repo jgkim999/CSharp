@@ -1,7 +1,7 @@
 using FluentAssertions;
-using GamePulse.Services;
 using OpenTelemetry.Trace;
 using OpenTelemetry;
+using GamePulse.Services.Auth;
 
 namespace GamePulse.Test.Services;
 

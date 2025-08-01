@@ -1,8 +1,13 @@
 using FluentAssertions;
+
 using FluentResults;
+
 using GamePulse.Repositories;
-using GamePulse.Services;
+using GamePulse.Repositories.IpToNation;
+using GamePulse.Services.IpToNation;
+
 using Microsoft.Extensions.Logging;
+
 using Moq;
 
 namespace GamePulse.Test.Services;

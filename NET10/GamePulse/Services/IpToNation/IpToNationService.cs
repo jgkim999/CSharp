@@ -1,6 +1,7 @@
 ﻿using GamePulse.Repositories;
+using GamePulse.Repositories.IpToNation;
 
-namespace GamePulse.Services;
+namespace GamePulse.Services.IpToNation;
 
 public class IpToNationService : IIpToNationService
 {

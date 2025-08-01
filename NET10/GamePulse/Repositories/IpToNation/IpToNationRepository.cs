@@ -1,6 +1,6 @@
 using IP2Location;
-    
-namespace GamePulse.Repositories;
+
+namespace GamePulse.Repositories.IpToNation;
 
 /// <summary>
 /// Repository for IP to nation lookup using IP2Location database

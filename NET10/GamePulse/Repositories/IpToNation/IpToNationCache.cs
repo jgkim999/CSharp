@@ -5,7 +5,7 @@ using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using StackExchange.Redis;
 using FluentResults;
 
-namespace GamePulse.Repositories;
+namespace GamePulse.Repositories.IpToNation;
 
 /// <summary>
 /// Redis cache implementation for IP to nation mapping
@@ -65,7 +65,7 @@ public class IpToNationCache : IIpToNationCache
     {
         Debug.Assert(_database != null, nameof(_database) + " != null");
         var result = await _database.StringGetAsync(MakeKey(clientIp));
-        return result.IsNull ? Result.Fail("Not found") : FluentResults.Result.Ok(result.ToString());
+        return result.IsNull ? Result.Fail("Not found") : Result.Ok(result.ToString());
     }
     
     /// <summary>

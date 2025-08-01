@@ -5,6 +5,7 @@ using GamePulse.Services;
 using Bogus;
 using GamePulse.Processors;
 using OpenTelemetry.Trace;
+using GamePulse.Services.Auth;
 
 namespace GamePulse.EndPoints.Login;
 

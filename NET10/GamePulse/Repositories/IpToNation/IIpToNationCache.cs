@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace GamePulse.Repositories;
+namespace GamePulse.Repositories.IpToNation;
 
 /// <summary>
 /// 
