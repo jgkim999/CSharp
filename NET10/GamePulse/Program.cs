@@ -5,6 +5,7 @@ using GamePulse;
 using GamePulse.Configs;
 using GamePulse.Repositories;
 using GamePulse.Repositories.IpToNation;
+using GamePulse.Repositories.IpToNation.Cache;
 using GamePulse.Repositories.Jwt;
 using GamePulse.Services.Auth;
 using GamePulse.Services.IpToNation;
@@ -32,7 +33,7 @@ try
     if (openTelemetryConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<OtelConfig>(builder.Configuration.GetSection("OpenTelemetry"));
-    
+
     var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtConfig>();
     if (jwtConfig == null)
         throw new NullReferenceException();
@@ -42,31 +43,31 @@ try
     if (redisConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("RedisConfig"));
-    
+
     builder.Services.AddSerilog((services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext());
-    
+
     Log.Information("Starting application");
-    
+
     builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = jwtConfig.PublicKey);
     builder.Services.AddAuthorization();
 
     builder.Services.Configure<JwtCreationOptions>(o => o.SigningKey = jwtConfig.PrivateKey);
 
     builder.Services.AddFastEndpoints();
-    
+
     builder.Services.AddOpenApiServices();
-    
+
     builder.Services.AddSingleton<IAuthService, AuthService>();
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
     builder.Services.AddSingleton<IIpToNationRepository, IpToNationRepository>();
-    builder.Services.AddSingleton<IIpToNationCache, IpToNationCache>();
+    builder.Services.AddSingleton<IIpToNationCache, IpToNationRedisCache>();
     builder.Services.AddSingleton<IIpToNationService, IpToNationService>();
-    
+
     builder.Services.AddSod();
-    
+
     builder.Services.AddOpenTelemetryServices(openTelemetryConfig);
 
     var app = builder.Build();
@@ -74,7 +75,7 @@ try
     app.UseAuthentication();
     app.UseFastEndpointsInitialize();
     //app.UseStaticFiles();
-    
+
     // Configure the HTTP request pipeline.
     //if (app.Environment.IsDevelopment())
     {

@@ -5,27 +5,27 @@ using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using StackExchange.Redis;
 using FluentResults;
 
-namespace GamePulse.Repositories.IpToNation;
+namespace GamePulse.Repositories.IpToNation.Cache;
 
 /// <summary>
 /// Redis cache implementation for IP to nation mapping
 /// </summary>
-public class IpToNationCache : IIpToNationCache
+public class IpToNationRedisCache : IIpToNationCache
 {
     private readonly ConnectionMultiplexer _multiplexer;
     private readonly string? _keyPrefix;
     private readonly IDatabase? _database;
-    
+
     /// <summary>
-    /// Initializes a new instance of the IpToNationCache class
+    /// Initializes a new instance of the IpToNationRedisCache class
     /// </summary>
     /// <param name="config">Redis configuration options</param>
     /// <param name="logger">Logger instance</param>
     /// <param name="redisInstrumentation">Redis instrumentation for telemetry</param>
     /// <exception cref="NullReferenceException">Thrown when database connection fails</exception>
-    public IpToNationCache(
+    public IpToNationRedisCache(
         IOptions<RedisConfig> config,
-        ILogger<IpToNationCache> logger,
+        ILogger<IpToNationRedisCache> logger,
         StackExchangeRedisInstrumentation redisInstrumentation)
     {
         try
@@ -35,7 +35,9 @@ public class IpToNationCache : IIpToNationCache
             _keyPrefix = config.Value.KeyPrefix;
             _database = _multiplexer.GetDatabase();
             if (_database is null)
-                throw new NullReferenceException();
+            {
+                throw new NullReferenceException("_database is null");
+            }
         }
         catch (Exception e)
         {
@@ -51,15 +53,11 @@ public class IpToNationCache : IIpToNationCache
     /// <returns>Formatted cache key</returns>
     private string MakeKey(string clientIp)
     {
-        return string.IsNullOrEmpty(_keyPrefix) ? 
-            $"ipcache:{clientIp}" : 
+        return string.IsNullOrEmpty(_keyPrefix) ?
+            $"ipcache:{clientIp}" :
             $"{_keyPrefix}:ipcache:{clientIp}";
     }
 
-    /// <summary>
-    /// Gets the country code for the specified IP address from cache
-    /// </summary>
-    /// <param name="clientIp">Client IP address</param>
     /// <summary>
     /// Asynchronously retrieves the cached country code for the specified client IP address.
     /// </summary>
@@ -71,7 +69,7 @@ public class IpToNationCache : IIpToNationCache
         var result = await _database.StringGetAsync(MakeKey(clientIp));
         return result.IsNull ? Result.Fail("Not found") : Result.Ok(result.ToString());
     }
-    
+
     /// <summary>
     /// Sets the country code for the specified IP address in cache
     /// </summary>

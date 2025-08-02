@@ -1,21 +1,21 @@
 using FluentResults;
 
-namespace GamePulse.Repositories.IpToNation;
+namespace GamePulse.Repositories.IpToNation.Cache;
 
 /// <summary>
-/// 
+///
 /// </summary>
 public interface IIpToNationCache
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="clientIp"></param>
     /// <returns></returns>
     Task<Result<string>> GetAsync(string clientIp);
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="clientIp"></param>
     /// <param name="countryCode"></param>
