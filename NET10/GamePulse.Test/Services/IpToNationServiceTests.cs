@@ -3,7 +3,7 @@ using FluentAssertions;
 using FluentResults;
 
 using GamePulse.Repositories;
-using GamePulse.Repositories.IpToNation;
+using GamePulse.Repositories.IpToNation.Cache;
 using GamePulse.Services.IpToNation;
 
 using Moq;
