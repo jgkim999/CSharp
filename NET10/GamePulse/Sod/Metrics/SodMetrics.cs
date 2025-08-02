@@ -19,7 +19,7 @@ public class SodMetrics : IDisposable
         _meter1 = new Meter(M1);
 
         //_meter = meterFactory.Create(config.Value.ServiceName);
-        _rttCount = _meter1.CreateCounter<long>("rtt_count", description: "rtt call count");
+        _rttCount = _meter1.CreateCounter<long>("rtt_call", description: "rtt call count");
         _networkQuality = _meter1.CreateHistogram<double>(
             name: "rtt_quality",
             unit: "number",

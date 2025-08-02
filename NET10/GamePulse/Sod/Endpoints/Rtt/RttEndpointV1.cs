@@ -67,9 +67,9 @@ public class RttEndpointV1 : Endpoint<RttRequest>
             return;
         }
 
-        var cmd = new RttCommand(clientIp, req.Rtt, req.Quality, span);
-        await cmd.ExecuteAsync(_serviceProvider, ct);
-        //await _taskQueue.EnqueueAsync(new RttCommand(clientIp, req.Rtt, req.Quality, span));
+        //var cmd = new RttCommand(clientIp, req.Rtt, req.Quality, span);
+        //await cmd.ExecuteAsync(_serviceProvider, ct);
+        await _taskQueue.EnqueueAsync(new RttCommand(clientIp, req.Rtt, req.Quality, span));
         await Send.OkAsync("Success", ct);
     }
 }
