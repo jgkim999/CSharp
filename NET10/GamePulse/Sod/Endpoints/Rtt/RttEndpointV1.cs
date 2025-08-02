@@ -14,6 +14,7 @@ namespace GamePulse.Sod.Endpoints.Rtt;
 public class RttEndpointV1 : Endpoint<RttRequest>
 {
     private readonly ISodBackgroundTaskQueue _taskQueue;
+    private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
     ///
@@ -23,13 +24,12 @@ public class RttEndpointV1 : Endpoint<RttRequest>
     /// <summary>
     /// Initializes a new instance of the <see cref="RttEndpointV1"/> class for handling RTT data submissions.
     /// </summary>
-    public RttEndpointV1(ILogger<RttEndpointV1> logger, Tracer tracer, ISodBackgroundTaskQueue taskQueue)
+    public RttEndpointV1(ILogger<RttEndpointV1> logger, Tracer tracer, ISodBackgroundTaskQueue taskQueue, IServiceProvider serviceProvider)
     {
         _taskQueue = taskQueue;
+        _serviceProvider = serviceProvider;
     }
 
-    /// <summary>
-    ///
     /// <summary>
     /// Configures the RTT endpoint to accept anonymous HTTP POST requests for recording round-trip time values measured by Mirror.
     /// </summary>
@@ -39,9 +39,7 @@ public class RttEndpointV1 : Endpoint<RttRequest>
         Post("/api/sod/rtt");
         AllowAnonymous();
         PreProcessor<ValidationErrorLogger<RttRequest>>();
-        Throttle(
-            hitLimit: 60,
-            durationSeconds: 60);
+        //Throttle(hitLimit: 60, durationSeconds: 60);
         Summary(s =>
         {
             s.Summary = "Rtt 저장";
@@ -68,7 +66,10 @@ public class RttEndpointV1 : Endpoint<RttRequest>
             await Send.StringAsync("Unknown ip address", 400, cancellation: ct);
             return;
         }
-        await _taskQueue.EnqueueAsync(new RttCommand(clientIp, span));
+
+        var cmd = new RttCommand(clientIp, req.Rtt, req.Quality, span);
+        await cmd.ExecuteAsync(_serviceProvider, ct);
+        //await _taskQueue.EnqueueAsync(new RttCommand(clientIp, req.Rtt, req.Quality, span));
         await Send.OkAsync("Success", ct);
     }
 }

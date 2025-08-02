@@ -3,6 +3,7 @@ using System.Diagnostics;
 using GamePulse.Services;
 using GamePulse.Services.IpToNation;
 using GamePulse.Sod.Commands;
+using GamePulse.Sod.Metrics;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
 
@@ -11,14 +12,22 @@ namespace GamePulse.Sod.Endpoints.Rtt;
 /// </summary>
 public class RttCommand : SodCommand
 {
+    private readonly int _rtt;
+    private readonly int _quality;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="RttCommand"/> class with the specified client IP address and optional parent activity.
     /// </summary>
     /// <param name="clientIp">The IP address of the client initiating the command.</param>
+    /// <param name="quality"></param>
     /// <param name="parentActivity">An optional parent <see cref="Activity"/> for tracing context.</param>
-    public RttCommand(string clientIp, Activity? parentActivity) : base(clientIp, parentActivity)
+    /// <param name="rtt"></param>
+    public RttCommand(string clientIp, int rtt, int quality, Activity? parentActivity)
+        : base(clientIp, parentActivity)
     {
         ClientIp = clientIp;
+        _rtt = rtt;
+        _quality = quality;
     }
 
     /// <summary>
@@ -31,15 +40,21 @@ public class RttCommand : SodCommand
     {
         var logger = serviceProvider.GetService<ILogger<RttCommand>>();
         var ipToNationService = serviceProvider.GetService<IIpToNationService>();
+        var metrics = serviceProvider.GetService<SodMetrics>();
         using var span = GamePulseActivitySource.StartActivity(nameof(RttCommand), ActivityKind.Internal, parentActivity: ParentActivity);
 
         //span?.AddTag("ClientIp", ClientIp);
         // IP 주소를 국가 코드로 변환
         Debug.Assert(ipToNationService != null, nameof(ipToNationService) + " != null");
         var countryCode = await ipToNationService.GetNationCodeAsync(ClientIp, ct);
-        logger?.LogInformation("{ClientIp} {CountryCode}", ClientIp, countryCode);
 
         // RTT 처리
+        var rtt = _rtt / (double)1000;
+        metrics?.AddRtt(countryCode, rtt, _quality);
+        logger?.LogInformation(
+            "{Game} {ClientIp} {CountryCode} {Rtt} {Quality}",
+            "sod", ClientIp, countryCode, rtt, _quality);
+
         await Task.CompletedTask;
     }
 }
