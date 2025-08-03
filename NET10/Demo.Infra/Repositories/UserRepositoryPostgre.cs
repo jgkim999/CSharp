@@ -39,7 +39,7 @@ public class UserRepositoryPostgre : IUserRepository
             // }
 
             var userDtos = _mapper.Map<List<UserDto>>(users);
-            if(userDtos == null)
+            if (userDtos == null)
             {
                 _logger.LogError("Mapping configuration error - could not map UserDb to UserDto");
                 return Result.Fail("Mapping configuration error");
