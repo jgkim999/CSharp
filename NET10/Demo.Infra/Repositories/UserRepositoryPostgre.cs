@@ -1,9 +1,8 @@
 using Dapper;
-using Demo.Application.DTO;
+using Demo.Application.DTO.User;
 using Demo.Application.Repositories;
 using Demo.Infra.Configs;
 using FluentResults;
-using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -21,6 +20,32 @@ public class UserRepositoryPostgre : IUserRepository
         _config = config;
         _mapper = mapper;
         _logger = logger;
+    }
+
+    public async Task<Result> CreateAsync(string name, string email, string passwordSha256)
+    {
+        try
+        {
+            await using var connection = new NpgsqlConnection(_config.ConnectionString);
+            var user = new UserDb
+            {
+                name = name,
+                email = email,
+                password = passwordSha256
+            };
+            const string sqlQuery = "INSERT INTO users (name, email, password) VALUES (@name, @email, @password)";
+            var dp = new DynamicParameters();
+            dp.Add("@name", name);
+            dp.Add("@email", email);
+            dp.Add("@password", passwordSha256);
+            var rowsAffected = await connection.ExecuteAsync(sqlQuery, dp);
+            return rowsAffected == 1 ? Result.Ok() : Result.Fail("Insert failed");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, nameof(CreateAsync));
+            return Result.Fail(e.ToString());
+        }
     }
 
     public async Task<Result<IEnumerable<UserDto>>> GetAllAsync()

@@ -1,6 +1,8 @@
 using Demo.Application;
 using Demo.Application.Repositories;
 using Demo.Infra;
+using Demo.Web.Endpoints.User;
+using FluentValidation;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +24,8 @@ try
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
     builder.Services.AddOpenApi();
 
+    builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
+    
     builder.Services.AddApplication();
     builder.Services.AddInfra(builder.Configuration);
 
