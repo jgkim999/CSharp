@@ -3,33 +3,33 @@ using FastEndpoints;
 using GamePulse.Processors;
 using GamePulse.Services;
 using GamePulse.Sod.Services;
-
+using GamePulse.Utils;
 using OpenTelemetry.Trace;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
 
 /// <summary>
-/// 
+///
 /// </summary>
 public class RttEndpointV1 : Endpoint<RttRequest>
 {
     private readonly ISodBackgroundTaskQueue _taskQueue;
-    
+    private readonly IServiceProvider _serviceProvider;
+
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="tracer"></param>
     /// <summary>
     /// Initializes a new instance of the <see cref="RttEndpointV1"/> class for handling RTT data submissions.
     /// </summary>
-    public RttEndpointV1(ILogger<RttEndpointV1> logger, Tracer tracer, ISodBackgroundTaskQueue taskQueue)
+    public RttEndpointV1(ILogger<RttEndpointV1> logger, Tracer tracer, ISodBackgroundTaskQueue taskQueue, IServiceProvider serviceProvider)
     {
         _taskQueue = taskQueue;
+        _serviceProvider = serviceProvider;
     }
 
-    /// <summary>
-    /// 
     /// <summary>
     /// Configures the RTT endpoint to accept anonymous HTTP POST requests for recording round-trip time values measured by Mirror.
     /// </summary>
@@ -39,9 +39,7 @@ public class RttEndpointV1 : Endpoint<RttRequest>
         Post("/api/sod/rtt");
         AllowAnonymous();
         PreProcessor<ValidationErrorLogger<RttRequest>>();
-        Throttle(
-            hitLimit: 60,
-            durationSeconds: 60);
+        //Throttle(hitLimit: 60, durationSeconds: 60);
         Summary(s =>
         {
             s.Summary = "Rtt 저장";
@@ -50,10 +48,6 @@ public class RttEndpointV1 : Endpoint<RttRequest>
         });
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="req"></param>
     /// <summary>
     /// Processes an incoming RTT request by validating the client IP address and enqueuing an RTT command for background processing.
     /// </summary>
@@ -65,13 +59,17 @@ public class RttEndpointV1 : Endpoint<RttRequest>
     public override async Task HandleAsync(RttRequest req, CancellationToken ct)
     {
         using var span = GamePulseActivitySource.StartActivity(nameof(RttEndpointV1));
-        string? clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+        //string? clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+        string? clientIp = FakeIpGenerator.Get();
         if (clientIp is null)
         {
             await Send.StringAsync("Unknown ip address", 400, cancellation: ct);
             return;
         }
-        await _taskQueue.EnqueueAsync(new RttCommand(clientIp, span));
+
+        //var cmd = new RttCommand(clientIp, req.Rtt, req.Quality, span);
+        //await cmd.ExecuteAsync(_serviceProvider, ct);
+        await _taskQueue.EnqueueAsync(new RttCommand(clientIp, req.Rtt, req.Quality, span));
         await Send.OkAsync("Success", ct);
     }
 }

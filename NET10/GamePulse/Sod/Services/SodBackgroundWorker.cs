@@ -25,14 +25,14 @@ public class SodBackgroundWorker : BackgroundService
         IServiceProvider serviceProvider,
         ISodBackgroundTaskQueue taskQueue,
         ILogger<SodBackgroundWorker> logger,
-        int workerCount = 3)
+        int workerCount = 8)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _taskQueue = taskQueue;
         _workerCount = workerCount;
     }
-    
+
     /// <summary>
     /// Starts multiple concurrent workers to process background tasks from the queue.
     /// </summary>
@@ -41,16 +41,16 @@ public class SodBackgroundWorker : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var workers = new Task[_workerCount];
-        
+
         for (int i = 0; i < _workerCount; i++)
         {
             int workerId = i;
             workers[i] = ProcessTasksAsync(workerId, stoppingToken);
         }
-        
+
         await Task.WhenAll(workers);
     }
-    
+
     /// <summary>
     /// Processes tasks for a single worker
     /// </summary>
@@ -59,7 +59,7 @@ public class SodBackgroundWorker : BackgroundService
     private async Task ProcessTasksAsync(int workerId, CancellationToken stoppingToken)
     {
         _logger.LogInformation("Worker {WorkerId} started", workerId);
-        
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -77,10 +77,10 @@ public class SodBackgroundWorker : BackgroundService
                 _logger.LogError(ex, "Worker {WorkerId} encountered an error", workerId);
             }
         }
-        
+
         _logger.LogInformation("Worker {WorkerId} stopped", workerId);
     }
-    
+
     /// <summary>
     /// Initiates a graceful shutdown of the background worker, logging the shutdown event before completing the stop process.
     /// </summary>

@@ -1,5 +1,5 @@
 ﻿using GamePulse.Repositories;
-using GamePulse.Repositories.IpToNation;
+using GamePulse.Repositories.IpToNation.Cache;
 
 namespace GamePulse.Services.IpToNation;
 
@@ -13,16 +13,19 @@ public class IpToNationService : IIpToNationService
         _cache = cache;
         _repo = repo;
     }
-    
-    [Obsolete("Obsolete")]
+
     public async Task<string> GetNationCodeAsync(string clientIp, CancellationToken ct)
     {
+        using var span = GamePulseActivitySource.StartActivity("GetNationCodeAsync");
+        /*
         var result = await _cache.GetAsync(clientIp);
         if (result.IsSuccess)
+        {
             return result.Value;
-        
+        }
+        */
         var countryCode = await _repo.GetAsync(clientIp);
-        await _cache.SetAsync(clientIp, countryCode, TimeSpan.FromDays(1));
+        //await _cache.SetAsync(clientIp, countryCode, TimeSpan.FromDays(1));
         return countryCode;
     }
 }

@@ -1,6 +1,6 @@
 using GamePulse.Configs;
 using GamePulse.Services;
-
+using GamePulse.Sod.Metrics;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Metrics;
@@ -10,18 +10,14 @@ using OpenTelemetry.Trace;
 namespace GamePulse;
 
 /// <summary>
-/// 
+///
 /// </summary>
 public static class OpenTelemetryInitialize
 {
     /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="service"></param>
-    /// <param name="config"></param>
-    /// <summary>
     /// Configures and adds OpenTelemetry tracing and metrics services to the dependency injection container using the specified configuration.
     /// </summary>
+    /// <param name="service"></param>
     /// <param name="config">The OpenTelemetry configuration settings, including service name, version, endpoint, and trace sampling argument.</param>
     /// <returns>The updated <see cref="IServiceCollection"/> with OpenTelemetry services registered.</returns>
     public static IServiceCollection AddOpenTelemetryServices(this IServiceCollection service, OtelConfig config)
@@ -29,11 +25,11 @@ public static class OpenTelemetryInitialize
         var openTelemetryBuilder = service.AddOpenTelemetry();
         if (double.TryParse(config.TracesSamplerArg, out var probability) == false)
             probability = 1.0f;
-        
+
         StackExchangeRedisInstrumentation? redisInstrumentation = null;
 
         GamePulseActivitySource.Initialize(config.ServiceName, config.ServiceVersion);
-            
+
         openTelemetryBuilder.WithTracing(tracing =>
         {
             tracing.AddSource(config.ServiceName);
@@ -55,11 +51,15 @@ public static class OpenTelemetryInitialize
 
         if (redisInstrumentation is not null)
             openTelemetryBuilder.Services.AddSingleton(redisInstrumentation);
-        
+
         openTelemetryBuilder.Services.AddSingleton(TracerProvider.Default.GetTracer(config.ServiceName));
-        
+
         openTelemetryBuilder.WithMetrics(metrics =>
         {
+            metrics.SetResourceBuilder(
+                ResourceBuilder.CreateDefault()
+                    .AddService(serviceName: config.ServiceName, serviceVersion: config.ServiceVersion));
+            metrics.AddMeter(SodMetrics.M1);
             metrics.AddAspNetCoreInstrumentation();
             metrics.AddRuntimeInstrumentation();
             metrics.AddHttpClientInstrumentation();
@@ -69,10 +69,11 @@ public static class OpenTelemetryInitialize
             // Metrics provided by System.Net libraries
             metrics.AddMeter("System.Net.Http");
             metrics.AddMeter("System.Net.NameResolution");
-            metrics.AddOtlpExporter(o =>
+            metrics.AddOtlpExporter((options, readerOptions) =>
             {
-                o.Endpoint = new Uri(config.Endpoint);
-                o.Protocol = OtlpExportProtocol.Grpc;
+                options.Endpoint = new Uri(config.Endpoint);
+                options.Protocol = OtlpExportProtocol.Grpc;
+                readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000; // Set to 5 seconds
             });
             //metrics.AddConsoleExporter();
         });
