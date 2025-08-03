@@ -3,6 +3,7 @@ using Demo.Application.DTO;
 using Demo.Application.Repositories;
 using Demo.Infra.Configs;
 using FluentResults;
+using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -27,8 +28,23 @@ public class UserRepositoryPostgre : IUserRepository
         try
         {
             await using var connection = new NpgsqlConnection(_config.ConnectionString);
-            var users = await connection.QueryAsync<UserDb>("SELECT * FROM users;");
+            // users가 null인지 확인
+            var users = await connection.QueryAsync<UserDb>("SELECT id, name, email, created_at FROM users;");
+
+            // List<UserDto> userDtos = new();
+            // foreach (var user in users)
+            // {
+            //     var userDto = user.Adapt<UserDto>();
+            //     userDtos.Add(userDto);
+            // }
+
             var userDtos = _mapper.Map<List<UserDto>>(users);
+            if (userDtos == null)
+            {
+                _logger.LogError("Mapping configuration error - could not map UserDb to UserDto");
+                return Result.Fail("Mapping configuration error");
+            }
+            
             return userDtos;
         }
         catch (Exception e)

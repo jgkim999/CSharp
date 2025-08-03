@@ -4,6 +4,8 @@ namespace Demo.Application.DTO;
 
 public class UserDb
 {
+    public UserDb() { }
+
     // ReSharper disable once InconsistentNaming
     public long id { get; init; }
     // ReSharper disable once InconsistentNaming
@@ -14,8 +16,10 @@ public class UserDb
     public DateTime created_at { get; init; } = DateTime.Now;
 }
 
-public abstract class UserDto
+public class UserDto
 {
+    public UserDto() { }
+
     public long Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -31,6 +35,7 @@ public class MapsterConfig : IRegister
             .Map(dest => dest.Name, src => src.name)
             .Map(dest => dest.Email, src => src.email)
             .Map(dest => dest.CreatedAt, src => src.created_at)
-            .TwoWays();
+            .TwoWays()
+            .MapToConstructor(true);
     }
 }
