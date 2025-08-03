@@ -1,29 +1,53 @@
 using Demo.Application;
 using Demo.Application.Repositories;
 using Demo.Infra;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// 환경별 설정 파일 추가
+var environment = builder.Environment.EnvironmentName;
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables(); // 환경 변수가 JSON 설정을 오버라이드
 
-builder.Services.AddApplication();
-builder.Services.AddInfra(builder.Configuration);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+try
 {
-    app.MapOpenApi();
-}
+    // Add services to the container.
+    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+    builder.Services.AddOpenApi();
 
-app.MapGet("/user", async (IUserRepository userRepository) =>
+    builder.Services.AddApplication();
+    builder.Services.AddInfra(builder.Configuration);
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
     {
-        var users = await userRepository.GetAllAsync();
-        return users;
-    })
-    .WithName("GetUser");
+        app.MapOpenApi();
+    }
 
-app.Run();
+    app.MapGet("/user", async (IUserRepository userRepository) =>
+        {
+            var users = await userRepository.GetAllAsync();
+            return users;
+        })
+        .WithName("GetUser");
+
+    app.Run();
+
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
