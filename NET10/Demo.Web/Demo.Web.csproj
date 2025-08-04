@@ -7,12 +7,15 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FastEndpoints" Version="7.0.1" />
         <PackageReference Include="LiteBus" Version="3.0.0" />
         <PackageReference Include="LiteBus.Commands" Version="3.0.0" />
+        <PackageReference Include="LiteBus.Commands.Abstractions" Version="3.0.0" />
         <PackageReference Include="LiteBus.Events" Version="3.0.0" />
+        <PackageReference Include="LiteBus.Extensions.MicrosoftDependencyInjection" Version="3.0.0" />
         <PackageReference Include="LiteBus.Messaging" Version="3.0.0" />
         <PackageReference Include="LiteBus.Queries" Version="3.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
         <PackageReference Include="Serilog" Version="4.3.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />

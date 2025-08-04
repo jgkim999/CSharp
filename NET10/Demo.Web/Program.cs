@@ -1,6 +1,10 @@
 using Demo.Application;
 using Demo.Application.Repositories;
 using Demo.Infra;
+using Demo.Web.Endpoints.User;
+using FastEndpoints;
+using FluentValidation;
+using Scalar.AspNetCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,27 +22,26 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    // Add services to the container.
-    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+    builder.Services.AddFastEndpoints();
     builder.Services.AddOpenApi();
 
+    builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
+    
     builder.Services.AddApplication();
     builder.Services.AddInfra(builder.Configuration);
 
     var app = builder.Build();
+    app.UseFastEndpoints(x =>
+    {
+        x.Errors.UseProblemDetails();
+    });
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();
+        app.MapScalarApiReference();
     }
-
-    app.MapGet("/user", async (IUserRepository userRepository) =>
-        {
-            var users = await userRepository.GetAllAsync();
-            return users;
-        })
-        .WithName("GetUser");
 
     app.Run();
 
