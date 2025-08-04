@@ -7,10 +7,19 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="FastEndpoints" Version="7.0.1" />
       <PackageReference Include="FluentResults" Version="4.0.0" />
+      <PackageReference Include="FluentValidation" Version="12.0.0" />
+      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+      <PackageReference Include="LiteBus" Version="3.0.0" />
+      <PackageReference Include="LiteBus.Commands.Extensions.MicrosoftDependencyInjection" Version="2.2.3" />
       <PackageReference Include="Mapster" Version="7.4.0" />
       <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\GamePulse\GamePulse.csproj" />
     </ItemGroup>
 
 </Project>

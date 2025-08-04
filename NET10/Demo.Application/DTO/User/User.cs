@@ -1,6 +1,6 @@
 using Mapster;
 
-namespace Demo.Application.DTO;
+namespace Demo.Application.DTO.User;
 
 public class UserDb
 {
@@ -12,6 +12,8 @@ public class UserDb
     public string name { get; init; } = string.Empty;
     // ReSharper disable once InconsistentNaming
     public string email { get; init; } = string.Empty;
+    // ReSharper disable once InconsistentNaming
+    public string password { get; init; } = string.Empty;
     // ReSharper disable once InconsistentNaming
     public DateTime created_at { get; init; } = DateTime.Now;
 }
