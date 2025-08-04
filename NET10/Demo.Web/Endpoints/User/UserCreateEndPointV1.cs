@@ -4,7 +4,7 @@ using LiteBus.Commands.Abstractions;
 
 namespace Demo.Web.Endpoints.User;
 
-public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
+public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
 {
     private readonly ICommandMediator _commandMediator;
     
@@ -21,8 +21,21 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
 
     public override async Task HandleAsync(UserCreateRequest req, CancellationToken ct)
     {
-        await _commandMediator.SendAsync(
-            new UserCreateCommand(req.Name, req.Email, req.PasswordSha256),
+        var ret = await _commandMediator.SendAsync(
+            new UserCreateCommand(req.Name, req.Email, req.Password),
             cancellationToken: ct);
+        if (ret.Result.IsFailed)
+        {
+            foreach (var error in ret.Result.Errors)
+            {
+                AddError(error.Message);
+            }
+            await Send.ErrorsAsync(500, ct);
+        }
+        else
+        {
+            await Send.OkAsync(cancellation: ct);
+        }
+        //ThrowIfAnyErrors();
     }
 }

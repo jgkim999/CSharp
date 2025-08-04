@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using FastEndpoints;
 using FluentValidation;
 
@@ -5,9 +6,12 @@ namespace Demo.Web.Endpoints.User;
 
 public class UserCreateRequest
 {
+    [DefaultValue("abc")]
     public string Name { get; set; } = string.Empty;
+    [DefaultValue("abc@gmail.com")]
     public string Email { get; set; } = string.Empty;
-    public string PasswordSha256 { get; set; } = string.Empty;
+    [DefaultValue("abcd1234")]
+    public string Password { get; set; } = string.Empty;
 }
 
 public class UserCreateRequestRequestValidator : Validator<UserCreateRequest>
@@ -36,9 +40,10 @@ public class UserCreateRequestRequestValidator : Validator<UserCreateRequest>
             .EmailAddress()
             .WithMessage("Not a valid email");
 
-        RuleFor(x => x.PasswordSha256)
+        RuleFor(x => x.Password)
             .NotEmpty()
             .NotNull()
-            .Length(64);
+            .MinimumLength(8)
+            .MaximumLength(64);
     }
 }

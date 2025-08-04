@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using Demo.Application.Repositories;
 using FluentResults;
 using LiteBus.Commands.Abstractions;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Demo.Application.Commands;
 
