@@ -12,6 +12,10 @@ public static class FastEndpointsInitialize
     /// Configures the WebApplication to use FastEndpoints middleware with default exception handling, API versioning, and Problem Details error responses.
     /// </summary>
     /// <param name="app">The WebApplication instance to configure.</param>
+    /// <summary>
+    /// Configures the WebApplication to use FastEndpoints with default exception handling, API versioning, and standardized error responses.
+    /// </summary>
+    /// <param name="app">The WebApplication instance to configure.</param>
     /// <returns>The configured WebApplication instance.</returns>
     public static WebApplication UseFastEndpointsInitialize(this WebApplication app)
     {

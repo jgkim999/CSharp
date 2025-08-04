@@ -16,6 +16,12 @@ public class UserCreateRequest
 
 public class UserCreateRequestRequestValidator : Validator<UserCreateRequest>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserCreateRequestRequestValidator"/> class and defines validation rules for user creation requests.
+    /// </summary>
+    /// <remarks>
+    /// Enforces that the Name, Email, and Password fields are not null or empty, and that they meet specific length and format requirements. The Email field must also be a valid email address.
+    /// </remarks>
     public UserCreateRequestRequestValidator()
     {
         RuleFor(x => x.Name)
