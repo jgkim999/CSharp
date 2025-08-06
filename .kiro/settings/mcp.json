@@ -9,7 +9,9 @@
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "generate_diagram"
+      ]
     },
     "aws-eks": {
       "command": "uvx",
@@ -30,14 +32,6 @@
         "--rm",
         "hashicorp/terraform-mcp-server"
       ],
-      "disabled": false,
-      "autoApprove": []
-    },
-    "microsoft-learn": {
-      "transport": {
-        "type": "sse",
-        "url": "https://learn.microsoft.com/api/mcp"
-      },
       "disabled": false,
       "autoApprove": []
     },

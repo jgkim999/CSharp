@@ -15,6 +15,16 @@ output "private_subnet_ids" {
   value       = aws_subnet.private_subnets[*].id
 }
 
+output "db_subnet_ids" {
+  description = "IDs of the database subnets"
+  value       = aws_subnet.db_subnets[*].id
+}
+
+output "db_subnet_group_name" {
+  description = "Name of the database subnet group"
+  value       = aws_db_subnet_group.gamepulse_db_subnet_group.name
+}
+
 output "ecr_repository_url" {
   description = "URL of the ECR repository"
   value       = aws_ecr_repository.gamepulse_repo.repository_url

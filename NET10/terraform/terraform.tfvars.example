@@ -8,10 +8,11 @@ aws_region = "ap-northeast-2"
 project_name = "gamepulse"
 environment  = "dev"
 
-# Network Configuration
-vpc_cidr               = "10.0.0.0/16"
-public_subnet_cidrs    = ["10.0.1.0/24", "10.0.2.0/24"]
-private_subnet_cidrs   = ["10.0.10.0/24", "10.0.20.0/24"]
+# Network Configuration (Multi-AZ with 3 Availability Zones)
+vpc_cidr               = "10.0.0.0/20"    # 4096 IPs total
+public_subnet_cidrs    = ["10.0.1.0/26", "10.0.1.64/26", "10.0.1.128/26"]     # 64 IPs each (ALB, NAT)
+private_subnet_cidrs   = ["10.0.2.0/26", "10.0.2.64/26", "10.0.2.128/26"]     # 64 IPs each (ECS tasks)
+db_subnet_cidrs        = ["10.0.3.0/26", "10.0.3.64/26", "10.0.3.128/26"]     # 64 IPs each (RDS, Redis)
 
 # Application Configuration
 container_port     = 8080

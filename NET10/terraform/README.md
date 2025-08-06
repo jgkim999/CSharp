@@ -165,3 +165,21 @@ scale_in_cooldown: 스케일 인 쿨다운 시간 (기본값: 300초)
 scale_out_cooldown: 스케일 아웃 쿨다운 시간 (기본값: 300초)
 autoscaling.tf 업데이트:
 ```
+
+## VPC
+
+```test
+VPC (10.0.0.0/20) - 4,096 IPs
+├── Public Subnets (ALB, NAT Gateway)
+│   ├── AZ-1a: 10.0.1.0/26 (64 IPs)
+│   ├── AZ-1b: 10.0.1.64/26 (64 IPs)
+│   └── AZ-1c: 10.0.1.128/26 (64 IPs)
+├── Private Subnets (ECS Tasks)
+│   ├── AZ-1a: 10.0.2.0/26 (64 IPs)
+│   ├── AZ-1b: 10.0.2.64/26 (64 IPs)
+│   └── AZ-1c: 10.0.2.128/26 (64 IPs)
+└── Database Subnets (RDS, Redis)
+    ├── AZ-1a: 10.0.3.0/26 (64 IPs)
+    ├── AZ-1b: 10.0.3.64/26 (64 IPs)
+    └── AZ-1c: 10.0.3.128/26 (64 IPs)
+```
