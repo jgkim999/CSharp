@@ -1,0 +1,50 @@
+{
+  "mcpServers": {
+    "aws-diagram": {
+      "command": "uvx",
+      "args": [
+        "awslabs.aws-diagram-mcp-server@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "generate_diagram"
+      ]
+    },
+    "aws-eks": {
+      "command": "uvx",
+      "args": [
+        "awslabs.eks-mcp-server@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "terraform": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "hashicorp/terraform-mcp-server"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
