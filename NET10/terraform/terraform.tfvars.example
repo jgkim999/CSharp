@@ -1,0 +1,40 @@
+# Example Terraform variables file for GamePulse deployment
+# Copy this file to terraform.tfvars and modify the values as needed
+
+# AWS Configuration
+aws_region = "ap-northeast-2"
+
+# Project Configuration
+project_name = "gamepulse"
+environment  = "dev"
+
+# Network Configuration
+vpc_cidr               = "10.0.0.0/16"
+public_subnet_cidrs    = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs   = ["10.0.10.0/24", "10.0.20.0/24"]
+
+# Application Configuration
+container_port     = 8080
+health_check_path  = "/health"
+
+# ECS Configuration
+cpu           = 512    # 0.5 vCPU
+memory        = 1024   # 1 GB
+desired_count = 2
+
+# Auto Scaling Configuration
+min_capacity = 1
+max_capacity = 10
+
+# Auto Scaling Thresholds
+cpu_target_value             = 70.0   # CPU utilization percentage
+memory_target_value          = 80.0   # Memory utilization percentage
+request_count_target_value   = 1000.0 # Requests per target
+scale_in_cooldown           = 300     # Scale in cooldown (seconds)
+scale_out_cooldown          = 300     # Scale out cooldown (seconds)
+
+# ECR Configuration
+ecr_repository_name = "gamepulse"
+
+# Logging Configuration
+log_retention_days = 7
