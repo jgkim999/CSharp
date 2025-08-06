@@ -77,5 +77,5 @@ output "cloudwatch_log_group_name" {
 
 output "application_url" {
   description = "URL to access the GamePulse application"
-  value       = "http://${aws_lb.gamepulse_alb.dns_name}"
+  value       = "https://${aws_lb.gamepulse_alb.dns_name}"
 }
