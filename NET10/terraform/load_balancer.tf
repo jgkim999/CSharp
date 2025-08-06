@@ -6,6 +6,9 @@ resource "aws_lb" "gamepulse_alb" {
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = aws_subnet.public_subnets[*].id
 
+  drop_invalid_header_fields      = true   # Prevent malformed headers
+  enable_cross_zone_load_balancing = true   # Even traffic distribution
+
   enable_deletion_protection = false
 
   tags = {
