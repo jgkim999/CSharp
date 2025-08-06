@@ -24,7 +24,8 @@ resource "aws_ecr_repository_policy" "gamepulse_repo_policy" {
         Sid    = "AllowPushPull"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+-         AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
++         AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:*"
         }
         Action = [
           "ecr:GetDownloadUrlForLayer",
