@@ -1,5 +1,4 @@
 using Demo.Application;
-using Demo.Application.Repositories;
 using Demo.Infra;
 using Demo.Web.Endpoints.User;
 using FastEndpoints;
@@ -40,7 +39,14 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();
-        app.MapScalarApiReference();
+        app.MapScalarApiReference(options =>
+        {
+            options
+                .WithTitle("Demo.Web API")
+                .WithTheme(ScalarTheme.BluePlanet)
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
+                .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
+        });
     }
 
     app.Run();
