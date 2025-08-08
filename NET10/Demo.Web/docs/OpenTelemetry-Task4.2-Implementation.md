@@ -14,6 +14,7 @@
 - 트레이스 ID와 스팬 ID를 로그에 자동 포함
 - OpenTelemetry 싱크 설정 추가
 - ASP.NET Core 로깅 시스템과 Serilog 통합
+- **비동기 로깅 설정으로 성능 최적화 (Serilog.Sinks.Async 사용)**
 
 ```csharp
 // Serilog와 OpenTelemetry 통합 설정
@@ -248,3 +249,63 @@ TraceId=80f198ee56343ba864fe8b2a57d3eff7 SpanId=e457b5a2e4d86bd1
 - [Serilog OpenTelemetry Sink](https://github.com/serilog/serilog-sinks-opentelemetry)
 - [OpenTelemetry .NET Logging](https://opentelemetry.io/docs/instrumentation/net/logging/)
 - [ASP.NET Core Logging](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/)
+## 비동기 로깅
+ 설정 (업데이트)
+
+### Serilog.Sinks.Async 구성
+
+모든 로깅 싱크를 비동기로 래핑하여 성능을 최적화했습니다:
+
+#### Program.cs 비동기 설정
+```csharp
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .Enrich.WithOpenTelemetry()
+    .WriteTo.Async(a => a.Console(...), bufferSize: 10000, blockWhenFull: false)
+    .WriteTo.Async(a => a.File(...), bufferSize: 10000, blockWhenFull: false)
+    .WriteTo.Async(a => a.OpenTelemetry(...), bufferSize: 10000, blockWhenFull: false)
+    .CreateLogger();
+```
+
+#### 환경별 버퍼 크기 최적화
+
+- **Development**: 5,000개 로그 항목 버퍼
+  - 개발 중 빠른 피드백을 위한 작은 버퍼
+  - 메모리 사용량 최소화
+
+- **Production**: 20,000개 로그 항목 버퍼
+  - 높은 처리량을 위한 큰 버퍼
+  - 배치 처리 효율성 극대화
+
+- **기본값**: 10,000개 로그 항목 버퍼
+  - 균형잡힌 성능과 메모리 사용량
+
+#### 비동기 로깅 설정 옵션
+
+- **bufferSize**: 메모리 버퍼에 저장할 최대 로그 항목 수
+- **blockWhenFull**: `false`로 설정하여 버퍼가 가득 찰 때 로그 드롭 방지
+- **configure**: 실제 싱크 설정을 비동기 래퍼 내부에 구성
+
+### 성능 개선 효과
+
+1. **응답 시간 개선**
+   - 로깅 작업이 메인 스레드를 블록하지 않음
+   - HTTP 요청 처리 성능 향상
+
+2. **처리량 증가**
+   - 배치 처리를 통한 I/O 효율성 향상
+   - 높은 로그 볼륨 환경에서 안정적인 성능
+
+3. **메모리 효율성**
+   - 환경별 최적화된 버퍼 크기
+   - 메모리 사용량과 성능의 균형
+
+### 모니터링 포인트
+
+- 버퍼 사용률 모니터링
+- 로그 드롭 발생 여부 확인
+- 메모리 사용량 추적
+- 로그 지연 시간 측정
+
+이제 Serilog가 완전히 비동기로 동작하여 애플리케이션 성능에 미치는 영향을 최소화했습니다.

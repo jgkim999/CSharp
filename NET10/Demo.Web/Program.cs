@@ -21,7 +21,7 @@ builder.Configuration
 var otelConfig = new OpenTelemetryConfig();
 builder.Configuration.GetSection(OpenTelemetryConfig.SectionName).Bind(otelConfig);
 
-// Serilog와 OpenTelemetry 통합 설정
+// Serilog와 OpenTelemetry 통합 설정 (비동기)
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -29,87 +29,96 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.WithProperty("ServiceName", otelConfig.ServiceName)
     .Enrich.WithProperty("ServiceVersion", otelConfig.ServiceVersion)
     .Enrich.WithProperty("Environment", otelConfig.Environment)
-    .WriteTo.Console(outputTemplate: 
+    .WriteTo.Async(a => a.Console(outputTemplate:
         "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} " +
         "{NewLine}{Exception} " +
-        "TraceId={TraceId} SpanId={SpanId}")
-    .WriteTo.OpenTelemetry(options =>
+        "TraceId={TraceId} SpanId={SpanId}"),
+        bufferSize: 10000,
+        blockWhenFull: false)
+    .WriteTo.Async(a => a.File(
+        path: "logs/demo-web-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 7,
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {Message:lj} {NewLine}{Exception} TraceId={TraceId} SpanId={SpanId}{NewLine}"),
+        bufferSize: 10000,
+        blockWhenFull: false)
+    .WriteTo.Async(a => a.OpenTelemetry(options =>
     {
-        // OpenTelemetry 로깅이 활성화된 경우에만 설정
-        if (otelConfig.Logging.Enabled)
+      // OpenTelemetry 로깅이 활성화된 경우에만 설정
+      if (otelConfig.Logging.Enabled)
+      {
+        // OTLP 엔드포인트가 설정된 경우 사용
+        if (!string.IsNullOrEmpty(otelConfig.Exporter.OtlpEndpoint))
         {
-            // OTLP 엔드포인트가 설정된 경우 사용
-            if (!string.IsNullOrEmpty(otelConfig.Exporter.OtlpEndpoint))
-            {
-                options.Endpoint = otelConfig.Exporter.OtlpEndpoint;
-                
-                // 헤더 설정
-                foreach (var header in otelConfig.Exporter.OtlpHeaders)
-                {
-                    options.Headers.Add(header.Key, header.Value);
-                }
-                
-                // 프로토콜 설정
-                options.Protocol = otelConfig.Exporter.OtlpProtocol.ToLowerInvariant() switch
-                {
-                    "http/protobuf" => Serilog.Sinks.OpenTelemetry.OtlpProtocol.HttpProtobuf,
-                    "grpc" => Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc,
-                    _ => Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc
-                };
-            }
-            
-            // 리소스 속성 추가
-            options.ResourceAttributes.Add("service.name", otelConfig.ServiceName);
-            options.ResourceAttributes.Add("service.version", otelConfig.ServiceVersion);
-            options.ResourceAttributes.Add("deployment.environment", otelConfig.Environment);
+          options.Endpoint = otelConfig.Exporter.OtlpEndpoint;
+
+          // 헤더 설정
+          foreach (var header in otelConfig.Exporter.OtlpHeaders)
+          {
+            options.Headers.Add(header.Key, header.Value);
+          }
+
+          // 프로토콜 설정
+          options.Protocol = otelConfig.Exporter.OtlpProtocol.ToLowerInvariant() switch
+          {
+            "http/protobuf" => Serilog.Sinks.OpenTelemetry.OtlpProtocol.HttpProtobuf,
+            "grpc" => Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc,
+            _ => Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc
+          };
         }
-    })
+
+        // 리소스 속성 추가
+        options.ResourceAttributes.Add("service.name", otelConfig.ServiceName);
+        options.ResourceAttributes.Add("service.version", otelConfig.ServiceVersion);
+        options.ResourceAttributes.Add("deployment.environment", otelConfig.Environment);
+      }
+    }), bufferSize: 10000, blockWhenFull: false)
     .CreateLogger();
 
 try
 {
-    // Serilog를 ASP.NET Core 로깅 시스템에 통합
-    builder.Host.UseSerilog();
+  // Serilog를 ASP.NET Core 로깅 시스템에 통합
+  builder.Host.UseSerilog();
 
-    builder.Services.AddFastEndpoints();
-    builder.Services.AddOpenApi();
+  builder.Services.AddFastEndpoints();
+  builder.Services.AddOpenApi();
 
-    builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
-    
-    builder.Services.AddApplication();
-    builder.Services.AddInfra(builder.Configuration);
-    
-    // OpenTelemetry 서비스 등록
-    builder.Services.AddOpenTelemetryServices(builder.Configuration);
+  builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
-    var app = builder.Build();
-    app.UseFastEndpoints(x =>
+  builder.Services.AddApplication();
+  builder.Services.AddInfra(builder.Configuration);
+
+  // OpenTelemetry 서비스 등록
+  builder.Services.AddOpenTelemetryServices(builder.Configuration);
+
+  var app = builder.Build();
+  app.UseFastEndpoints(x =>
+  {
+    x.Errors.UseProblemDetails();
+  });
+
+  // Configure the HTTP request pipeline.
+  if (app.Environment.IsDevelopment())
+  {
+    app.MapOpenApi();
+    app.MapScalarApiReference(options =>
     {
-        x.Errors.UseProblemDetails();
+      options
+              .WithTitle("Demo.Web API")
+              .WithTheme(ScalarTheme.BluePlanet)
+              .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
+              .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
     });
+  }
 
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
-    {
-        app.MapOpenApi();
-        app.MapScalarApiReference(options =>
-        {
-            options
-                .WithTitle("Demo.Web API")
-                .WithTheme(ScalarTheme.BluePlanet)
-                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
-                .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
-        });
-    }
-
-    app.Run();
+  app.Run();
 
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Application terminated unexpectedly");
+  Log.Fatal(ex, "Application terminated unexpectedly");
 }
 finally
 {
-    Log.CloseAndFlush();
+  Log.CloseAndFlush();
 }
