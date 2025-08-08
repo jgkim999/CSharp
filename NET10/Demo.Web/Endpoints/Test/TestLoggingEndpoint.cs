@@ -1,0 +1,77 @@
+using Demo.Web.Services;
+using FastEndpoints;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+
+namespace Demo.Web.Endpoints.Test;
+
+/// <summary>
+/// 로깅 테스트를 위한 엔드포인트
+/// </summary>
+public class TestLoggingEndpoint : EndpointWithoutRequest
+{
+    private readonly ILogger<TestLoggingEndpoint> _logger;
+    private readonly TelemetryService _telemetryService;
+
+    public TestLoggingEndpoint(ILogger<TestLoggingEndpoint> logger, TelemetryService telemetryService)
+    {
+        _logger = logger;
+        _telemetryService = telemetryService;
+    }
+
+    public override void Configure()
+    {
+        Get("/test/logging");
+        AllowAnonymous();
+        Summary(s =>
+        {
+            s.Summary = "로깅 및 트레이싱 테스트";
+            s.Description = "Serilog와 OpenTelemetry 통합 테스트를 위한 엔드포인트";
+        });
+    }
+
+    public override async Task HandleAsync(CancellationToken ct)
+    {
+        using var activity = _telemetryService.StartActivity("TestLogging", new Dictionary<string, object?>
+        {
+            ["test.type"] = "logging",
+            ["test.timestamp"] = DateTimeOffset.UtcNow.ToString()
+        });
+
+        _logger.LogInformation("테스트 로그 메시지 - 정보 레벨");
+        _logger.LogWarning("테스트 로그 메시지 - 경고 레벨");
+        
+        // TelemetryService의 헬퍼 메서드 사용
+        TelemetryService.LogInformationWithTrace(_logger, "TelemetryService를 통한 로그 메시지: {TestValue}", "test-value-123");
+
+        // 중첩된 Activity 테스트
+        using var nestedActivity = _telemetryService.StartActivity("NestedOperation", new Dictionary<string, object?>
+        {
+            ["nested.operation"] = "database_query",
+            ["nested.table"] = "users"
+        });
+
+        _logger.LogInformation("중첩된 Activity에서의 로그 메시지");
+        
+        // 에러 시뮬레이션
+        try
+        {
+            throw new InvalidOperationException("테스트용 예외입니다");
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.LogErrorWithTrace(_logger, ex, "예외 발생 테스트: {ErrorType}", ex.GetType().Name);
+            TelemetryService.SetActivityError(nestedActivity, ex);
+        }
+
+        TelemetryService.SetActivitySuccess(activity, "로깅 테스트 완료");
+
+        var response = new
+        {
+            Message = "로깅 테스트가 완료되었습니다. 콘솔 로그를 확인해주세요.",
+            TraceId = Activity.Current?.TraceId.ToString(),
+            SpanId = Activity.Current?.SpanId.ToString(),
+            Timestamp = DateTimeOffset.UtcNow
+        };
+    }
+}

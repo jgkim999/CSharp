@@ -31,7 +31,7 @@
     - Set up proper service registration in DI container
     - _Requirements: 2.1, 5.1, 5.2_
 
-- [ ] 4. Integrate OpenTelemetry with Program.cs
+- [x] 4. Integrate OpenTelemetry with Program.cs
   - [x] 4.1 Update Program.cs to load OpenTelemetry configuration
     - Bind configuration from appsettings
     - Initialize OpenTelemetry services

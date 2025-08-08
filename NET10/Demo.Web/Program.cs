@@ -25,6 +25,7 @@ builder.Configuration.GetSection(OpenTelemetryConfig.SectionName).Bind(otelConfi
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
+    .Enrich.WithOpenTelemetry()
     .Enrich.WithProperty("ServiceName", otelConfig.ServiceName)
     .Enrich.WithProperty("ServiceVersion", otelConfig.ServiceVersion)
     .Enrich.WithProperty("Environment", otelConfig.Environment)

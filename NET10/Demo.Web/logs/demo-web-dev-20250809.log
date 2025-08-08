@@ -34,3 +34,49 @@ Npgsql.NpgsqlException (0x80004005): Failed to connect to 192.168.0.47:5432
  TraceId= SpanId=
 [2025-08-09 08:37:34.573 +09:00 INF] Microsoft.Hosting.Lifetime Content root path: /Volumes/d/github/CSharp/NET10/Demo.Web 
  TraceId= SpanId=
+[2025-08-09 08:48:35.552 +09:00 INF] FastEndpoints.StartupTimer Registered 2 endpoints in 247 milliseconds. 
+ TraceId= SpanId=
+[2025-08-09 08:48:35.905 +09:00 INF] Microsoft.Hosting.Lifetime Now listening on: http://localhost:5266 
+ TraceId= SpanId=
+[2025-08-09 08:48:35.906 +09:00 INF] Microsoft.Hosting.Lifetime Application started. Press Ctrl+C to shut down. 
+ TraceId= SpanId=
+[2025-08-09 08:48:35.906 +09:00 INF] Microsoft.Hosting.Lifetime Hosting environment: Development 
+ TraceId= SpanId=
+[2025-08-09 08:48:35.907 +09:00 INF] Microsoft.Hosting.Lifetime Content root path: /Volumes/d/github/CSharp/NET10/Demo.Web 
+ TraceId= SpanId=
+[2025-08-09 08:48:46.596 +09:00 INF] Demo.Web.Endpoints.Test.TestLoggingEndpoint 테스트 로그 메시지 - 정보 레벨 
+ TraceId=ed3c452a9a096b58f2139837fce918d3 SpanId=451b250cb0a0a706
+[2025-08-09 08:48:46.600 +09:00 WRN] Demo.Web.Endpoints.Test.TestLoggingEndpoint 테스트 로그 메시지 - 경고 레벨 
+ TraceId=ed3c452a9a096b58f2139837fce918d3 SpanId=451b250cb0a0a706
+[2025-08-09 08:48:46.601 +09:00 INF] Demo.Web.Endpoints.Test.TestLoggingEndpoint TelemetryService를 통한 로그 메시지: test-value-123 
+ TraceId=ed3c452a9a096b58f2139837fce918d3 SpanId=451b250cb0a0a706
+[2025-08-09 08:48:46.601 +09:00 INF] Demo.Web.Endpoints.Test.TestLoggingEndpoint 중첩된 Activity에서의 로그 메시지 
+ TraceId=ed3c452a9a096b58f2139837fce918d3 SpanId=01b1733f29970f89
+[2025-08-09 08:48:46.639 +09:00 ERR] Demo.Web.Endpoints.Test.TestLoggingEndpoint 예외 발생 테스트: InvalidOperationException 
+System.InvalidOperationException: 테스트용 예외입니다
+   at Demo.Web.Endpoints.Test.TestLoggingEndpoint.HandleAsync(CancellationToken ct) in /Volumes/d/github/CSharp/NET10/Demo.Web/Endpoints/Test/TestLoggingEndpoint.cs:line 59
+ TraceId=ed3c452a9a096b58f2139837fce918d3 SpanId=01b1733f29970f89
+[2025-08-09 08:48:48.699 +09:00 INF] Demo.Web.Endpoints.Test.TestLoggingEndpoint 테스트 로그 메시지 - 정보 레벨 
+ TraceId=15ca0bd8392f1582194ed38a00edf014 SpanId=aec44d9fbe10e8b3
+[2025-08-09 08:48:48.699 +09:00 WRN] Demo.Web.Endpoints.Test.TestLoggingEndpoint 테스트 로그 메시지 - 경고 레벨 
+ TraceId=15ca0bd8392f1582194ed38a00edf014 SpanId=aec44d9fbe10e8b3
+[2025-08-09 08:48:48.699 +09:00 INF] Demo.Web.Endpoints.Test.TestLoggingEndpoint TelemetryService를 통한 로그 메시지: test-value-123 
+ TraceId=15ca0bd8392f1582194ed38a00edf014 SpanId=aec44d9fbe10e8b3
+[2025-08-09 08:48:48.699 +09:00 INF] Demo.Web.Endpoints.Test.TestLoggingEndpoint 중첩된 Activity에서의 로그 메시지 
+ TraceId=15ca0bd8392f1582194ed38a00edf014 SpanId=29156e5ea8a3c73e
+[2025-08-09 08:48:48.721 +09:00 ERR] Demo.Web.Endpoints.Test.TestLoggingEndpoint 예외 발생 테스트: InvalidOperationException 
+System.InvalidOperationException: 테스트용 예외입니다
+   at Demo.Web.Endpoints.Test.TestLoggingEndpoint.HandleAsync(CancellationToken ct) in /Volumes/d/github/CSharp/NET10/Demo.Web/Endpoints/Test/TestLoggingEndpoint.cs:line 59
+ TraceId=15ca0bd8392f1582194ed38a00edf014 SpanId=29156e5ea8a3c73e
+[2025-08-09 08:48:49.869 +09:00 INF] Demo.Web.Endpoints.Test.TestLoggingEndpoint 테스트 로그 메시지 - 정보 레벨 
+ TraceId=b47f61354596a5718281dfaa1cc240f8 SpanId=59c955af95f8c483
+[2025-08-09 08:48:49.870 +09:00 WRN] Demo.Web.Endpoints.Test.TestLoggingEndpoint 테스트 로그 메시지 - 경고 레벨 
+ TraceId=b47f61354596a5718281dfaa1cc240f8 SpanId=59c955af95f8c483
+[2025-08-09 08:48:49.870 +09:00 INF] Demo.Web.Endpoints.Test.TestLoggingEndpoint TelemetryService를 통한 로그 메시지: test-value-123 
+ TraceId=b47f61354596a5718281dfaa1cc240f8 SpanId=59c955af95f8c483
+[2025-08-09 08:48:49.870 +09:00 INF] Demo.Web.Endpoints.Test.TestLoggingEndpoint 중첩된 Activity에서의 로그 메시지 
+ TraceId=b47f61354596a5718281dfaa1cc240f8 SpanId=972e207f66130525
+[2025-08-09 08:48:49.889 +09:00 ERR] Demo.Web.Endpoints.Test.TestLoggingEndpoint 예외 발생 테스트: InvalidOperationException 
+System.InvalidOperationException: 테스트용 예외입니다
+   at Demo.Web.Endpoints.Test.TestLoggingEndpoint.HandleAsync(CancellationToken ct) in /Volumes/d/github/CSharp/NET10/Demo.Web/Endpoints/Test/TestLoggingEndpoint.cs:line 59
+ TraceId=b47f61354596a5718281dfaa1cc240f8 SpanId=972e207f66130525
