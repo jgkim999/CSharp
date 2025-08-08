@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using Serilog;
+using Serilog.Context;
 
 namespace Demo.Web.Services;
 
@@ -180,6 +182,109 @@ public class TelemetryService
   }
 
   /// <summary>
+  /// 현재 트레이스 컨텍스트와 함께 로그를 기록합니다.
+  /// </summary>
+  /// <param name="logger">로거 인스턴스</param>
+  /// <param name="level">로그 레벨</param>
+  /// <param name="messageTemplate">메시지 템플릿</param>
+  /// <param name="propertyValues">속성 값들</param>
+  public static void LogWithTraceContext(Microsoft.Extensions.Logging.ILogger logger, Microsoft.Extensions.Logging.LogLevel level, 
+      string messageTemplate, params object[] propertyValues)
+  {
+    var activity = Activity.Current;
+    if (activity != null)
+    {
+      using (LogContext.PushProperty("TraceId", activity.TraceId.ToString()))
+      using (LogContext.PushProperty("SpanId", activity.SpanId.ToString()))
+      using (LogContext.PushProperty("ParentId", activity.ParentSpanId.ToString()))
+      using (LogContext.PushProperty("OperationName", activity.OperationName))
+      {
+        logger.Log(level, messageTemplate, propertyValues);
+      }
+    }
+    else
+    {
+      logger.Log(level, messageTemplate, propertyValues);
+    }
+  }
+
+  /// <summary>
+  /// 현재 트레이스 컨텍스트와 함께 정보 로그를 기록합니다.
+  /// </summary>
+  /// <param name="logger">로거 인스턴스</param>
+  /// <param name="messageTemplate">메시지 템플릿</param>
+  /// <param name="propertyValues">속성 값들</param>
+  public static void LogInformationWithTrace(Microsoft.Extensions.Logging.ILogger logger, string messageTemplate, params object[] propertyValues)
+  {
+    LogWithTraceContext(logger, Microsoft.Extensions.Logging.LogLevel.Information, messageTemplate, propertyValues);
+  }
+
+  /// <summary>
+  /// 현재 트레이스 컨텍스트와 함께 경고 로그를 기록합니다.
+  /// </summary>
+  /// <param name="logger">로거 인스턴스</param>
+  /// <param name="messageTemplate">메시지 템플릿</param>
+  /// <param name="propertyValues">속성 값들</param>
+  public static void LogWarningWithTrace(Microsoft.Extensions.Logging.ILogger logger, string messageTemplate, params object[] propertyValues)
+  {
+    LogWithTraceContext(logger, Microsoft.Extensions.Logging.LogLevel.Warning, messageTemplate, propertyValues);
+  }
+
+  /// <summary>
+  /// 현재 트레이스 컨텍스트와 함께 에러 로그를 기록합니다.
+  /// </summary>
+  /// <param name="logger">로거 인스턴스</param>
+  /// <param name="exception">예외 객체</param>
+  /// <param name="messageTemplate">메시지 템플릿</param>
+  /// <param name="propertyValues">속성 값들</param>
+  public static void LogErrorWithTrace(Microsoft.Extensions.Logging.ILogger logger, Exception exception, string messageTemplate, params object[] propertyValues)
+  {
+    var activity = Activity.Current;
+    if (activity != null)
+    {
+      using (LogContext.PushProperty("TraceId", activity.TraceId.ToString()))
+      using (LogContext.PushProperty("SpanId", activity.SpanId.ToString()))
+      using (LogContext.PushProperty("ParentId", activity.ParentSpanId.ToString()))
+      using (LogContext.PushProperty("OperationName", activity.OperationName))
+      {
+        logger.LogError(exception, messageTemplate, propertyValues);
+      }
+    }
+    else
+    {
+      logger.LogError(exception, messageTemplate, propertyValues);
+    }
+  }
+
+  /// <summary>
+  /// 구조화된 로깅을 위한 로그 컨텍스트를 생성합니다.
+  /// </summary>
+  /// <param name="properties">추가할 속성들</param>
+  /// <returns>IDisposable 로그 컨텍스트</returns>
+  public static IDisposable CreateLogContext(Dictionary<string, object> properties)
+  {
+    var disposables = new List<IDisposable>();
+    
+    // 현재 Activity의 트레이스 정보 추가
+    var activity = Activity.Current;
+    if (activity != null)
+    {
+      disposables.Add(LogContext.PushProperty("TraceId", activity.TraceId.ToString()));
+      disposables.Add(LogContext.PushProperty("SpanId", activity.SpanId.ToString()));
+      disposables.Add(LogContext.PushProperty("ParentId", activity.ParentSpanId.ToString()));
+      disposables.Add(LogContext.PushProperty("OperationName", activity.OperationName));
+    }
+
+    // 사용자 정의 속성 추가
+    foreach (var property in properties)
+    {
+      disposables.Add(LogContext.PushProperty(property.Key, property.Value));
+    }
+
+    return new CompositeDisposable(disposables);
+  }
+
+  /// <summary>
   /// 현재 활성 연결 수를 업데이트합니다.
   /// </summary>
   /// <param name="count">연결 수</param>
@@ -196,6 +301,32 @@ public class TelemetryService
   {
     ActivitySource?.Dispose();
     Meter?.Dispose();
+  }
+}
+
+/// <summary>
+/// 여러 IDisposable 객체를 관리하는 복합 Disposable 클래스
+/// </summary>
+public class CompositeDisposable : IDisposable
+{
+  private readonly List<IDisposable> _disposables;
+  private bool _disposed = false;
+
+  public CompositeDisposable(List<IDisposable> disposables)
+  {
+    _disposables = disposables ?? throw new ArgumentNullException(nameof(disposables));
+  }
+
+  public void Dispose()
+  {
+    if (!_disposed)
+    {
+      foreach (var disposable in _disposables)
+      {
+        disposable?.Dispose();
+      }
+      _disposed = true;
+    }
   }
 }
 

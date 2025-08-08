@@ -32,12 +32,12 @@
     - _Requirements: 2.1, 5.1, 5.2_
 
 - [ ] 4. Integrate OpenTelemetry with Program.cs
-  - [ ] 4.1 Update Program.cs to load OpenTelemetry configuration
+  - [x] 4.1 Update Program.cs to load OpenTelemetry configuration
     - Bind configuration from appsettings
     - Initialize OpenTelemetry services
     - _Requirements: 1.1, 1.2, 6.1_
   
-  - [ ] 4.2 Integrate Serilog with OpenTelemetry
+  - [x] 4.2 Integrate Serilog with OpenTelemetry
     - Configure Serilog to include trace and span IDs
     - Set up OpenTelemetry sink for structured logging
     - _Requirements: 4.1, 4.2, 4.3_
