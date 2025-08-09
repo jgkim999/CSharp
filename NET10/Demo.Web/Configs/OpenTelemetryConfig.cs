@@ -49,6 +49,16 @@ public class OpenTelemetryConfig
     /// 익스포터 설정
     /// </summary>
     public ExporterConfig Exporter { get; set; } = new();
+
+    /// <summary>
+    /// 리소스 제한 설정
+    /// </summary>
+    public ResourceLimitsConfig ResourceLimits { get; set; } = new();
+
+    /// <summary>
+    /// 성능 최적화 설정
+    /// </summary>
+    public PerformanceConfig Performance { get; set; } = new();
 }
 
 /// <summary>
@@ -85,6 +95,36 @@ public class TracingConfig
     /// 최대 스팬 링크 수
     /// </summary>
     public int MaxLinks { get; set; } = 128;
+
+    /// <summary>
+    /// 샘플링 전략 (TraceIdRatioBased, ParentBased, Adaptive)
+    /// </summary>
+    public string SamplingStrategy { get; set; } = "TraceIdRatioBased";
+
+    /// <summary>
+    /// 부모 기반 샘플링 활성화 여부
+    /// </summary>
+    public bool ParentBasedSampling { get; set; } = true;
+
+    /// <summary>
+    /// 헬스체크 엔드포인트 필터링 활성화 여부
+    /// </summary>
+    public bool FilterHealthChecks { get; set; } = true;
+
+    /// <summary>
+    /// 정적 파일 필터링 활성화 여부
+    /// </summary>
+    public bool FilterStaticFiles { get; set; } = true;
+
+    /// <summary>
+    /// 오류 기반 샘플링 활성화 여부 (오류가 발생한 트레이스는 항상 샘플링)
+    /// </summary>
+    public bool ErrorBasedSampling { get; set; } = true;
+
+    /// <summary>
+    /// 적응형 샘플링 활성화 여부
+    /// </summary>
+    public bool AdaptiveSampling { get; set; } = false;
 }
 
 /// <summary>
@@ -116,6 +156,26 @@ public class MetricsConfig
     /// 배치 익스포트 간격 (밀리초)
     /// </summary>
     public int BatchExportIntervalMilliseconds { get; set; } = 5000;
+
+    /// <summary>
+    /// 최대 메트릭 스트림 수
+    /// </summary>
+    public int MaxMetricStreams { get; set; } = 1000;
+
+    /// <summary>
+    /// 메트릭 스트림당 최대 메트릭 포인트 수
+    /// </summary>
+    public int MaxMetricPointsPerMetricStream { get; set; } = 2000;
+
+    /// <summary>
+    /// 메트릭 집계 임시성 (Cumulative, Delta)
+    /// </summary>
+    public string TemporalityPreference { get; set; } = "Delta";
+
+    /// <summary>
+    /// 메트릭 필터링 활성화 여부
+    /// </summary>
+    public bool EnableFiltering { get; set; } = true;
 }
 
 /// <summary>
@@ -276,4 +336,81 @@ public class BatchExportConfig
     /// 스케줄 지연 시간 (밀리초)
     /// </summary>
     public int ScheduledDelayMilliseconds { get; set; } = 5000;
+}
+
+/// <summary>
+/// 리소스 제한 구성 설정
+/// </summary>
+public class ResourceLimitsConfig
+{
+    /// <summary>
+    /// 최대 메모리 사용량 (MB)
+    /// </summary>
+    public int MaxMemoryUsageMB { get; set; } = 512;
+
+    /// <summary>
+    /// 최대 CPU 사용률 (%)
+    /// </summary>
+    public int MaxCpuUsagePercent { get; set; } = 10;
+
+    /// <summary>
+    /// 최대 활성 스팬 수
+    /// </summary>
+    public int MaxActiveSpans { get; set; } = 10000;
+
+    /// <summary>
+    /// 최대 대기열 스팬 수
+    /// </summary>
+    public int MaxQueuedSpans { get; set; } = 50000;
+
+    /// <summary>
+    /// 스팬 프로세서 배치 크기
+    /// </summary>
+    public int SpanProcessorBatchSize { get; set; } = 2048;
+
+    /// <summary>
+    /// 스팬 프로세서 타임아웃 (밀리초)
+    /// </summary>
+    public int SpanProcessorTimeout { get; set; } = 30000;
+}
+
+/// <summary>
+/// 성능 최적화 구성 설정
+/// </summary>
+public class PerformanceConfig
+{
+    /// <summary>
+    /// GC 최적화 활성화 여부
+    /// </summary>
+    public bool EnableGCOptimization { get; set; } = true;
+
+    /// <summary>
+    /// 비동기 익스포트 사용 여부
+    /// </summary>
+    public bool UseAsyncExport { get; set; } = true;
+
+    /// <summary>
+    /// 압축 활성화 여부
+    /// </summary>
+    public bool EnableCompression { get; set; } = true;
+
+    /// <summary>
+    /// 압축 타입 (gzip, deflate)
+    /// </summary>
+    public string CompressionType { get; set; } = "gzip";
+
+    /// <summary>
+    /// 헬스체크 필터링 활성화 여부
+    /// </summary>
+    public bool FilterHealthChecks { get; set; } = true;
+
+    /// <summary>
+    /// 정적 파일 필터링 활성화 여부
+    /// </summary>
+    public bool FilterStaticFiles { get; set; } = true;
+
+    /// <summary>
+    /// 최소 지속 시간 (밀리초) - 이보다 짧은 스팬은 필터링
+    /// </summary>
+    public int MinimumDurationMs { get; set; } = 10;
 }

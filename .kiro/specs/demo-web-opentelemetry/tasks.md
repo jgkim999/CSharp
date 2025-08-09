@@ -93,13 +93,13 @@
     - Configure production-appropriate resource limits
     - _Requirements: 6.2, 7.1, 7.2, 7.3_
 
-- [ ] 9. Implement performance optimizations
-  - [ ] 9.1 Configure sampling strategies
+- [x] 9. Implement performance optimizations
+  - [x] 9.1 Configure sampling strategies
     - Implement TraceIdRatioBasedSampler with environment-specific rates
     - Add filtering for health check endpoints
     - _Requirements: 7.1, 7.4_
   
-  - [ ] 9.2 Configure batch processing for metrics
+  - [x] 9.2 Configure batch processing for metrics
     - Set up periodic metric reader with optimized intervals
     - Configure export timeouts and retry policies
     - Implement resource limits for memory usage

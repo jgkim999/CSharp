@@ -164,8 +164,10 @@ public static class OpenTelemetryExtensions
             .AddSource("Demo.Application")
             .AddSource("Demo.Infra")
 
-            // 샘플링 구성
-            .SetSampler(new TraceIdRatioBasedSampler(config.Tracing.SamplingRatio))
+            // 환경별 샘플링 전략 구성
+            .SetSampler(SamplingStrategies.CreateEnvironmentBasedSampler(
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? config.Environment,
+                config.Tracing.SamplingRatio))
 
             // 리소스 제한 설정
             .SetResourceBuilder(ResourceBuilder.CreateDefault()
@@ -200,10 +202,10 @@ public static class OpenTelemetryExtensions
             .AddMeter("Demo.Application")
             .AddMeter("Demo.Infra")
 
-            // 메트릭 리더 구성
-            .AddReader(new PeriodicExportingMetricReader(
-                exporter: CreateMetricExporter(config),
-                exportIntervalMilliseconds: config.Metrics.BatchExportIntervalMilliseconds))
+            // 환경별 메트릭 리더 구성
+            .AddReader(MetricProcessingStrategies.CreateEnvironmentBasedMetricReader(
+                config, 
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? config.Environment))
 
             // 뷰 구성 (히스토그램 버킷 사용자 정의)
             .AddView("http.server.request.duration", new ExplicitBucketHistogramConfiguration
@@ -298,52 +300,5 @@ public static class OpenTelemetryExtensions
         return tracingBuilder;
     }
 
-    /// <summary>
-    /// 메트릭 익스포터를 생성합니다.
-    /// </summary>
-    /// <param name="config">OpenTelemetry 구성</param>
-    /// <returns>메트릭 익스포터</returns>
-    private static BaseExporter<Metric> CreateMetricExporter(OpenTelemetryConfig config)
-    {
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-        var exporterType = config.Exporter.Type.ToLowerInvariant();
 
-        // 개발 환경에서는 항상 콘솔 익스포터 사용
-        if (environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
-        {
-            return new ConsoleMetricExporter(new ConsoleExporterOptions
-            {
-                Targets = ConsoleExporterOutputTargets.Console
-            });
-        }
-
-        return exporterType switch
-        {
-            "console" => new ConsoleMetricExporter(new ConsoleExporterOptions
-            {
-                Targets = ConsoleExporterOutputTargets.Console
-            }),
-            
-            "otlp" when !string.IsNullOrEmpty(config.Exporter.OtlpEndpoint) => 
-                new OtlpMetricExporter(new OtlpExporterOptions
-                {
-                    Endpoint = new Uri(config.Exporter.OtlpEndpoint),
-                    Protocol = config.Exporter.OtlpProtocol.ToLowerInvariant() switch
-                    {
-                        "http/protobuf" => OtlpExportProtocol.HttpProtobuf,
-                        "grpc" => OtlpExportProtocol.Grpc,
-                        _ => OtlpExportProtocol.Grpc
-                    },
-                    TimeoutMilliseconds = config.Exporter.TimeoutMilliseconds,
-                    Headers = config.Exporter.OtlpHeaders.Count > 0 
-                        ? string.Join(",", config.Exporter.OtlpHeaders.Select(h => $"{h.Key}={h.Value}"))
-                        : null
-                }),
-            
-            _ => new ConsoleMetricExporter(new ConsoleExporterOptions
-            {
-                Targets = ConsoleExporterOutputTargets.Console
-            })
-        };
-    }
 }
