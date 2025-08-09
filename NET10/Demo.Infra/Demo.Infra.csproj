@@ -15,6 +15,7 @@
       <PackageReference Include="Dapper.Extensions.PostgreSQL" Version="5.3.1" />
       <PackageReference Include="FluentResults" Version="4.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.0" />
+      <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.2" />
     </ItemGroup>
 
 </Project>

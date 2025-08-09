@@ -42,14 +42,14 @@
     - Set up OpenTelemetry sink for structured logging
     - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 5. Implement custom instrumentation for FastEndpoints
-  - [ ] 5.1 Create TelemetryService for custom metrics and tracing
+- [x] 5. Implement custom instrumentation for FastEndpoints
+  - [x] 5.1 Create TelemetryService for custom metrics and tracing
     - Implement service for creating custom activities
     - Add methods for recording business metrics
     - Create counters and histograms for endpoint performance
     - _Requirements: 5.1, 5.3, 3.3_
   
-  - [ ] 5.2 Update UserCreateEndpointV1 with custom instrumentation
+  - [x] 5.2 Update UserCreateEndpointV1 with custom instrumentation
     - Add custom activity creation for user creation process
     - Include relevant tags (user email, operation type)
     - Record custom metrics for success/failure rates

@@ -1,10 +1,11 @@
 using Demo.Web.Configs;
-using Demo.Web.Services;
+using Demo.Application.Services;
 using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Npgsql;
 
 namespace Demo.Web.Extensions;
 
@@ -148,6 +149,9 @@ public static class OpenTelemetryExtensions
                     activity.SetTag("http.client.response_size", response.Content.Headers.ContentLength);
                 };
             })
+
+            // Npgsql (PostgreSQL) 자동 계측
+            .AddNpgsql()
 
             // 사용자 정의 ActivitySource 등록
             .AddSource(TelemetryService.ActivitySource.Name)

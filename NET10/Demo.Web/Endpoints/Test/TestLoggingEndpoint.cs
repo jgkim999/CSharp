@@ -1,4 +1,4 @@
-using Demo.Web.Services;
+using Demo.Application.Services;
 using FastEndpoints;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
