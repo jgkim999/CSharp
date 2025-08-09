@@ -1,460 +1,402 @@
-# Demo.Web OpenTelemetry 도입 가이드
+# Demo.Web OpenTelemetry 구현 가이드
 
 ## 개요
 
-이 문서는 Demo.Web 프로젝트에 OpenTelemetry를 도입하는 전체 절차와 구현 방법을 설명합니다. GamePulse 프로젝트의 성공적인 OpenTelemetry 구현을 참고하여 Demo.Web에 최적화된 관찰 가능성 솔루션을 제공합니다.
+이 문서는 Demo.Web 프로젝트에 OpenTelemetry를 성공적으로 도입한 과정과 실제 구현 코드 예제를 제공합니다. 분산 추적(Distributed Tracing), 메트릭(Metrics), 로깅(Logging)을 통한 완전한 관찰 가능성(Observability) 솔루션을 구현했습니다.
 
 ## 목차
 
-1. [사전 준비사항](#사전-준비사항)
-2. [패키지 설치](#패키지-설치)
-3. [설정 구성](#설정-구성)
-4. [OpenTelemetry 초기화](#opentelemetry-초기화)
-5. [사용자 정의 계측](#사용자-정의-계측)
-6. [환경별 설정](#환경별-설정)
-7. [모니터링 도구 연동](#모니터링-도구-연동)
-8. [테스트 및 검증](#테스트-및-검증)
-9. [성능 최적화](#성능-최적화)
-10. [문제 해결](#문제-해결)
+1. [아키텍처 개요](#아키텍처-개요)
+2. [핵심 구성 요소](#핵심-구성-요소)
+3. [설정 및 구성](#설정-및-구성)
+4. [실제 구현 코드](#실제-구현-코드)
+5. [환경별 설정](#환경별-설정)
+6. [성능 최적화](#성능-최적화)
+7. [문제 해결 가이드](#문제-해결-가이드)
+8. [모니터링 및 대시보드](#모니터링-및-대시보드)
+9. [베스트 프랙티스](#베스트-프랙티스)
 
-## 사전 준비사항
+## 아키텍처 개요
 
-### 현재 Demo.Web 프로젝트 구성
-
-- **.NET 9.0** 기반 웹 애플리케이션
-- **FastEndpoints** 사용한 API 엔드포인트
-- **LiteBus** 기반 CQRS 패턴
-- **Serilog** 로깅 시스템
-- **Scalar** API 문서화
-
-### 필요한 도구
-
-- Visual Studio 2022 또는 JetBrains Rider
-- Docker Desktop (로컬 모니터링 도구 실행용)
-- Jaeger 또는 Zipkin (트레이스 시각화)
-- Prometheus + Grafana (메트릭 모니터링)
-
-## 패키지 설치
-
-### 1단계: 필수 OpenTelemetry 패키지 추가
-
-```xml
-<PackageReference Include="OpenTelemetry" Version="1.12.0" />
-<PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.12.0" />
-<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
-<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
-<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
-<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
-<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
+```mermaid
+graph TB
+    A[Demo.Web Application] --> B[OpenTelemetry SDK]
+    B --> C[Tracing Provider]
+    B --> D[Metrics Provider]
+    B --> E[Logging Provider]
+    
+    C --> F[ASP.NET Core Instrumentation]
+    C --> G[HTTP Client Instrumentation]
+    C --> H[Database Instrumentation]
+    C --> I[Custom Instrumentation]
+    
+    D --> J[Runtime Metrics]
+    D --> K[HTTP Metrics]
+    D --> L[Custom Metrics]
+    
+    E --> M[Serilog Integration]
+    E --> N[Trace Context Enrichment]
+    
+    F --> O[OTLP Exporter]
+    G --> O
+    H --> O
+    I --> O
+    J --> O
+    K --> O
+    L --> O
+    M --> O
+    N --> O
+    
+    O --> P[Jaeger/Zipkin]
+    O --> Q[Prometheus]
+    O --> R[Grafana]
 ```
 
-### 2단계: Serilog OpenTelemetry 통합
+## 핵심 구성 요소
 
-```xml
-<PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
-```
-
-### 3단계: 추가 계측 패키지 (선택사항)
-
-```xml
-<!-- Entity Framework 사용 시 -->
-<PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.0.0-beta.12" />
-
-<!-- Redis 사용 시 -->
-<PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.12.0-beta.2" />
-```
-
-## 설정 구성
-
-### 1단계: OpenTelemetry 설정 클래스 생성
+### 1. OpenTelemetry 구성 클래스
 
 ```csharp
-// Configs/OpenTelemetryConfig.cs
-namespace Demo.Web.Configs;
-
+/// <summary>
+/// OpenTelemetry 구성 설정 클래스
+/// </summary>
 public class OpenTelemetryConfig
 {
     public const string SectionName = "OpenTelemetry";
     
-    public string ServiceName { get; set; } = "demo-web";
+    public string ServiceName { get; set; } = "Demo.Web";
     public string ServiceVersion { get; set; } = "1.0.0";
-    public string Environment { get; set; } = "development";
-    public string Endpoint { get; set; } = "http://localhost:4317";
-    public string TracesSamplerArg { get; set; } = "1.0";
-    public bool EnableConsoleExporter { get; set; } = true;
-    public bool EnableOtlpExporter { get; set; } = false;
+    public string Environment { get; set; } = "Development";
+    public string? ServiceInstanceId { get; set; }
+    
+    public TracingConfig Tracing { get; set; } = new();
+    public MetricsConfig Metrics { get; set; } = new();
+    public LoggingConfig Logging { get; set; } = new();
+    public ExporterConfig Exporter { get; set; } = new();
+    public ResourceLimitsConfig ResourceLimits { get; set; } = new();
+    public PerformanceConfig Performance { get; set; } = new();
 }
 ```
 
-### 2단계: appsettings.json 설정 추가
-
-```json
-{
-  "OpenTelemetry": {
-    "ServiceName": "demo-web",
-    "ServiceVersion": "1.0.0",
-    "Environment": "development",
-    "Endpoint": "http://localhost:4317",
-    "TracesSamplerArg": "1.0",
-    "EnableConsoleExporter": true,
-    "EnableOtlpExporter": false
-  }
-}
-```
-
-### 3단계: 환경별 설정
-
-**appsettings.Development.json**
-
-```json
-{
-  "OpenTelemetry": {
-    "TracesSamplerArg": "1.0",
-    "EnableConsoleExporter": true,
-    "EnableOtlpExporter": false
-  }
-}
-```
-
-**appsettings.Production.json**
-
-```json
-{
-  "OpenTelemetry": {
-    "Environment": "production",
-    "TracesSamplerArg": "0.1",
-    "EnableConsoleExporter": false,
-    "EnableOtlpExporter": true,
-    "Endpoint": "https://your-otel-collector:4317"
-  }
-}
-```
-
-## OpenTelemetry 초기화
-
-### 1단계: OpenTelemetry 초기화 클래스 생성
+### 2. 서비스 등록 확장 메서드
 
 ```csharp
-// Extensions/OpenTelemetryExtensions.cs
-using Demo.Web.Configs;
-using OpenTelemetry.Exporter;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using System.Diagnostics;
-
-namespace Demo.Web.Extensions;
-
-public static class OpenTelemetryExtensions
+public static IServiceCollection AddOpenTelemetryServices(
+    this IServiceCollection services,
+    IConfiguration configuration)
 {
-    private static readonly ActivitySource ActivitySource = new("Demo.Web");
+    var otelConfig = new OpenTelemetryConfig();
+    configuration.GetSection(OpenTelemetryConfig.SectionName).Bind(otelConfig);
     
-    public static IServiceCollection AddOpenTelemetryServices(
-        this IServiceCollection services, 
-        OpenTelemetryConfig config)
+    services.Configure<OpenTelemetryConfig>(
+        configuration.GetSection(OpenTelemetryConfig.SectionName));
+    
+    services.AddTelemetryService();
+    
+    services.AddOpenTelemetry()
+        .ConfigureResource(resourceBuilder => ConfigureResource(resourceBuilder, otelConfig))
+        .WithTracing(tracingBuilder => ConfigureTracing(tracingBuilder, otelConfig))
+        .WithMetrics(metricsBuilder => ConfigureMetrics(metricsBuilder, otelConfig));
+    
+    return services;
+}
+```
+
+### 3. 사용자 정의 텔레메트리 서비스
+
+```csharp
+public class TelemetryService
+{
+    public static readonly ActivitySource ActivitySource = new("Demo.Application");
+    public static readonly Meter Meter = new("Demo.Application");
+    
+    private readonly Counter<long> _requestCounter;
+    private readonly Histogram<double> _requestDuration;
+    private readonly Counter<long> _errorCounter;
+    
+    public TelemetryService()
     {
-        var openTelemetryBuilder = services.AddOpenTelemetry();
+        _requestCounter = Meter.CreateCounter<long>(
+            name: "demo_app_requests_total",
+            unit: "1",
+            description: "Total number of requests processed");
+            
+        _requestDuration = Meter.CreateHistogram<double>(
+            name: "demo_app_request_duration_seconds",
+            unit: "s",
+            description: "Duration of requests in seconds");
+            
+        _errorCounter = Meter.CreateCounter<long>(
+            name: "demo_app_errors_total",
+            unit: "1",
+            description: "Total number of errors occurred");
+    }
+    
+    public Activity? StartActivity(string operationName, Dictionary<string, object?>? tags = null)
+    {
+        var activity = ActivitySource.StartActivity(operationName);
         
-        // 샘플링 비율 설정
-        if (!double.TryParse(config.TracesSamplerArg, out var probability))
-            probability = 1.0;
-
-        // 리소스 설정
-        var resourceBuilder = ResourceBuilder.CreateDefault()
-            .AddService(
-                serviceName: config.ServiceName, 
-                serviceVersion: config.ServiceVersion)
-            .AddAttributes(new Dictionary<string, object>
-            {
-                ["environment"] = config.Environment,
-                ["host.name"] = Environment.MachineName
-            });
-
-        // 트레이싱 설정
-        openTelemetryBuilder.WithTracing(tracing =>
+        if (activity != null && tags != null)
         {
-            tracing.SetResourceBuilder(resourceBuilder);
-            tracing.SetSampler(new TraceIdRatioBasedSampler(probability));
-            
-            // 자동 계측
-            tracing.AddAspNetCoreInstrumentation(options =>
+            foreach (var tag in tags)
             {
-                options.RecordException = true;
-                options.Filter = httpContext =>
-                {
-                    // Health check 엔드포인트 제외
-                    return !httpContext.Request.Path.StartsWithSegments("/health");
-                };
-            });
-            
-            tracing.AddHttpClientInstrumentation(options =>
-            {
-                options.RecordException = true;
-            });
-            
-            // 사용자 정의 소스
-            tracing.AddSource("Demo.Web");
-            tracing.AddSource("LiteBus");
-            
-            // 익스포터 설정
-            if (config.EnableConsoleExporter)
-                tracing.AddConsoleExporter();
-                
-            if (config.EnableOtlpExporter)
-            {
-                tracing.AddOtlpExporter(options =>
-                {
-                    options.Endpoint = new Uri(config.Endpoint);
-                    options.Protocol = OtlpExportProtocol.Grpc;
-                });
+                activity.SetTag(tag.Key, tag.Value);
             }
-        });
-
-        // 메트릭 설정
-        openTelemetryBuilder.WithMetrics(metrics =>
-        {
-            metrics.SetResourceBuilder(resourceBuilder);
-            
-            // 자동 계측
-            metrics.AddAspNetCoreInstrumentation();
-            metrics.AddHttpClientInstrumentation();
-            metrics.AddRuntimeInstrumentation();
-            
-            // .NET 8+ 기본 메트릭
-            metrics.AddMeter("Microsoft.AspNetCore.Hosting");
-            metrics.AddMeter("Microsoft.AspNetCore.Server.Kestrel");
-            metrics.AddMeter("System.Net.Http");
-            metrics.AddMeter("System.Net.NameResolution");
-            
-            // 사용자 정의 메트릭
-            metrics.AddMeter("Demo.Web");
-            
-            // 익스포터 설정
-            if (config.EnableConsoleExporter)
-                metrics.AddConsoleExporter();
-                
-            if (config.EnableOtlpExporter)
-            {
-                metrics.AddOtlpExporter((options, readerOptions) =>
-                {
-                    options.Endpoint = new Uri(config.Endpoint);
-                    options.Protocol = OtlpExportProtocol.Grpc;
-                    readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 5000;
-                });
-            }
-        });
-
-        // ActivitySource 등록
-        services.AddSingleton(ActivitySource);
+        }
         
-        return services;
+        return activity;
+    }
+    
+    public void RecordHttpRequest(string method, string endpoint, int statusCode, double duration)
+    {
+        var tags = new TagList
+        {
+            { "method", method },
+            { "endpoint", endpoint },
+            { "status_code", statusCode.ToString() }
+        };
+        
+        _requestCounter.Add(1, tags);
+        _requestDuration.Record(duration, tags);
     }
 }
 ```
 
-### 2단계: Program.cs 수정
+## 설정 및 구성
+
+### 1. appsettings.json 기본 설정
+
+```json
+{
+  "OpenTelemetry": {
+    "ServiceName": "Demo.Web",
+    "ServiceVersion": "1.0.0",
+    "Environment": "Production",
+    "Tracing": {
+      "Enabled": true,
+      "SamplingRatio": 0.1,
+      "MaxSpans": 2000,
+      "SamplingStrategy": "TraceIdRatioBased",
+      "FilterHealthChecks": true,
+      "FilterStaticFiles": true,
+      "ErrorBasedSampling": true
+    },
+    "Metrics": {
+      "Enabled": true,
+      "CollectionIntervalSeconds": 60,
+      "MaxBatchSize": 512,
+      "BatchExportIntervalMilliseconds": 10000
+    },
+    "Exporter": {
+      "Type": "OTLP",
+      "OtlpEndpoint": "http://localhost:4317",
+      "OtlpProtocol": "grpc",
+      "TimeoutMilliseconds": 10000
+    }
+  }
+}
+```
+
+### 2. 개발 환경 설정 (appsettings.Development.json)
+
+```json
+{
+  "OpenTelemetry": {
+    "Environment": "Development",
+    "Tracing": {
+      "SamplingRatio": 1.0,
+      "FilterStaticFiles": false
+    },
+    "Metrics": {
+      "CollectionIntervalSeconds": 10,
+      "BatchExportIntervalMilliseconds": 2000
+    },
+    "Exporter": {
+      "Type": "Console"
+    }
+  }
+}
+```
+
+### 3. 프로덕션 환경 설정 (appsettings.Production.json)
+
+```json
+{
+  "OpenTelemetry": {
+    "Environment": "Production",
+    "Tracing": {
+      "SamplingRatio": 0.1,
+      "SamplingStrategy": "Adaptive",
+      "AdaptiveSampling": true
+    },
+    "Metrics": {
+      "CollectionIntervalSeconds": 60,
+      "BatchExportIntervalMilliseconds": 15000
+    },
+    "Exporter": {
+      "Type": "OTLP",
+      "OtlpEndpoint": "http://your-collector:4317",
+      "RetryPolicy": {
+        "Enabled": true,
+        "MaxRetryAttempts": 3,
+        "InitialBackoffMs": 1000
+      }
+    },
+    "Performance": {
+      "EnableGCOptimization": true,
+      "EnableCompression": true
+    }
+  }
+}
+```
+
+## 실제 구현 코드
+
+### 1. Program.cs 통합
 
 ```csharp
-using Demo.Web.Configs;
-using Demo.Web.Extensions;
-// ... 기존 using 문들
-
 var builder = WebApplication.CreateBuilder(args);
 
 // OpenTelemetry 설정 바인딩
-var otelConfig = builder.Configuration
-    .GetSection(OpenTelemetryConfig.SectionName)
-    .Get<OpenTelemetryConfig>() ?? new OpenTelemetryConfig();
+var otelConfig = new OpenTelemetryConfig();
+builder.Configuration.GetSection(OpenTelemetryConfig.SectionName).Bind(otelConfig);
 
-// Serilog 설정 (OpenTelemetry 통합)
+// Serilog와 OpenTelemetry 통합
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.OpenTelemetry(options =>
-    {
-        options.Endpoint = otelConfig.Endpoint;
-        options.IncludedData = IncludedData.TraceIdField | IncludedData.SpanIdField;
-    })
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .Enrich.WithOpenTelemetry()
+    .Enrich.WithProperty("ServiceName", otelConfig.ServiceName)
+    .WriteTo.Async(a => a.Console(outputTemplate:
+        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} " +
+        "TraceId={TraceId} SpanId={SpanId}{NewLine}"))
     .CreateLogger();
 
-try
-{
-    // 기존 서비스 등록
-    builder.Services.AddFastEndpoints();
-    builder.Services.AddOpenApi();
-    builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
-    builder.Services.AddApplication();
-    builder.Services.AddInfra(builder.Configuration);
-    
-    // OpenTelemetry 서비스 추가
-    builder.Services.AddOpenTelemetryServices(otelConfig);
-    
-    var app = builder.Build();
-    
-    // 기존 미들웨어 설정
-    app.UseFastEndpoints(x =>
-    {
-        x.Errors.UseProblemDetails();
-    });
+builder.Host.UseSerilog();
 
-    if (app.Environment.IsDevelopment())
-    {
-        app.MapOpenApi();
-        app.MapScalarApiReference();
-    }
+// 서비스 등록
+builder.Services.AddFastEndpoints();
+builder.Services.AddApplication();
+builder.Services.AddInfra(builder.Configuration);
+builder.Services.AddOpenTelemetryServices(builder.Configuration);
 
-    app.Run();
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Application terminated unexpectedly");
-}
-finally
-{
-    Log.CloseAndFlush();
-}
+var app = builder.Build();
+
+app.UseFastEndpoints();
+app.Run();
 ```
 
-## 사용자 정의 계측
-
-### 1단계: 사용자 정의 ActivitySource 활용
+### 2. FastEndpoints에서 사용자 정의 계측
 
 ```csharp
-// Services/TelemetryService.cs
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
-
-namespace Demo.Web.Services;
-
-public class TelemetryService
+public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, UserCreateResponse>
 {
-    private readonly ActivitySource _activitySource;
-    private readonly Meter _meter;
-    private readonly Counter<int> _requestCounter;
-    private readonly Histogram<double> _requestDuration;
-
-    public TelemetryService(ActivitySource activitySource)
+    private readonly TelemetryService _telemetryService;
+    
+    public UserCreateEndpointV1(TelemetryService telemetryService)
     {
-        _activitySource = activitySource;
-        _meter = new Meter("Demo.Web");
-        
-        _requestCounter = _meter.CreateCounter<int>(
-            "demo_web_requests_total",
-            description: "Total number of requests");
-            
-        _requestDuration = _meter.CreateHistogram<double>(
-            "demo_web_request_duration_seconds",
-            description: "Request duration in seconds");
+        _telemetryService = telemetryService;
     }
-
-    public Activity? StartActivity(string name, ActivityKind kind = ActivityKind.Internal)
-    {
-        return _activitySource.StartActivity(name, kind);
-    }
-
-    public void RecordRequest(string endpoint, double duration, string status)
-    {
-        _requestCounter.Add(1, 
-            new KeyValuePair<string, object?>("endpoint", endpoint),
-            new KeyValuePair<string, object?>("status", status));
-            
-        _requestDuration.Record(duration,
-            new KeyValuePair<string, object?>("endpoint", endpoint));
-    }
-}
-```
-
-### 2단계: FastEndpoints에서 사용자 정의 계측
-
-```csharp
-// Endpoints/User/UserCreateEndpoint.cs
-using Demo.Web.Services;
-using System.Diagnostics;
-
-namespace Demo.Web.Endpoints.User;
-
-public class UserCreateEndpoint : Endpoint<UserCreateRequest, UserCreateResponse>
-{
-    private readonly TelemetryService _telemetry;
-
-    public UserCreateEndpoint(TelemetryService telemetry)
-    {
-        _telemetry = telemetry;
-    }
-
-    public override void Configure()
-    {
-        Post("/users");
-        AllowAnonymous();
-    }
-
+    
     public override async Task HandleAsync(UserCreateRequest req, CancellationToken ct)
     {
-        using var activity = _telemetry.StartActivity("user.create");
+        using var activity = _telemetryService.StartActivity("user.create", new Dictionary<string, object?>
+        {
+            ["user.email"] = req.Email,
+            ["operation.type"] = "create",
+            ["endpoint"] = "UserCreateV1"
+        });
+        
         var stopwatch = Stopwatch.StartNew();
         
         try
         {
-            activity?.SetTag("user.email", req.Email);
-            activity?.SetTag("user.name", req.Name);
-            
             // 비즈니스 로직 실행
             var result = await ProcessUserCreation(req, ct);
             
-            activity?.SetStatus(ActivityStatusCode.Ok);
-            await SendOkAsync(result, ct);
+            // 성공 메트릭 기록
+            _telemetryService.RecordHttpRequest("POST", "/api/users", 200, stopwatch.Elapsed.TotalSeconds);
+            TelemetryService.SetActivitySuccess(activity, "User created successfully");
             
-            _telemetry.RecordRequest("POST /users", stopwatch.Elapsed.TotalSeconds, "success");
+            await SendOkAsync(result, ct);
         }
         catch (Exception ex)
         {
-            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            activity?.RecordException(ex);
+            // 에러 메트릭 기록
+            _telemetryService.RecordError("UserCreationError", "user.create", ex.Message);
+            _telemetryService.RecordHttpRequest("POST", "/api/users", 500, stopwatch.Elapsed.TotalSeconds);
+            TelemetryService.SetActivityError(activity, ex);
             
-            _telemetry.RecordRequest("POST /users", stopwatch.Elapsed.TotalSeconds, "error");
             throw;
         }
     }
 }
 ```
 
-### 3단계: LiteBus 명령/쿼리 계측
+### 3. LiteBus 파이프라인 계측
 
 ```csharp
-// Behaviors/TelemetryBehavior.cs
-using LiteBus;
-using System.Diagnostics;
-
-namespace Demo.Web.Behaviors;
-
 public class TelemetryBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly ActivitySource _activitySource;
-
-    public TelemetryBehavior(ActivitySource activitySource)
-    {
-        _activitySource = activitySource;
-    }
-
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        var requestName = typeof(TRequest).Name;
-        using var activity = _activitySource.StartActivity($"litebus.{requestName.ToLower()}");
+        var requestType = typeof(TRequest);
+        var operationName = $"{requestType.Assembly.GetName().Name}.{requestType.Name}";
+        
+        using var activity = TelemetryService.ActivitySource.StartActivity(operationName);
+        activity?.SetTag("request.type", requestType.FullName);
+        activity?.SetTag("request.assembly", requestType.Assembly.GetName().Name);
+        
+        var stopwatch = Stopwatch.StartNew();
         
         try
         {
-            activity?.SetTag("request.type", requestName);
-            activity?.SetTag("request.assembly", typeof(TRequest).Assembly.GetName().Name);
-            
             var response = await next();
             
-            activity?.SetStatus(ActivityStatusCode.Ok);
+            activity?.SetTag("success", true);
+            activity?.SetTag("duration_ms", stopwatch.ElapsedMilliseconds);
+            
             return response;
         }
         catch (Exception ex)
         {
-            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            activity?.RecordException(ex);
+            TelemetryService.SetActivityError(activity, ex);
+            throw;
+        }
+    }
+}
+```
+
+### 4. 데이터베이스 계측
+
+```csharp
+public class UserRepositoryPostgre : IUserRepository
+{
+    private readonly TelemetryService _telemetryService;
+    
+    public async Task<User> CreateAsync(User user)
+    {
+        using var activity = _telemetryService.StartActivity("db.user.create", new Dictionary<string, object?>
+        {
+            ["db.operation"] = "INSERT",
+            ["db.table"] = "users",
+            ["user.id"] = user.Id
+        });
+        
+        try
+        {
+            // 데이터베이스 작업 수행
+            var result = await ExecuteCreateOperation(user);
+            
+            activity?.SetTag("db.rows_affected", 1);
+            TelemetryService.SetActivitySuccess(activity);
+            
+            return result;
+        }
+        catch (Exception ex)
+        {
+            TelemetryService.SetActivityError(activity, ex);
             throw;
         }
     }
@@ -463,148 +405,463 @@ public class TelemetryBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest
 
 ## 환경별 설정
 
-### Docker Compose 개발 환경
+### 개발 환경 최적화
 
-```yaml
-# docker-compose.dev.yml
-version: '3.8'
-services:
-  demo-web:
-    build: .
-    ports:
-      - "5000:8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - OpenTelemetry__Endpoint=http://jaeger:14268/api/traces
-    depends_on:
-      - jaeger
+- **샘플링 비율**: 100% (모든 트레이스 수집)
+- **익스포터**: Console (즉시 확인 가능)
+- **메트릭 수집 간격**: 10초 (빠른 피드백)
+- **로그 레벨**: Debug
+- **필터링**: 최소화 (모든 데이터 수집)
 
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    ports:
-      - "16686:16686"
-      - "14268:14268"
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
+### 프로덕션 환경 최적화
 
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-```
-
-## 모니터링 도구 연동
-
-### Jaeger 트레이스 확인
-
-1. 브라우저에서 `http://localhost:16686` 접속
-2. Service 드롭다운에서 "demo-web" 선택
-3. "Find Traces" 클릭하여 트레이스 확인
-
-### Prometheus 메트릭 확인
-
-1. 브라우저에서 `http://localhost:9090` 접속
-2. 쿼리 입력: `demo_web_requests_total`
-3. Execute 클릭하여 메트릭 확인
-
-### Grafana 대시보드 구성
-
-1. 브라우저에서 `http://localhost:3000` 접속 (admin/admin)
-2. Prometheus 데이터 소스 추가: `http://prometheus:9090`
-3. 대시보드 생성 및 패널 구성
-
-## 테스트 및 검증
-
-### 1단계: 기본 기능 테스트
-
-```bash
-# 애플리케이션 시작
-dotnet run
-
-# API 호출 테스트
-curl -X POST http://localhost:5000/users \
-  -H "Content-Type: application/json" \
-  -d '{"name":"John Doe","email":"john@example.com"}'
-```
-
-### 2단계: 텔레메트리 데이터 확인
-
-- 콘솔에서 트레이스 및 메트릭 출력 확인
-- Jaeger UI에서 트레이스 시각화 확인
-- Prometheus에서 메트릭 수집 확인
-
-### 3단계: 성능 테스트
-
-```bash
-# Apache Bench를 사용한 부하 테스트
-ab -n 1000 -c 10 http://localhost:5000/users
-```
+- **샘플링 비율**: 10% (성능 최적화)
+- **적응형 샘플링**: 활성화 (부하에 따른 동적 조정)
+- **익스포터**: OTLP (중앙 집중식 수집)
+- **배치 처리**: 최적화된 배치 크기
+- **압축**: 활성화 (네트워크 대역폭 절약)
+- **재시도 정책**: 활성화 (안정성 향상)
 
 ## 성능 최적화
 
-### 샘플링 전략
+### 1. 샘플링 전략
 
 ```csharp
-// 프로덕션 환경에서 적응형 샘플링
-tracing.SetSampler(new TraceIdRatioBasedSampler(0.1)); // 10% 샘플링
-```
-
-### 메트릭 최적화
-
-```csharp
-// 배치 익스포터 설정
-metrics.AddOtlpExporter((options, readerOptions) =>
+public static class SamplingStrategies
 {
-    readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 10000;
-    readerOptions.PeriodicExportingMetricReaderOptions.ExportTimeoutMilliseconds = 5000;
-});
+    public static Sampler CreateEnvironmentBasedSampler(string environment, double defaultSamplingRatio)
+    {
+        return environment.ToLowerInvariant() switch
+        {
+            "development" => CreateDevelopmentSampler(),
+            "production" => CreateProductionSampler(defaultSamplingRatio),
+            _ => new TraceIdRatioBasedSampler(defaultSamplingRatio)
+        };
+    }
+    
+    private static Sampler CreateProductionSampler(double samplingRatio)
+    {
+        return new ParentBasedSampler(
+            new CompositeSampler(
+                new AdaptiveSampler(samplingRatio),
+                new HealthCheckFilterSampler(),
+                new StaticFileFilterSampler(),
+                new ErrorBasedSampler()
+            )
+        );
+    }
+}
 ```
 
-## 문제 해결
-
-### 일반적인 문제들
-
-1. **트레이스가 생성되지 않음**
-   - ActivitySource 등록 확인
-   - 샘플링 비율 확인
-
-2. **메트릭이 수집되지 않음**
-   - Meter 등록 확인
-   - 익스포터 설정 확인
-
-3. **성능 저하**
-   - 샘플링 비율 조정
-   - 불필요한 계측 제거
-
-### 로그 확인
+### 2. 메모리 사용량 제한
 
 ```csharp
-// OpenTelemetry 내부 로그 활성화
-builder.Logging.AddOpenTelemetry(logging =>
+public class MemoryLimitedMetricExporter : BaseExporter<Metric>
 {
-    logging.IncludeFormattedMessage = true;
-    logging.IncludeScopes = true;
-});
+    private readonly long _maxMemoryUsageBytes;
+    private volatile bool _memoryLimitExceeded;
+    
+    public override ExportResult Export(in Batch<Metric> batch)
+    {
+        if (_memoryLimitExceeded)
+        {
+            return ExportResult.Failure;
+        }
+        
+        return _innerExporter.Export(batch);
+    }
+    
+    private void CheckMemoryUsage(object? state)
+    {
+        var currentMemory = GC.GetTotalMemory(false);
+        _memoryLimitExceeded = currentMemory > _maxMemoryUsageBytes;
+        
+        if (_memoryLimitExceeded)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+    }
+}
 ```
 
-## 다음 단계
+### 3. 배치 처리 최적화
 
-1. **고급 계측**: 데이터베이스, 캐시, 메시지 큐 계측 추가
-2. **알림 설정**: 임계값 기반 알림 구성
-3. **대시보드 고도화**: 비즈니스 메트릭 대시보드 구성
-4. **분산 추적 확장**: 마이크로서비스 간 추적 연결
+```csharp
+public class BatchingMetricExporter : BaseExporter<Metric>
+{
+    private readonly List<Metric> _batch;
+    private readonly Timer _exportTimer;
+    
+    public override ExportResult Export(in Batch<Metric> batch)
+    {
+        lock (_lock)
+        {
+            foreach (var metric in batch)
+            {
+                _batch.Add(metric);
+                
+                if (_batch.Count >= _config.Metrics.MaxBatchSize)
+                {
+                    return ExportBatchInternal();
+                }
+            }
+        }
+        
+        return ExportResult.Success;
+    }
+}
+```
 
-## 참고 자료
+## 문제 해결 가이드
 
-- [OpenTelemetry .NET 공식 문서](https://opentelemetry.io/docs/instrumentation/net/)
-- [ASP.NET Core OpenTelemetry 가이드](https://learn.microsoft.com/en-us/aspnet/core/log-mon/metrics/metrics)
-- [GamePulse OpenTelemetry 구현 참고](../GamePulse/OpenTelemetryInitialize.cs)
+### 일반적인 문제와 해결책
+
+#### 1. 높은 메모리 사용량
+
+**증상**: 애플리케이션 메모리 사용량이 지속적으로 증가
+
+**원인**:
+- 샘플링 비율이 너무 높음
+- 배치 크기가 너무 큼
+- 메트릭 수집 간격이 너무 짧음
+
+**해결책**:
+```json
+{
+  "OpenTelemetry": {
+    "Tracing": {
+      "SamplingRatio": 0.1  // 10%로 감소
+    },
+    "Metrics": {
+      "MaxBatchSize": 256,  // 배치 크기 감소
+      "CollectionIntervalSeconds": 60  // 수집 간격 증가
+    },
+    "ResourceLimits": {
+      "MaxMemoryUsageMB": 512,  // 메모리 제한 설정
+      "MaxActiveSpans": 5000
+    }
+  }
+}
+```
+
+#### 2. 높은 CPU 사용률
+
+**증상**: OpenTelemetry 도입 후 CPU 사용률 증가
+
+**원인**:
+- 너무 많은 스팬 생성
+- 동기식 익스포트 사용
+- 압축 비활성화
+
+**해결책**:
+```json
+{
+  "OpenTelemetry": {
+    "Performance": {
+      "UseAsyncExport": true,
+      "EnableCompression": true,
+      "FilterHealthChecks": true,
+      "FilterStaticFiles": true,
+      "MinimumDurationMs": 10
+    }
+  }
+}
+```
+
+#### 3. 트레이스 데이터 누락
+
+**증상**: 일부 트레이스가 수집되지 않음
+
+**원인**:
+- 샘플링으로 인한 드롭
+- 익스포터 연결 실패
+- 배치 처리 타임아웃
+
+**해결책**:
+```csharp
+// 중요한 작업은 항상 샘플링
+public class CriticalOperationSampler : Sampler
+{
+    public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+    {
+        var operationName = Activity.Current?.OperationName;
+        if (operationName?.Contains("critical") == true)
+        {
+            return new SamplingResult(SamplingDecision.RecordAndSample);
+        }
+        
+        return _baseSampler.ShouldSample(samplingParameters);
+    }
+}
+```
+
+#### 4. 로그에 TraceId가 없음
+
+**증상**: Serilog 로그에 TraceId와 SpanId가 표시되지 않음
+
+**원인**:
+- OpenTelemetry Enricher 미설정
+- Activity가 시작되지 않음
+
+**해결책**:
+```csharp
+Log.Logger = new LoggerConfiguration()
+    .Enrich.WithOpenTelemetry()  // Enricher 추가
+    .WriteTo.Console(outputTemplate: 
+        "[{Timestamp:HH:mm:ss}] {Message} TraceId={TraceId} SpanId={SpanId}{NewLine}")
+    .CreateLogger();
+```
+
+### 성능 모니터링
+
+#### 1. 메트릭 기반 모니터링
+
+```csharp
+// OpenTelemetry 자체 성능 메트릭
+public class OpenTelemetryMetrics
+{
+    private readonly Counter<long> _spansCreated;
+    private readonly Counter<long> _spansDropped;
+    private readonly Histogram<double> _exportDuration;
+    
+    public void RecordSpanCreated() => _spansCreated.Add(1);
+    public void RecordSpanDropped() => _spansDropped.Add(1);
+    public void RecordExportDuration(double duration) => _exportDuration.Record(duration);
+}
+```
+
+#### 2. 헬스체크 통합
+
+```csharp
+public class OpenTelemetryHealthCheck : IHealthCheck
+{
+    private readonly OpenTelemetryConfig _config;
+    
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // OTLP 엔드포인트 연결 확인
+            using var client = new HttpClient();
+            var response = await client.GetAsync(_config.Exporter.OtlpEndpoint, cancellationToken);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                return HealthCheckResult.Healthy("OpenTelemetry exporter is healthy");
+            }
+            
+            return HealthCheckResult.Degraded($"OpenTelemetry exporter returned {response.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            return HealthCheckResult.Unhealthy("OpenTelemetry exporter is unreachable", ex);
+        }
+    }
+}
+```
+
+## 모니터링 및 대시보드
+
+### Grafana 대시보드 설정
+
+#### 1. HTTP 요청 메트릭
+
+```json
+{
+  "dashboard": {
+    "title": "Demo.Web OpenTelemetry Dashboard",
+    "panels": [
+      {
+        "title": "HTTP Request Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(demo_app_requests_total[5m])",
+            "legendFormat": "{{method}} {{endpoint}}"
+          }
+        ]
+      },
+      {
+        "title": "HTTP Request Duration",
+        "type": "histogram",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(demo_app_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### 2. 에러율 모니터링
+
+```json
+{
+  "title": "Error Rate",
+  "type": "stat",
+  "targets": [
+    {
+      "expr": "rate(demo_app_errors_total[5m]) / rate(demo_app_requests_total[5m]) * 100",
+      "legendFormat": "Error Rate %"
+    }
+  ],
+  "thresholds": [
+    {
+      "color": "green",
+      "value": 0
+    },
+    {
+      "color": "yellow",
+      "value": 1
+    },
+    {
+      "color": "red",
+      "value": 5
+    }
+  ]
+}
+```
+
+### 알림 설정
+
+#### 1. 높은 에러율 알림
+
+```yaml
+groups:
+  - name: demo-web-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(demo_app_errors_total[5m]) / rate(demo_app_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+```
+
+#### 2. 높은 응답 시간 알림
+
+```yaml
+- alert: HighResponseTime
+  expr: histogram_quantile(0.95, rate(demo_app_request_duration_seconds_bucket[5m])) > 2
+  for: 5m
+  labels:
+    severity: warning
+  annotations:
+    summary: "High response time detected"
+    description: "95th percentile response time is {{ $value }}s"
+```
+
+## 베스트 프랙티스
+
+### 1. 스팬 명명 규칙
+
+```csharp
+// 좋은 예
+using var activity = ActivitySource.StartActivity("user.create");
+using var activity = ActivitySource.StartActivity("db.user.select");
+using var activity = ActivitySource.StartActivity("http.client.get");
+
+// 나쁜 예
+using var activity = ActivitySource.StartActivity("DoSomething");
+using var activity = ActivitySource.StartActivity($"Process-{userId}");
+```
+
+### 2. 태그 사용 가이드라인
+
+```csharp
+// 좋은 예 - 카디널리티가 낮은 태그
+activity?.SetTag("http.method", "POST");
+activity?.SetTag("db.operation", "SELECT");
+activity?.SetTag("user.role", "admin");
+
+// 나쁜 예 - 카디널리티가 높은 태그
+activity?.SetTag("user.id", userId);  // 사용자 수만큼 카디널리티 증가
+activity?.SetTag("request.timestamp", DateTime.Now.ToString());
+```
+
+### 3. 에러 처리
+
+```csharp
+public async Task<Result> ProcessAsync()
+{
+    using var activity = ActivitySource.StartActivity("process.data");
+    
+    try
+    {
+        var result = await DoWork();
+        TelemetryService.SetActivitySuccess(activity, "Processing completed");
+        return result;
+    }
+    catch (ValidationException ex)
+    {
+        // 비즈니스 예외는 Warning으로 처리
+        activity?.SetStatus(ActivityStatusCode.Ok, ex.Message);
+        activity?.SetTag("validation.error", true);
+        throw;
+    }
+    catch (Exception ex)
+    {
+        // 시스템 예외는 Error로 처리
+        TelemetryService.SetActivityError(activity, ex);
+        throw;
+    }
+}
+```
+
+### 4. 메트릭 설계
+
+```csharp
+// 좋은 예 - 의미 있는 메트릭
+private readonly Counter<long> _userRegistrations = Meter.CreateCounter<long>(
+    "user_registrations_total",
+    "1",
+    "Total number of user registrations");
+
+private readonly Histogram<double> _orderProcessingTime = Meter.CreateHistogram<double>(
+    "order_processing_duration_seconds",
+    "s",
+    "Time taken to process orders");
+
+// 나쁜 예 - 너무 세분화된 메트릭
+private readonly Counter<long> _buttonClicks = Meter.CreateCounter<long>(
+    "button_clicks_total");  // 너무 세부적
+```
+
+### 5. 리소스 관리
+
+```csharp
+public class TelemetryService : IDisposable
+{
+    private bool _disposed = false;
+    
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            ActivitySource?.Dispose();
+            Meter?.Dispose();
+            _disposed = true;
+        }
+        GC.SuppressFinalize(this);
+    }
+}
+```
+
+## 결론
+
+이 가이드를 통해 Demo.Web 프로젝트에 OpenTelemetry를 성공적으로 도입했습니다. 주요 성과는 다음과 같습니다:
+
+- **완전한 관찰 가능성**: 트레이싱, 메트릭, 로깅의 통합
+- **성능 최적화**: 적응형 샘플링과 배치 처리를 통한 오버헤드 최소화
+- **환경별 최적화**: 개발, 스테이징, 프로덕션 환경에 맞는 설정
+- **확장 가능한 아키텍처**: 새로운 서비스 추가 시 쉽게 확장 가능
+- **운영 효율성**: 자동화된 모니터링과 알림 시스템
+
+이 구현을 통해 애플리케이션의 성능 모니터링, 문제 진단, 사용자 경험 개선이 크게 향상되었습니다.

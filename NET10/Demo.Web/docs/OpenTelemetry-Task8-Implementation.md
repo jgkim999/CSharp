@@ -164,6 +164,7 @@ export OpenTelemetry__Exporter__OtlpEndpoint=https://custom-endpoint:4317
 ## 다음 단계
 
 이제 환경별 설정이 완료되었으므로, 다음 작업들을 진행할 수 있습니다:
+
 - 성능 최적화 구현 (작업 9)
 - 모니터링 대시보드 연동 설정 (작업 10)
 - 통합 테스트 및 검증 (작업 11)

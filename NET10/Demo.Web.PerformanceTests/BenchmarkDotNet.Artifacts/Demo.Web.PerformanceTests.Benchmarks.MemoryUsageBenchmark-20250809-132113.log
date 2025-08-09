@@ -1,0 +1,796 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 6 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab
+// command took 3.5 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab
+// command took 14.7 sec and exited with 0
+// ***** Done, took 00:00:18 (18.22 sec)   *****
+// Found 6 benchmarks:
+//   MemoryUsageBenchmark.MeasureMemoryWithoutOtel: Job-TCOYOG(IterationCount=50)
+//   MemoryUsageBenchmark.MeasureMemoryWithOtel: Job-TCOYOG(IterationCount=50)
+//   MemoryUsageBenchmark.MemoryLeakTestWithoutOtel: Job-TCOYOG(IterationCount=50)
+//   MemoryUsageBenchmark.MemoryLeakTestWithOtel: Job-TCOYOG(IterationCount=50)
+//   MemoryUsageBenchmark.MeasureProcessMemoryWithoutOtel: Job-TCOYOG(IterationCount=50)
+//   MemoryUsageBenchmark.MeasureProcessMemoryWithOtel: Job-TCOYOG(IterationCount=50)
+
+// **************************
+// Benchmark: MemoryUsageBenchmark.MeasureMemoryWithoutOtel: Job-TCOYOG(IterationCount=50)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f5192192-1b11-4093-8ea0-79f5d0b4fbab.dll --anonymousPipes 122 129 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.MemoryUsageBenchmark.MeasureMemoryWithoutOtel --job IterationCount=50 --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-OCRZVL(IterationCount=50)
+
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/d6867b02-e1ed-4c35-972f-555332eda6b5/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/d6867b02-e1ed-4c35-972f-555332eda6b5/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/d6867b02-e1ed-4c35-972f-555332eda6b5/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/d6867b02-e1ed-4c35-972f-555332eda6b5
+// command took 1.84 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/d6867b02-e1ed-4c35-972f-555332eda6b5/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/d6867b02-e1ed-4c35-972f-555332eda6b5/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/d6867b02-e1ed-4c35-972f-555332eda6b5/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/d6867b02-e1ed-4c35-972f-555332eda6b5/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/d6867b02-e1ed-4c35-972f-555332eda6b5
+// command took 16.51 sec and exited with 0
+
+// ***** Done, took 00:00:18 (18.42 sec)   *****
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.MemoryUsageBenchmark.Setup() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/MemoryUsageBenchmark.cs:line 72
+   at BenchmarkDotNet.Engines.EngineFactory.CreateReadyToRun(EngineParameters engineParameters)
+   at BenchmarkDotNet.Autogenerated.Runnable_0.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/f5192192-1b11-4093-8ea0-79f5d0b4fbab.notcs:line 176
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/f5192192-1b11-4093-8ea0-79f5d0b4fbab.notcs:line 57
+// Found 4 benchmarks:
+// AfterAll
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-PMGEGT(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-PMGEGT(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-PMGEGT(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-PMGEGT(IterationCount=10, RunStrategy=ColdStart)
+No Workload Results were obtained from the run.
+// Benchmark Process 10491 has exited with code 255.
+
+// ** Remained 5 (83.3%) benchmark(s) to run. Estimated finish 2025-08-09 13:39 (0h 1m from now) **
+// **************************
+// Benchmark: MemoryUsageBenchmark.MeasureMemoryWithOtel: Job-TCOYOG(IterationCount=50)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f5192192-1b11-4093-8ea0-79f5d0b4fbab.dll --anonymousPipes 122 129 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.MemoryUsageBenchmark.MeasureMemoryWithOtel --job IterationCount=50 --benchmarkId 1 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-KLCBYN(IterationCount=50)
+
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab
+// command took 1.95 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab
+// command took 14.8 sec and exited with 0
+// ***** Done, took 00:00:16 (16.81 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-KOXENM(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-KOXENM(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-KOXENM(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-KOXENM(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-KOXENM(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 7bb33a10-1220-4a65-a923-b355bc1a5cab.dll --anonymousPipes 155 156 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-GPTIYS(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48
+// command took 1.95 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48
+// command took 14.62 sec and exited with 0
+// ***** Done, took 00:00:16 (16.64 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-GPTIYS(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-GPTIYS(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-GPTIYS(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-GPTIYS(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-GPTIYS(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 4e70f295-24b0-44c5-bdbf-7c50f9e01e48.dll --anonymousPipes 157 159 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-HCIDUW(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/76cb73eb-41d4-4ec1-88cc-12f4c2a5ccbd/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/76cb73eb-41d4-4ec1-88cc-12f4c2a5ccbd/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/76cb73eb-41d4-4ec1-88cc-12f4c2a5ccbd/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/76cb73eb-41d4-4ec1-88cc-12f4c2a5ccbd
+// command took 1.92 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/76cb73eb-41d4-4ec1-88cc-12f4c2a5ccbd/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/76cb73eb-41d4-4ec1-88cc-12f4c2a5ccbd/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/76cb73eb-41d4-4ec1-88cc-12f4c2a5ccbd/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/76cb73eb-41d4-4ec1-88cc-12f4c2a5ccbd/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/bin/Release/net9.0/76cb73eb-41d4-4ec1-88cc-12f4c2a5ccbd
+// command took 16.51 sec and exited with 0
+// ***** Done, took 00:00:18 (18.5 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-HCIDUW(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-HCIDUW(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-HCIDUW(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-HCIDUW(IterationCount=10, RunStrategy=ColdStart)
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 57
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 65
+   at BenchmarkDotNet.Helpers.AwaitHelper.GetResult[T](Task`1 task)
+   at BenchmarkDotNet.Autogenerated.Runnable_0.<.ctor>b__3_4() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/4e70f295-24b0-44c5-bdbf-7c50f9e01e48.notcs:line 198
+   at BenchmarkDotNet.Autogenerated.Runnable_0.WorkloadActionUnroll(Int64 invokeCount) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/4e70f295-24b0-44c5-bdbf-7c50f9e01e48.notcs:line 277
+   at BenchmarkDotNet.Engines.Engine.Measure(Action`1 action, Int64 invokeCount)
+   at BenchmarkDotNet.Engines.Engine.RunIteration(IterationData data)
+   at BenchmarkDotNet.Engines.EngineStage.RunIteration(IterationMode mode, IterationStage stage, Int32 index, Int64 invokeCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunSpecific(Int64 invokeCount, IterationMode iterationMode, Int32 iterationCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.Run(Int64 invokeCount, IterationMode iterationMode, Boolean runAuto, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunWorkload(Int64 invokeCount, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.Engine.Run()
+   at BenchmarkDotNet.Autogenerated.Runnable_0.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/4e70f295-24b0-44c5-bdbf-7c50f9e01e48.notcs:line 179
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/bin/Release/net9.0/4e70f295-24b0-44c5-bdbf-7c50f9e01e48/4e70f295-24b0-44c5-bdbf-7c50f9e01e48.notcs:line 57
+// AfterAll
+// **************************
+No Workload Results were obtained from the run.
+// Benchmark Process 10893 has exited with code 255.
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 57
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 65
+   at BenchmarkDotNet.Helpers.AwaitHelper.GetResult[T](Task`1 task)
+   at BenchmarkDotNet.Autogenerated.Runnable_0.<.ctor>b__3_4() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/7bb33a10-1220-4a65-a923-b355bc1a5cab.notcs:line 198
+   at BenchmarkDotNet.Autogenerated.Runnable_0.WorkloadActionUnroll(Int64 invokeCount) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/7bb33a10-1220-4a65-a923-b355bc1a5cab.notcs:line 277
+   at BenchmarkDotNet.Engines.Engine.Measure(Action`1 action, Int64 invokeCount)
+   at BenchmarkDotNet.Engines.Engine.RunIteration(IterationData data)
+   at BenchmarkDotNet.Engines.EngineStage.RunIteration(IterationMode mode, IterationStage stage, Int32 index, Int64 invokeCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunSpecific(Int64 invokeCount, IterationMode iterationMode, Int32 iterationCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.Run(Int64 invokeCount, IterationMode iterationMode, Boolean runAuto, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunWorkload(Int64 invokeCount, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.Engine.Run()
+   at BenchmarkDotNet.Autogenerated.Runnable_0.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/7bb33a10-1220-4a65-a923-b355bc1a5cab.notcs:line 179
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/7bb33a10-1220-4a65-a923-b355bc1a5cab/7bb33a10-1220-4a65-a923-b355bc1a5cab.notcs:line 57
+// AfterAll
+
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.MemoryUsageBenchmark.Setup() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/MemoryUsageBenchmark.cs:line 72
+   at BenchmarkDotNet.Engines.EngineFactory.CreateReadyToRun(EngineParameters engineParameters)
+   at BenchmarkDotNet.Autogenerated.Runnable_1.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/f5192192-1b11-4093-8ea0-79f5d0b4fbab.notcs:line 384
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/f5192192-1b11-4093-8ea0-79f5d0b4fbab.notcs:line 57
+No Workload Results were obtained from the run.
+// Benchmark Process 10771 has exited with code 255.
+// AfterAll
+No Workload Results were obtained from the run.
+// Benchmark Process 10649 has exited with code 255.
+
+// ** Remained 4 (66.7%) benchmark(s) to run. Estimated finish 2025-08-09 13:58 (0h 2m from now) **
+// **************************
+// Benchmark: MemoryUsageBenchmark.MemoryLeakTestWithoutOtel: Job-TCOYOG(IterationCount=50)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f5192192-1b11-4093-8ea0-79f5d0b4fbab.dll --anonymousPipes 122 129 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.MemoryUsageBenchmark.MemoryLeakTestWithoutOtel --job IterationCount=50 --benchmarkId 2 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-UXHKZO(IterationCount=50)
+
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f
+// command took 2.74 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f
+// command took 14.43 sec and exited with 0
+// ***** Done, took 00:00:17 (17.24 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-JIJWXF(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-JIJWXF(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-JIJWXF(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-JIJWXF(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-JIJWXF(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 9aaba85b-e91d-43ef-849f-2807c3ddea4f.dll --anonymousPipes 155 156 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-UDWUUF(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/236b43bf-620a-4434-a4e6-885cfe1ffead/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/236b43bf-620a-4434-a4e6-885cfe1ffead/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/236b43bf-620a-4434-a4e6-885cfe1ffead/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/236b43bf-620a-4434-a4e6-885cfe1ffead
+// command took 1.8 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/236b43bf-620a-4434-a4e6-885cfe1ffead/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/236b43bf-620a-4434-a4e6-885cfe1ffead/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/236b43bf-620a-4434-a4e6-885cfe1ffead/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/236b43bf-620a-4434-a4e6-885cfe1ffead/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/bin/Release/net9.0/236b43bf-620a-4434-a4e6-885cfe1ffead
+// command took 16.31 sec and exited with 0
+// ***** Done, took 00:00:18 (18.18 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-UDWUUF(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-UDWUUF(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-UDWUUF(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-UDWUUF(IterationCount=10, RunStrategy=ColdStart)
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 57
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 65
+   at BenchmarkDotNet.Helpers.AwaitHelper.GetResult[T](Task`1 task)
+   at BenchmarkDotNet.Autogenerated.Runnable_0.<.ctor>b__3_4() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/9aaba85b-e91d-43ef-849f-2807c3ddea4f.notcs:line 198
+   at BenchmarkDotNet.Autogenerated.Runnable_0.WorkloadActionUnroll(Int64 invokeCount) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/9aaba85b-e91d-43ef-849f-2807c3ddea4f.notcs:line 277
+   at BenchmarkDotNet.Engines.Engine.Measure(Action`1 action, Int64 invokeCount)
+   at BenchmarkDotNet.Engines.Engine.RunIteration(IterationData data)
+   at BenchmarkDotNet.Engines.EngineStage.RunIteration(IterationMode mode, IterationStage stage, Int32 index, Int64 invokeCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunSpecific(Int64 invokeCount, IterationMode iterationMode, Int32 iterationCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.Run(Int64 invokeCount, IterationMode iterationMode, Boolean runAuto, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunWorkload(Int64 invokeCount, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.Engine.Run()
+   at BenchmarkDotNet.Autogenerated.Runnable_0.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/9aaba85b-e91d-43ef-849f-2807c3ddea4f.notcs:line 179
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9aaba85b-e91d-43ef-849f-2807c3ddea4f/9aaba85b-e91d-43ef-849f-2807c3ddea4f.notcs:line 57
+// AfterAll
+
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.MemoryUsageBenchmark.Setup() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/MemoryUsageBenchmark.cs:line 72
+   at BenchmarkDotNet.Engines.EngineFactory.CreateReadyToRun(EngineParameters engineParameters)
+   at BenchmarkDotNet.Autogenerated.Runnable_2.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/f5192192-1b11-4093-8ea0-79f5d0b4fbab.notcs:line 592
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/f5192192-1b11-4093-8ea0-79f5d0b4fbab.notcs:line 57
+// AfterAll
+No Workload Results were obtained from the run.
+// Benchmark Process 11203 has exited with code 255.
+No Workload Results were obtained from the run.
+// Benchmark Process 11051 has exited with code 255.
+
+// ** Remained 3 (50.0%) benchmark(s) to run. Estimated finish 2025-08-09 14:14 (0h 1m from now) **
+// **************************
+// Benchmark: MemoryUsageBenchmark.MemoryLeakTestWithOtel: Job-TCOYOG(IterationCount=50)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f5192192-1b11-4093-8ea0-79f5d0b4fbab.dll --anonymousPipes 122 129 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.MemoryUsageBenchmark.MemoryLeakTestWithOtel --job IterationCount=50 --benchmarkId 3 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-PYISWS(IterationCount=50)
+
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f
+// command took 2.05 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f
+// command took 14.59 sec and exited with 0
+// ***** Done, took 00:00:16 (16.72 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-BSUGJB(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-BSUGJB(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-BSUGJB(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-BSUGJB(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-BSUGJB(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 9b6a5efc-657c-4cac-8311-aa571a9fcb3f.dll --anonymousPipes 155 156 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-VJRZLA(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5
+// command took 1.98 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5
+// command took 14.59 sec and exited with 0
+// ***** Done, took 00:00:16 (16.64 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-VJRZLA(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-VJRZLA(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-VJRZLA(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-VJRZLA(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-VJRZLA(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet eb52abae-5cf6-45b0-b64e-0de6b1809de5.dll --anonymousPipes 157 159 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-XRRAFT(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df
+// command took 2.07 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df
+// command took 15.47 sec and exited with 0
+// ***** Done, took 00:00:17 (17.62 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-XRRAFT(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-XRRAFT(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-XRRAFT(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-XRRAFT(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-XRRAFT(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet a733a951-82aa-44ac-8651-c960319249df.dll --anonymousPipes 160 161 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-MOSOPX(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/94c43d44-708b-469c-9dc0-27b7e4ded686/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/94c43d44-708b-469c-9dc0-27b7e4ded686/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/94c43d44-708b-469c-9dc0-27b7e4ded686/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/94c43d44-708b-469c-9dc0-27b7e4ded686
+// command took 1.93 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/94c43d44-708b-469c-9dc0-27b7e4ded686/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/94c43d44-708b-469c-9dc0-27b7e4ded686/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/94c43d44-708b-469c-9dc0-27b7e4ded686/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/94c43d44-708b-469c-9dc0-27b7e4ded686/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/bin/Release/net9.0/94c43d44-708b-469c-9dc0-27b7e4ded686
+// command took 23.57 sec and exited with 0
+// ***** Done, took 00:00:25 (25.59 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-MOSOPX(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-MOSOPX(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-MOSOPX(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-MOSOPX(IterationCount=10, RunStrategy=ColdStart)
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 57
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 65
+   at BenchmarkDotNet.Helpers.AwaitHelper.GetResult[T](Task`1 task)
+   at BenchmarkDotNet.Autogenerated.Runnable_0.<.ctor>b__3_4() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/a733a951-82aa-44ac-8651-c960319249df.notcs:line 198
+   at BenchmarkDotNet.Autogenerated.Runnable_0.WorkloadActionUnroll(Int64 invokeCount) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/a733a951-82aa-44ac-8651-c960319249df.notcs:line 277
+   at BenchmarkDotNet.Engines.Engine.Measure(Action`1 action, Int64 invokeCount)
+   at BenchmarkDotNet.Engines.Engine.RunIteration(IterationData data)
+   at BenchmarkDotNet.Engines.EngineStage.RunIteration(IterationMode mode, IterationStage stage, Int32 index, Int64 invokeCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunSpecific(Int64 invokeCount, IterationMode iterationMode, Int32 iterationCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.Run(Int64 invokeCount, IterationMode iterationMode, Boolean runAuto, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunWorkload(Int64 invokeCount, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.Engine.Run()
+   at BenchmarkDotNet.Autogenerated.Runnable_0.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/a733a951-82aa-44ac-8651-c960319249df.notcs:line 179
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/bin/Release/net9.0/a733a951-82aa-44ac-8651-c960319249df/a733a951-82aa-44ac-8651-c960319249df.notcs:line 57
+// AfterAll
+No Workload Results were obtained from the run.
+// Benchmark Process 11745 has exited with code 255.
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 57
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 65
+   at BenchmarkDotNet.Helpers.AwaitHelper.GetResult[T](Task`1 task)
+   at BenchmarkDotNet.Autogenerated.Runnable_0.<.ctor>b__3_4() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/eb52abae-5cf6-45b0-b64e-0de6b1809de5.notcs:line 198
+   at BenchmarkDotNet.Autogenerated.Runnable_0.WorkloadActionUnroll(Int64 invokeCount) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/eb52abae-5cf6-45b0-b64e-0de6b1809de5.notcs:line 277
+   at BenchmarkDotNet.Engines.Engine.Measure(Action`1 action, Int64 invokeCount)
+   at BenchmarkDotNet.Engines.Engine.RunIteration(IterationData data)
+   at BenchmarkDotNet.Engines.EngineStage.RunIteration(IterationMode mode, IterationStage stage, Int32 index, Int64 invokeCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunSpecific(Int64 invokeCount, IterationMode iterationMode, Int32 iterationCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.Run(Int64 invokeCount, IterationMode iterationMode, Boolean runAuto, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunWorkload(Int64 invokeCount, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.Engine.Run()
+   at BenchmarkDotNet.Autogenerated.Runnable_0.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/eb52abae-5cf6-45b0-b64e-0de6b1809de5.notcs:line 179
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/bin/Release/net9.0/eb52abae-5cf6-45b0-b64e-0de6b1809de5/eb52abae-5cf6-45b0-b64e-0de6b1809de5.notcs:line 57
+// AfterAll
+No Workload Results were obtained from the run.
+// Benchmark Process 11603 has exited with code 255.
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 57
+   at Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/ApplicationStartupBenchmark.cs:line 65
+   at BenchmarkDotNet.Helpers.AwaitHelper.GetResult[T](Task`1 task)
+   at BenchmarkDotNet.Autogenerated.Runnable_0.<.ctor>b__3_4() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/9b6a5efc-657c-4cac-8311-aa571a9fcb3f.notcs:line 198
+   at BenchmarkDotNet.Autogenerated.Runnable_0.WorkloadActionUnroll(Int64 invokeCount) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/9b6a5efc-657c-4cac-8311-aa571a9fcb3f.notcs:line 277
+   at BenchmarkDotNet.Engines.Engine.Measure(Action`1 action, Int64 invokeCount)
+   at BenchmarkDotNet.Engines.Engine.RunIteration(IterationData data)
+   at BenchmarkDotNet.Engines.EngineStage.RunIteration(IterationMode mode, IterationStage stage, Int32 index, Int64 invokeCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunSpecific(Int64 invokeCount, IterationMode iterationMode, Int32 iterationCount, Int32 unrollFactor)
+   at BenchmarkDotNet.Engines.EngineActualStage.Run(Int64 invokeCount, IterationMode iterationMode, Boolean runAuto, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.EngineActualStage.RunWorkload(Int64 invokeCount, Int32 unrollFactor, Boolean forceSpecific)
+   at BenchmarkDotNet.Engines.Engine.Run()
+   at BenchmarkDotNet.Autogenerated.Runnable_0.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/9b6a5efc-657c-4cac-8311-aa571a9fcb3f.notcs:line 179
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/9b6a5efc-657c-4cac-8311-aa571a9fcb3f/9b6a5efc-657c-4cac-8311-aa571a9fcb3f.notcs:line 57
+// AfterAll
+
+No Workload Results were obtained from the run.
+// Benchmark Process 11481 has exited with code 255.
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---> System.InvalidOperationException: Timed out waiting for the entry point to build the IHost after 00:05:00. This timeout can be modified using the 'DOTNET_HOST_FACTORY_RESOLVER_DEFAULT_TIMEOUT_IN_SECONDS' environment variable.
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.HostingListener.CreateHost()
+   at Microsoft.Extensions.Hosting.HostFactoryResolver.<>c__DisplayClass10_0.<ResolveHostFactory>b__0(String[] args)
+   at Microsoft.AspNetCore.Mvc.Testing.DeferredHostBuilder.Build()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.DelegatedWebApplicationFactory.CreateHost(IHostBuilder builder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.ConfigureHostBuilder(IHostBuilder hostBuilder)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.EnsureServer()
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateDefaultClient(Uri baseAddress, DelegatingHandler[] handlers)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient(WebApplicationFactoryClientOptions options)
+   at Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactory`1.CreateClient()
+   at Demo.Web.PerformanceTests.Benchmarks.MemoryUsageBenchmark.Setup() in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/Benchmarks/MemoryUsageBenchmark.cs:line 72
+   at BenchmarkDotNet.Engines.EngineFactory.CreateReadyToRun(EngineParameters engineParameters)
+   at BenchmarkDotNet.Autogenerated.Runnable_3.Run(IHost host, String benchmarkName) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/f5192192-1b11-4093-8ea0-79f5d0b4fbab.notcs:line 800
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at BenchmarkDotNet.Autogenerated.UniqueProgramName.AfterAssemblyLoadingAttached(String[] args) in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/f5192192-1b11-4093-8ea0-79f5d0b4fbab.notcs:line 57
+// AfterAll
+No Workload Results were obtained from the run.
+// Benchmark Process 11365 has exited with code 255.
+
+// ** Remained 2 (33.3%) benchmark(s) to run. Estimated finish 2025-08-09 14:25 (0h 1m from now) **
+// **************************
+// Benchmark: MemoryUsageBenchmark.MeasureProcessMemoryWithoutOtel: Job-TCOYOG(IterationCount=50)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f5192192-1b11-4093-8ea0-79f5d0b4fbab.dll --anonymousPipes 122 129 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.MemoryUsageBenchmark.MeasureProcessMemoryWithoutOtel --job IterationCount=50 --benchmarkId 4 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-OHOIAL(IterationCount=50)
+
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d
+// command took 2.66 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d
+// command took 19.26 sec and exited with 0
+// ***** Done, took 00:00:22 (22.07 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-FTFKPS(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-FTFKPS(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-FTFKPS(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-FTFKPS(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-FTFKPS(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet f57c9d08-7f14-420e-8f69-4d12e11d616d.dll --anonymousPipes 155 156 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-XSDHES(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1
+// command took 2.15 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1
+// command took 17.11 sec and exited with 0
+// ***** Done, took 00:00:19 (19.36 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-XSDHES(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-XSDHES(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-XSDHES(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-XSDHES(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-XSDHES(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 83e7b9c1-00fa-47b3-a382-a9526b21b6c1.dll --anonymousPipes 157 159 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-TLJJPO(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f
+// command took 2.21 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f
+// command took 17.09 sec and exited with 0
+// ***** Done, took 00:00:19 (19.41 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-TLJJPO(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-TLJJPO(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-TLJJPO(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-TLJJPO(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-TLJJPO(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 22c23d66-c282-4c57-a5c8-d0526af14c2f.dll --anonymousPipes 160 161 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-NNWSGQ(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26
+// command took 2.18 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26
+// command took 18.86 sec and exited with 0
+// ***** Done, took 00:00:21 (21.15 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-NNWSGQ(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-NNWSGQ(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-NNWSGQ(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-NNWSGQ(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-NNWSGQ(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet d1d989b0-820c-43b2-b6d9-f7d4c533de26.dll --anonymousPipes 162 163 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-SXIKIP(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8
+// command took 2.06 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/" --output "/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8
+// command took 15.41 sec and exited with 0
+// ***** Done, took 00:00:17 (17.57 sec)   *****
+// Found 4 benchmarks:
+//   ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-SXIKIP(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithOpenTelemetry: Job-SXIKIP(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithDevelopmentConfig: Job-SXIKIP(IterationCount=10, RunStrategy=ColdStart)
+//   ApplicationStartupBenchmark.StartupWithProductionConfig: Job-SXIKIP(IterationCount=10, RunStrategy=ColdStart)
+// **************************
+// Benchmark: ApplicationStartupBenchmark.StartupWithoutOpenTelemetry: Job-SXIKIP(IterationCount=10, RunStrategy=ColdStart)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet 3bd5b14f-7d79-454c-8c80-7726d29dc4a8.dll --anonymousPipes 164 165 --benchmarkName Demo.Web.PerformanceTests.Benchmarks.ApplicationStartupBenchmark.StartupWithoutOpenTelemetry --job "IterationCount=10, RunStrategy=ColdStart" --benchmarkId 0 in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0
+// Failed to set up high priority (Permission denied). In order to run benchmarks with high priority, make sure you have the right permissions.
+// BeforeAnythingElse
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.14.0
+// Runtime=.NET 9.0.7 (9.0.725.31616), Arm64 RyuJIT AdvSIMD
+// GC=Concurrent Server
+// HardwareIntrinsics=AdvSIMD,AES,CRC32,DP,RDM,SHA1,SHA256 VectorSize=128
+// Job: Job-NHLYQG(IterationCount=10, RunStrategy=ColdStart)
+// BeforeActualRun
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 4 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/6c039cd7-cb93-4d8a-99fe-a613b4d29408/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/6c039cd7-cb93-4d8a-99fe-a613b4d29408/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/6c039cd7-cb93-4d8a-99fe-a613b4d29408/bin/Release/net9.0/" in /Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/6c039cd7-cb93-4d8a-99fe-a613b4d29408
+// command took 1.99 sec and exited with 0
+// start dotnet  build -c Release --no-restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true /p:IntermediateOutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/6c039cd7-cb93-4d8a-99fe-a613b4d29408/obj/Release/net9.0/" /p:OutDir="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-47b3-a382-a9526b21b6c1/bin/Release/net9.0/22c23d66-c282-4c57-a5c8-d0526af14c2f/bin/Release/net9.0/d1d989b0-820c-43b2-b6d9-f7d4c533de26/bin/Release/net9.0/3bd5b14f-7d79-454c-8c80-7726d29dc4a8/bin/Release/net9.0/6c039cd7-cb93-4d8a-99fe-a613b4d29408/bin/Release/net9.0/" /p:OutputPath="/Volumes/d/github/CSharp/NET10/Demo.Web.PerformanceTests/bin/Release/net9.0/f5192192-1b11-4093-8ea0-79f5d0b4fbab/bin/Release/net9.0/f57c9d08-7f14-420e-8f69-4d12e11d616d/bin/Release/net9.0/83e7b9c1-00fa-4
