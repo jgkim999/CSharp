@@ -56,7 +56,7 @@
     - Implement proper error handling with activity status
     - _Requirements: 2.1, 5.1, 5.2, 5.4_
 
-- [ ] 6. Implement LiteBus instrumentation
+- [x] 6. Implement LiteBus instrumentation
   - [x] 6.1 Create TelemetryBehavior for LiteBus pipeline
     - Implement IPipelineBehavior for command/query tracing
     - Add automatic activity creation for all commands and queries
