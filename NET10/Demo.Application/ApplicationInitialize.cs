@@ -1,5 +1,7 @@
 using Demo.Application.Commands;
 using Demo.Application.DTO.User;
+using Demo.Application.Extensions;
+using Demo.Application.Services;
 using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
 using LiteBus.Messaging.Extensions.MicrosoftDependencyInjection;
 using Mapster;
@@ -15,6 +17,9 @@ public static class ApplicationInitialize
     /// <returns>The updated <see cref="IServiceCollection"/> with application services registered.</returns>
     public static IServiceCollection AddApplication(this IServiceCollection service)
     {
+        // TelemetryService 등록
+        service.AddTelemetryService();
+
         service.AddLiteBus(liteBus =>
         {
             liteBus.AddCommandModule(module =>
@@ -22,6 +27,9 @@ public static class ApplicationInitialize
                 module.RegisterFromAssembly(typeof(UserCreateCommand).Assembly);
             });
         });
+
+        // LiteBus 텔레메트리 데코레이터 추가
+        service.AddLiteBusTelemetry();
 
         service.AddMapster();
         var config = TypeAdapterConfig.GlobalSettings;

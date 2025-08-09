@@ -57,14 +57,14 @@
     - _Requirements: 2.1, 5.1, 5.2, 5.4_
 
 - [ ] 6. Implement LiteBus instrumentation
-  - [ ] 6.1 Create TelemetryBehavior for LiteBus pipeline
+  - [x] 6.1 Create TelemetryBehavior for LiteBus pipeline
     - Implement IPipelineBehavior for command/query tracing
     - Add automatic activity creation for all commands and queries
     - Include request type and assembly information as tags
     - Handle exceptions and set appropriate activity status
     - _Requirements: 2.4, 5.1, 5.2, 5.4_
   
-  - [ ] 6.2 Register TelemetryBehavior in ApplicationInitialize
+  - [x] 6.2 Register TelemetryBehavior in ApplicationInitialize
     - Add behavior to LiteBus pipeline configuration
     - Ensure proper ordering with existing behaviors
     - _Requirements: 2.4_
