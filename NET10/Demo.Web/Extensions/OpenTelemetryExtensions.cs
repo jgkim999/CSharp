@@ -224,13 +224,29 @@ public static class OpenTelemetryExtensions
     /// <returns>트레이싱 빌더</returns>
     private static TracerProviderBuilder AddExporters(this TracerProviderBuilder tracingBuilder, OpenTelemetryConfig config)
     {
-        switch (config.Exporter.Type.ToLowerInvariant())
+        var exporterType = config.Exporter.Type.ToLowerInvariant();
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        
+        // 개발 환경에서는 항상 콘솔 익스포터도 추가
+        if (environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
+        {
+            tracingBuilder.AddConsoleExporter(options =>
+            {
+                options.Targets = ConsoleExporterOutputTargets.Console;
+            });
+        }
+
+        switch (exporterType)
         {
             case "console":
-                tracingBuilder.AddConsoleExporter(options =>
+                // 이미 개발 환경에서 추가했으므로, 다른 환경에서만 추가
+                if (!environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
                 {
-                    options.Targets = ConsoleExporterOutputTargets.Console;
-                });
+                    tracingBuilder.AddConsoleExporter(options =>
+                    {
+                        options.Targets = ConsoleExporterOutputTargets.Console;
+                    });
+                }
                 break;
 
             case "otlp":
@@ -271,8 +287,11 @@ public static class OpenTelemetryExtensions
                 break;
 
             default:
-                // 기본값으로 콘솔 익스포터 사용
-                tracingBuilder.AddConsoleExporter();
+                // 기본값으로 콘솔 익스포터 사용 (개발 환경이 아닌 경우에만)
+                if (!environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
+                {
+                    tracingBuilder.AddConsoleExporter();
+                }
                 break;
         }
 
@@ -286,7 +305,19 @@ public static class OpenTelemetryExtensions
     /// <returns>메트릭 익스포터</returns>
     private static BaseExporter<Metric> CreateMetricExporter(OpenTelemetryConfig config)
     {
-        return config.Exporter.Type.ToLowerInvariant() switch
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        var exporterType = config.Exporter.Type.ToLowerInvariant();
+
+        // 개발 환경에서는 항상 콘솔 익스포터 사용
+        if (environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
+        {
+            return new ConsoleMetricExporter(new ConsoleExporterOptions
+            {
+                Targets = ConsoleExporterOutputTargets.Console
+            });
+        }
+
+        return exporterType switch
         {
             "console" => new ConsoleMetricExporter(new ConsoleExporterOptions
             {
@@ -303,7 +334,10 @@ public static class OpenTelemetryExtensions
                         "grpc" => OtlpExportProtocol.Grpc,
                         _ => OtlpExportProtocol.Grpc
                     },
-                    TimeoutMilliseconds = config.Exporter.TimeoutMilliseconds
+                    TimeoutMilliseconds = config.Exporter.TimeoutMilliseconds,
+                    Headers = config.Exporter.OtlpHeaders.Count > 0 
+                        ? string.Join(",", config.Exporter.OtlpHeaders.Select(h => $"{h.Key}={h.Value}"))
+                        : null
                 }),
             
             _ => new ConsoleMetricExporter(new ConsoleExporterOptions

@@ -80,14 +80,14 @@
     - Include database operation details as activity tags
     - _Requirements: 2.5, 5.1, 5.2_
 
-- [ ] 8. Configure environment-specific settings
-  - [ ] 8.1 Create appsettings.Development.json with dev-optimized settings
+- [x] 8. Configure environment-specific settings
+  - [x] 8.1 Create appsettings.Development.json with dev-optimized settings
     - Enable console exporter for immediate feedback
     - Set high sampling rate for development
     - Configure appropriate log levels
     - _Requirements: 6.1, 1.4_
   
-  - [ ] 8.2 Create appsettings.Production.json with production-optimized settings
+  - [x] 8.2 Create appsettings.Production.json with production-optimized settings
     - Enable OTLP exporter for production monitoring
     - Set optimized sampling rate for performance
     - Configure production-appropriate resource limits

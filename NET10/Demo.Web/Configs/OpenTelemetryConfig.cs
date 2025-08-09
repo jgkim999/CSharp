@@ -155,6 +155,11 @@ public class ExporterConfig
     public string Type { get; set; } = "Console";
 
     /// <summary>
+    /// 콘솔 익스포터 설정
+    /// </summary>
+    public ConsoleExporterConfig ConsoleExporter { get; set; } = new();
+
+    /// <summary>
     /// OTLP 엔드포인트 URL
     /// </summary>
     public string? OtlpEndpoint { get; set; }
@@ -175,9 +180,76 @@ public class ExporterConfig
     public int TimeoutMilliseconds { get; set; } = 10000;
 
     /// <summary>
+    /// 재시도 정책 설정
+    /// </summary>
+    public RetryPolicyConfig RetryPolicy { get; set; } = new();
+
+    /// <summary>
     /// 배치 익스포트 설정
     /// </summary>
     public BatchExportConfig BatchExport { get; set; } = new();
+}
+
+/// <summary>
+/// 콘솔 익스포터 구성 설정
+/// </summary>
+public class ConsoleExporterConfig
+{
+    /// <summary>
+    /// 콘솔 익스포터 활성화 여부
+    /// </summary>
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// 포맷된 메시지 포함 여부
+    /// </summary>
+    public bool IncludeFormattedMessage { get; set; } = true;
+
+    /// <summary>
+    /// 스코프 포함 여부
+    /// </summary>
+    public bool IncludeScopes { get; set; } = true;
+
+    /// <summary>
+    /// 단일 라인 출력 여부
+    /// </summary>
+    public bool SingleLine { get; set; } = false;
+
+    /// <summary>
+    /// 타임스탬프 형식
+    /// </summary>
+    public string TimestampFormat { get; set; } = "yyyy-MM-dd HH:mm:ss.fff";
+}
+
+/// <summary>
+/// 재시도 정책 구성 설정
+/// </summary>
+public class RetryPolicyConfig
+{
+    /// <summary>
+    /// 재시도 정책 활성화 여부
+    /// </summary>
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// 최대 재시도 횟수
+    /// </summary>
+    public int MaxRetryAttempts { get; set; } = 3;
+
+    /// <summary>
+    /// 초기 백오프 시간 (밀리초)
+    /// </summary>
+    public int InitialBackoffMs { get; set; } = 1000;
+
+    /// <summary>
+    /// 최대 백오프 시간 (밀리초)
+    /// </summary>
+    public int MaxBackoffMs { get; set; } = 30000;
+
+    /// <summary>
+    /// 백오프 배수
+    /// </summary>
+    public double BackoffMultiplier { get; set; } = 2.0;
 }
 
 /// <summary>
