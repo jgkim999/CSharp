@@ -1,11 +1,14 @@
-using Demo.Web.Configs;
+using System.Diagnostics;
+
 using Demo.Application.Services;
-using OpenTelemetry;
+using Demo.Web.Configs;
+
+using Npgsql;
+
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Npgsql;
 
 namespace Demo.Web.Extensions;
 
@@ -19,29 +22,26 @@ public static class OpenTelemetryExtensions
     /// </summary>
     /// <param name="services">서비스 컬렉션</param>
     /// <param name="configuration">구성 객체</param>
+    /// <param name="serviceInstanceId"></param>
+    /// <param name="environment"></param>
     /// <returns>서비스 컬렉션</returns>
     public static IServiceCollection AddOpenTelemetryServices(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        string serviceInstanceId,
+        string environment)
     {
         // OpenTelemetry 구성 바인딩
         var otelConfig = new OpenTelemetryConfig();
         configuration.GetSection(OpenTelemetryConfig.SectionName).Bind(otelConfig);
-        
+
         // 구성 객체를 DI 컨테이너에 등록
         services.Configure<OpenTelemetryConfig>(
             configuration.GetSection(OpenTelemetryConfig.SectionName));
 
         // TelemetryService 등록
-        services.AddTelemetryService();
-
-        // 환경 변수에서 서비스 정보 오버라이드
-        var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME") ?? otelConfig.ServiceName;
-        var serviceVersion = Environment.GetEnvironmentVariable("OTEL_SERVICE_VERSION") ?? otelConfig.ServiceVersion;
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? otelConfig.Environment;
-        var serviceInstanceId = Environment.GetEnvironmentVariable("OTEL_SERVICE_INSTANCE_ID") ?? 
-                               otelConfig.ServiceInstanceId ?? 
-                               Environment.MachineName;
+        TelemetryService telemetryService = new(otelConfig.ServiceName, otelConfig.ServiceVersion);
+        services.AddSingleton(telemetryService);
 
         // OpenTelemetry 서비스 등록
         services.AddOpenTelemetry()
@@ -49,13 +49,13 @@ public static class OpenTelemetryExtensions
             {
                 resourceBuilder
                     .AddService(
-                        serviceName: serviceName,
-                        serviceVersion: serviceVersion,
+                        serviceName: otelConfig.ServiceName,
+                        serviceVersion: otelConfig.ServiceVersion,
                         serviceInstanceId: serviceInstanceId)
                     .AddAttributes(new Dictionary<string, object>
                     {
                         ["deployment.environment"] = environment,
-                        ["service.namespace"] = "Demo",
+                        ["service.namespace"] = "Api",
                         ["host.name"] = Environment.MachineName,
                         ["os.type"] = Environment.OSVersion.Platform.ToString(),
                         ["process.pid"] = Environment.ProcessId,
@@ -66,14 +66,14 @@ public static class OpenTelemetryExtensions
             {
                 if (otelConfig.Tracing.Enabled)
                 {
-                    ConfigureTracing(tracingBuilder, otelConfig);
+                    ConfigureTracing(tracingBuilder, otelConfig, telemetryService);
                 }
             })
             .WithMetrics(metricsBuilder =>
             {
                 if (otelConfig.Metrics.Enabled)
                 {
-                    ConfigureMetrics(metricsBuilder, otelConfig);
+                    ConfigureMetrics(metricsBuilder, otelConfig, telemetryService);
                 }
             });
 
@@ -85,7 +85,7 @@ public static class OpenTelemetryExtensions
     /// </summary>
     /// <param name="tracingBuilder">트레이싱 빌더</param>
     /// <param name="config">OpenTelemetry 구성</param>
-    private static void ConfigureTracing(TracerProviderBuilder tracingBuilder, OpenTelemetryConfig config)
+    private static void ConfigureTracing(TracerProviderBuilder tracingBuilder, OpenTelemetryConfig config, TelemetryService telemetryService)
     {
         tracingBuilder
             // ASP.NET Core 자동 계측
@@ -95,8 +95,8 @@ public static class OpenTelemetryExtensions
                 options.Filter = context =>
                 {
                     var path = context.Request.Path.Value?.ToLowerInvariant();
-                    return !string.IsNullOrEmpty(path) && 
-                           !path.Contains("/health") && 
+                    return !string.IsNullOrEmpty(path) &&
+                           !path.Contains("/health") &&
                            !path.Contains("/metrics") &&
                            !path.Contains("/favicon.ico");
                 };
@@ -109,7 +109,7 @@ public static class OpenTelemetryExtensions
                     activity.SetTag("http.request.scheme", request.Scheme);
                     activity.SetTag("http.request.host", request.Host.Value);
                     activity.SetTag("user_agent", request.Headers.UserAgent.ToString());
-                    
+
                     // 사용자 정의 헤더 추가 (필요시)
                     if (request.Headers.ContainsKey("X-Request-ID"))
                     {
@@ -123,7 +123,7 @@ public static class OpenTelemetryExtensions
                     activity.SetTag("http.response.content_length", response.ContentLength);
                 };
             })
-            
+
             // HTTP 클라이언트 자동 계측
             .AddHttpClientInstrumentation(options =>
             {
@@ -131,8 +131,8 @@ public static class OpenTelemetryExtensions
                 options.FilterHttpRequestMessage = request =>
                 {
                     var uri = request.RequestUri?.ToString().ToLowerInvariant();
-                    return !string.IsNullOrEmpty(uri) && 
-                           !uri.Contains("/health") && 
+                    return !string.IsNullOrEmpty(uri) &&
+                           !uri.Contains("/health") &&
                            !uri.Contains("/metrics");
                 };
 
@@ -160,7 +160,7 @@ public static class OpenTelemetryExtensions
             })
 
             // 사용자 정의 ActivitySource 등록
-            .AddSource(TelemetryService.ActivitySource.Name)
+            .AddSource(telemetryService.ActiveSourceName)
             .AddSource("Demo.Application")
             .AddSource("Demo.Infra")
 
@@ -182,40 +182,47 @@ public static class OpenTelemetryExtensions
     /// </summary>
     /// <param name="metricsBuilder">메트릭 빌더</param>
     /// <param name="config">OpenTelemetry 구성</param>
-    private static void ConfigureMetrics(MeterProviderBuilder metricsBuilder, OpenTelemetryConfig config)
+    private static void ConfigureMetrics(MeterProviderBuilder metricsBuilder, OpenTelemetryConfig config, TelemetryService telemetryService)
     {
-        metricsBuilder
-            // ASP.NET Core 메트릭
-            .AddAspNetCoreInstrumentation()
-            
-            // HTTP 클라이언트 메트릭
-            .AddHttpClientInstrumentation()
-            
-            // .NET 런타임 메트릭
-            .AddRuntimeInstrumentation()
-            
-            // 프로세스 메트릭
-            .AddProcessInstrumentation()
+        // ASP.NET Core 메트릭
+        metricsBuilder.AddAspNetCoreInstrumentation();
+        // HTTP 클라이언트 메트릭
+        metricsBuilder.AddHttpClientInstrumentation();
+        // .NET 런타임 메트릭
+        metricsBuilder.AddRuntimeInstrumentation();
+        // 프로세스 메트릭
+        metricsBuilder.AddProcessInstrumentation();
+        // Metrics provides by ASP.NET Core in .NET 8
+        metricsBuilder.AddMeter("Microsoft.AspNetCore.Hosting");
+        metricsBuilder.AddMeter("Microsoft.AspNetCore.Server.Kestrel");
+        // Metrics provided by System.Net libraries
+        metricsBuilder.AddMeter("System.Net.Http");
+        metricsBuilder.AddMeter("System.Net.NameResolution");
+        // 사용자 정의 메터 추가
+        metricsBuilder.AddMeter(telemetryService.MeterName);
+        metricsBuilder.AddMeter("Demo.Application");
+        metricsBuilder.AddMeter("Demo.Infra");
 
-            // 사용자 정의 메터 추가
-            .AddMeter(TelemetryService.Meter.Name)
-            .AddMeter("Demo.Application")
-            .AddMeter("Demo.Infra")
+        // 환경별 메트릭 리더 구성
+        //.AddReader(MetricProcessingStrategies.CreateEnvironmentBasedMetricReader(
+        //    config, 
+        //    Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? config.Environment))
 
-            // 환경별 메트릭 리더 구성
-            .AddReader(MetricProcessingStrategies.CreateEnvironmentBasedMetricReader(
-                config, 
-                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? config.Environment))
-
-            // 뷰 구성 (히스토그램 버킷 사용자 정의)
-            .AddView("http.server.request.duration", new ExplicitBucketHistogramConfiguration
-            {
-                Boundaries = new double[] { 0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10 }
-            })
-            .AddView("http.client.request.duration", new ExplicitBucketHistogramConfiguration
-            {
-                Boundaries = new double[] { 0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10 }
-            });
+        // 뷰 구성 (히스토그램 버킷 사용자 정의)
+        metricsBuilder.AddView("http.server.request.duration", new ExplicitBucketHistogramConfiguration
+        {
+            Boundaries = [0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]
+        });
+        metricsBuilder.AddView("http.client.request.duration", new ExplicitBucketHistogramConfiguration
+        {
+            Boundaries = [0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]
+        });
+        metricsBuilder.AddOtlpExporter(options =>
+        {
+            Debug.Assert(config.Exporter.OtlpEndpoint != null, "config.Exporter.OtlpEndpoint != null");
+            options.Endpoint = new Uri(config.Exporter.OtlpEndpoint);
+            options.Protocol = OtlpExportProtocol.Grpc;
+        });
     }
 
     /// <summary>
@@ -228,7 +235,7 @@ public static class OpenTelemetryExtensions
     {
         var exporterType = config.Exporter.Type.ToLowerInvariant();
         var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-        
+
         // 개발 환경에서는 항상 콘솔 익스포터도 추가
         if (environment.Equals("Development", StringComparison.OrdinalIgnoreCase))
         {
@@ -264,7 +271,7 @@ public static class OpenTelemetryExtensions
                             _ => OtlpExportProtocol.Grpc
                         };
                         options.TimeoutMilliseconds = config.Exporter.TimeoutMilliseconds;
-                        
+
                         // 헤더 설정
                         if (config.Exporter.OtlpHeaders.Count > 0)
                         {
@@ -299,6 +306,4 @@ public static class OpenTelemetryExtensions
 
         return tracingBuilder;
     }
-
-
 }

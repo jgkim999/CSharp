@@ -21,7 +21,7 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
 
     public override void Configure()
     {
-        Get("/test/logging");
+        Get("/api/test/logging");
         AllowAnonymous();
         Summary(s =>
         {
@@ -66,12 +66,13 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
 
         TelemetryService.SetActivitySuccess(activity, "로깅 테스트 완료");
 
-        var response = new
+        Response = new
         {
             Message = "로깅 테스트가 완료되었습니다. 콘솔 로그를 확인해주세요.",
             TraceId = Activity.Current?.TraceId.ToString(),
             SpanId = Activity.Current?.SpanId.ToString(),
             Timestamp = DateTimeOffset.UtcNow
         };
+        await Task.CompletedTask;
     }
 }

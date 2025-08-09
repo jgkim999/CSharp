@@ -14,46 +14,52 @@ namespace Demo.Application.Services;
 public class TelemetryService
 {
     /// <summary>
-    /// Demo.Application 애플리케이션의 ActivitySource
+    /// Demo.Application 애플리케이션의 _activitySource
     /// </summary>
-    public static readonly ActivitySource ActivitySource = new("Demo.Application");
+    private readonly ActivitySource _activitySource;
 
     /// <summary>
-    /// Demo.Application 애플리케이션의 Meter
+    /// Demo.Application 애플리케이션의 _meter
     /// </summary>
-    public static readonly Meter Meter = new("Demo.Application");
+    private readonly Meter _meter;
 
     // 사용자 정의 메트릭 정의
     private readonly Counter<long> _requestCounter;
     private readonly Histogram<double> _requestDuration;
     private readonly Counter<long> _errorCounter;
     private readonly Gauge<int> _activeConnections;
+    
+    public string ActiveSourceName => _activitySource.Name;
+    public string MeterName => _meter.Name;
 
     /// <summary>
     /// TelemetryService 생성자
     /// </summary>
-    public TelemetryService()
+    public TelemetryService(string serviceName, string serviceVersion)
     {
+        _activitySource = new ActivitySource(serviceName, serviceVersion);
+        _meter = new Meter(serviceName, serviceVersion);
+
         // 카운터 메트릭 초기화
-        _requestCounter = Meter.CreateCounter<long>(
+        _requestCounter = _meter.CreateCounter<long>(
             name: "demo_app_requests_total",
             unit: "1",
             description: "Total number of requests processed");
 
         // 히스토그램 메트릭 초기화
-        _requestDuration = Meter.CreateHistogram<double>(
+        _requestDuration = _meter.CreateHistogram<double>(
             name: "demo_app_request_duration_seconds",
             unit: "s",
             description: "Duration of requests in seconds");
 
         // 에러 카운터 초기화
-        _errorCounter = Meter.CreateCounter<long>(
+        _errorCounter = _meter.CreateCounter<long>(
             name: "demo_app_errors_total",
             unit: "1",
             description: "Total number of errors occurred");
 
         // 게이지 메트릭 초기화
-        _activeConnections = Meter.CreateGauge<int>(
+        _activeConnections = _meter.CreateGauge<int>(
             name: "demo_app_active_connections",
             unit: "1",
             description: "Number of active connections");
@@ -67,7 +73,7 @@ public class TelemetryService
     /// <returns>시작된 Activity</returns>
     public Activity? StartActivity(string operationName, Dictionary<string, object?>? tags = null)
     {
-        var activity = ActivitySource.StartActivity(operationName);
+        var activity = _activitySource.StartActivity(operationName);
 
         if (activity != null && tags != null)
         {
@@ -130,7 +136,7 @@ public class TelemetryService
     /// <param name="tags">태그</param>
     public void RecordBusinessMetric(string metricName, long value, Dictionary<string, object?>? tags = null)
     {
-        var counter = Meter.CreateCounter<long>(
+        var counter = _meter.CreateCounter<long>(
             name: $"demo_app_{metricName}",
             unit: "1",
             description: $"Business metric: {metricName}");
@@ -292,8 +298,8 @@ public class TelemetryService
     /// </summary>
     public void Dispose()
     {
-        ActivitySource?.Dispose();
-        Meter?.Dispose();
+        _activitySource?.Dispose();
+        _meter?.Dispose();
     }
 }
 
@@ -328,22 +334,5 @@ public class CompositeDisposable : IDisposable
             _disposed = true;
             GC.SuppressFinalize(this);
         }
-    }
-}
-
-/// <summary>
-/// TelemetryService를 위한 확장 메서드
-/// </summary>
-public static class TelemetryServiceExtensions
-{
-    /// <summary>
-    /// TelemetryService를 DI 컨테이너에 등록합니다.
-    /// </summary>
-    /// <param name="services">서비스 컬렉션</param>
-    /// <returns>서비스 컬렉션</returns>
-    public static IServiceCollection AddTelemetryService(this IServiceCollection services)
-    {
-        services.AddSingleton<TelemetryService>();
-        return services;
     }
 }

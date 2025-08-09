@@ -3,124 +3,140 @@ using Demo.Infra;
 using Demo.Web.Configs;
 using Demo.Web.Endpoints.User;
 using Demo.Web.Extensions;
+
 using FastEndpoints;
+
 using FluentValidation;
+
 using Scalar.AspNetCore;
+
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 환경별 설정 파일 추가
 var environment = builder.Environment.EnvironmentName;
+var environmentFromEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+if (string.IsNullOrWhiteSpace(environmentFromEnv) == false)
+    environment = environmentFromEnv;
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables(); // 환경 변수가 JSON 설정을 오버라이드
 
 // OpenTelemetry 설정 바인딩
-var otelConfig = new OpenTelemetryConfig();
-builder.Configuration.GetSection(OpenTelemetryConfig.SectionName).Bind(otelConfig);
+var openTelemetryConfig = new OpenTelemetryConfig();
+builder.Configuration.GetSection(OpenTelemetryConfig.SectionName).Bind(openTelemetryConfig);
+
+// 환경 변수에서 서비스 정보 오버라이드
+var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME");
+if (string.IsNullOrWhiteSpace(serviceName) == false)
+    openTelemetryConfig.ServiceName = serviceName;
+
+var serviceVersion = Environment.GetEnvironmentVariable("OTEL_SERVICE_VERSION");
+if (string.IsNullOrWhiteSpace(serviceVersion) == false)
+    openTelemetryConfig.ServiceVersion = serviceVersion;
+
+openTelemetryConfig.Environment = environment;
+
+var serviceInstanceId = Environment.GetEnvironmentVariable("OTEL_SERVICE_INSTANCE_ID");
+if (string.IsNullOrWhiteSpace(serviceInstanceId) == false)
+{
+    openTelemetryConfig.ServiceInstanceId = serviceInstanceId;
+}
+else
+{
+    openTelemetryConfig.ServiceInstanceId = Environment.MachineName;
+}
 
 // Serilog와 OpenTelemetry 통합 설정 (비동기)
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
     .Enrich.WithOpenTelemetry()
-    .Enrich.WithProperty("ServiceName", otelConfig.ServiceName)
-    .Enrich.WithProperty("ServiceVersion", otelConfig.ServiceVersion)
-    .Enrich.WithProperty("Environment", otelConfig.Environment)
-    .WriteTo.Async(a => a.Console(outputTemplate:
-        "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} " +
-        "{NewLine}{Exception} " +
-        "TraceId={TraceId} SpanId={SpanId}"),
-        bufferSize: 10000,
-        blockWhenFull: false)
-    .WriteTo.Async(a => a.File(
-        path: "logs/demo-web-.log",
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 7,
-        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {Message:lj} {NewLine}{Exception} TraceId={TraceId} SpanId={SpanId}{NewLine}"),
-        bufferSize: 10000,
-        blockWhenFull: false)
+    .Enrich.WithProperty("ServiceName", openTelemetryConfig.ServiceName)
+    .Enrich.WithProperty("ServiceVersion", openTelemetryConfig.ServiceVersion)
+    .Enrich.WithProperty("Environment", openTelemetryConfig.Environment)
     .WriteTo.Async(a => a.OpenTelemetry(options =>
     {
-      // OpenTelemetry 로깅이 활성화된 경우에만 설정
-      if (otelConfig.Logging.Enabled)
-      {
-        // OTLP 엔드포인트가 설정된 경우 사용
-        if (!string.IsNullOrEmpty(otelConfig.Exporter.OtlpEndpoint))
+        // OpenTelemetry 로깅이 활성화된 경우에만 설정
+        if (openTelemetryConfig.Logging.Enabled)
         {
-          options.Endpoint = otelConfig.Exporter.OtlpEndpoint;
+            // OTLP 엔드포인트가 설정된 경우 사용
+            if (!string.IsNullOrEmpty(openTelemetryConfig.Exporter.OtlpEndpoint))
+            {
+                options.Endpoint = openTelemetryConfig.Exporter.OtlpEndpoint;
 
-          // 헤더 설정
-          foreach (var header in otelConfig.Exporter.OtlpHeaders)
-          {
-            options.Headers.Add(header.Key, header.Value);
-          }
+                // 헤더 설정
+                foreach (var header in openTelemetryConfig.Exporter.OtlpHeaders)
+                {
+                    options.Headers.Add(header.Key, header.Value);
+                }
 
-          // 프로토콜 설정
-          options.Protocol = otelConfig.Exporter.OtlpProtocol.ToLowerInvariant() switch
-          {
-            "http/protobuf" => Serilog.Sinks.OpenTelemetry.OtlpProtocol.HttpProtobuf,
-            "grpc" => Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc,
-            _ => Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc
-          };
+                // 프로토콜 설정
+                options.Protocol = openTelemetryConfig.Exporter.OtlpProtocol.ToLowerInvariant() switch
+                {
+                    "http/protobuf" => Serilog.Sinks.OpenTelemetry.OtlpProtocol.HttpProtobuf,
+                    "grpc" => Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc,
+                    _ => Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc
+                };
+            }
+
+            // 리소스 속성 추가
+            options.ResourceAttributes.Add("service.name", openTelemetryConfig.ServiceName);
+            options.ResourceAttributes.Add("service.version", openTelemetryConfig.ServiceVersion);
+            options.ResourceAttributes.Add("deployment.environment", openTelemetryConfig.Environment);
         }
-
-        // 리소스 속성 추가
-        options.ResourceAttributes.Add("service.name", otelConfig.ServiceName);
-        options.ResourceAttributes.Add("service.version", otelConfig.ServiceVersion);
-        options.ResourceAttributes.Add("deployment.environment", otelConfig.Environment);
-      }
     }), bufferSize: 10000, blockWhenFull: false)
     .CreateLogger();
 
 try
 {
-  // Serilog를 ASP.NET Core 로깅 시스템에 통합
-  builder.Host.UseSerilog();
+    // Serilog를 ASP.NET Core 로깅 시스템에 통합
+    builder.Host.UseSerilog();
 
-  builder.Services.AddFastEndpoints();
-  builder.Services.AddOpenApi();
+    // OpenTelemetry 서비스 등록
+    builder.Services.AddOpenTelemetryServices(builder.Configuration, openTelemetryConfig.ServiceInstanceId, environment);
 
-  builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
+    builder.Services.AddFastEndpoints();
+    builder.Services.AddOpenApi();
 
-  builder.Services.AddApplication();
-  builder.Services.AddInfra(builder.Configuration);
+    builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
-  // OpenTelemetry 서비스 등록
-  builder.Services.AddOpenTelemetryServices(builder.Configuration);
+    builder.Services.AddApplication();
+    builder.Services.AddInfra(builder.Configuration);
 
-  var app = builder.Build();
-  app.UseFastEndpoints(x =>
-  {
-    x.Errors.UseProblemDetails();
-  });
 
-  // Configure the HTTP request pipeline.
-  if (app.Environment.IsDevelopment())
-  {
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
+    var app = builder.Build();
+    app.UseFastEndpoints(x =>
     {
-      options
-              .WithTitle("Demo.Web API")
-              .WithTheme(ScalarTheme.BluePlanet)
-              .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
-              .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
+        x.Errors.UseProblemDetails();
     });
-  }
 
-  app.Run();
+    // Configure the HTTP request pipeline.
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapOpenApi();
+        app.MapScalarApiReference(options =>
+        {
+            options
+                .WithTitle("Demo.Web API")
+                .WithTheme(ScalarTheme.None)
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
+                .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
+        });
+    }
+
+    app.Run();
 
 }
 catch (Exception ex)
 {
-  Log.Fatal(ex, "Application terminated unexpectedly");
+    Log.Fatal(ex, "Application terminated unexpectedly");
 }
 finally
 {
-  Log.CloseAndFlush();
+    Log.CloseAndFlush();
 }
 
 // 테스트에서 접근할 수 있도록 Program 클래스를 public으로 선언

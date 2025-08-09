@@ -17,9 +17,6 @@ public static class ApplicationInitialize
     /// <returns>The updated <see cref="IServiceCollection"/> with application services registered.</returns>
     public static IServiceCollection AddApplication(this IServiceCollection service)
     {
-        // TelemetryService 등록
-        service.AddTelemetryService();
-
         service.AddLiteBus(liteBus =>
         {
             liteBus.AddCommandModule(module =>
