@@ -150,8 +150,14 @@ public static class OpenTelemetryExtensions
                 };
             })
 
-            // Npgsql (PostgreSQL) 자동 계측
-            .AddNpgsql()
+            // 데이터베이스 자동 계측
+            .AddNpgsql() // PostgreSQL (Npgsql) 계측
+            .AddSqlClientInstrumentation(options =>
+            {
+                // SQL 명령문 텍스트 기록 (개발 환경에서만)
+                options.SetDbStatementForText = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+                options.RecordException = true;
+            })
 
             // 사용자 정의 ActivitySource 등록
             .AddSource(TelemetryService.ActivitySource.Name)

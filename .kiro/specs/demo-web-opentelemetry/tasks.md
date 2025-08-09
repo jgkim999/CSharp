@@ -69,13 +69,13 @@
     - Ensure proper ordering with existing behaviors
     - _Requirements: 2.4_
 
-- [ ] 7. Implement database instrumentation
-  - [ ] 7.1 Add Entity Framework Core instrumentation (if applicable)
+- [x] 7. Implement database instrumentation
+  - [x] 7.1 Add Entity Framework Core instrumentation (if applicable)
     - Install EF Core OpenTelemetry package if using EF Core
     - Configure EF Core tracing in OpenTelemetryExtensions
     - _Requirements: 2.5_
   
-  - [ ] 7.2 Add custom database operation tracing
+  - [x] 7.2 Add custom database operation tracing
     - Instrument repository methods with custom activities
     - Include database operation details as activity tags
     - _Requirements: 2.5, 5.1, 5.2_
