@@ -23,6 +23,13 @@ public static class OpenTelemetryExtensions
     /// <param name="configuration">The application configuration containing OpenTelemetry settings.</param>
     /// <param name="serviceInstanceId">A unique identifier for the service instance.</param>
     /// <param name="environment">The current application environment (e.g., Development, Production).</param>
+    /// <summary>
+    /// Registers and configures OpenTelemetry tracing and metrics services in the dependency injection container using application configuration and environment details.
+    /// </summary>
+    /// <param name="services">The service collection to which OpenTelemetry services will be added.</param>
+    /// <param name="configuration">The application configuration containing OpenTelemetry settings.</param>
+    /// <param name="serviceInstanceId">A unique identifier for the service instance.</param>
+    /// <param name="environment">The current application environment (e.g., Development, Production).</param>
     /// <returns>The updated service collection with OpenTelemetry services registered.</returns>
     public static IServiceCollection AddOpenTelemetryServices(
         this IServiceCollection services,
@@ -84,7 +91,12 @@ public static class OpenTelemetryExtensions
     /// </summary>
     /// <param name="tracingBuilder">The builder used to configure tracing providers.</param>
     /// <param name="config">The OpenTelemetry configuration settings.</param>
-    /// <param name="serviceName">The name of the service to use for custom ActivitySource registration.</param>
+    /// <summary>
+    /// Configures tracing instrumentation and exporters for OpenTelemetry, including ASP.NET Core, HTTP client, and database tracing, with custom activity sources and environment-based sampling.
+    /// </summary>
+    /// <param name="tracingBuilder">The builder used to configure tracing providers and instrumentation.</param>
+    /// <param name="config">The OpenTelemetry configuration settings.</param>
+    /// <param name="serviceName">The name of the service used for custom ActivitySource registration.</param>
     private static void ConfigureTracing(TracerProviderBuilder tracingBuilder, OpenTelemetryConfig config, string serviceName)
     {
         // ASP.NET Core 자동 계측
@@ -181,6 +193,11 @@ public static class OpenTelemetryExtensions
     /// </summary>
     /// <param name="metricsBuilder">The metrics builder to configure.</param>
     /// <param name="config">The OpenTelemetry configuration settings.</param>
+    /// <summary>
+    /// Configures OpenTelemetry metrics instrumentation, meters, views, and OTLP exporter for the application.
+    /// </summary>
+    /// <param name="metricsBuilder">The metrics builder used to configure instrumentation and exporters.</param>
+    /// <param name="config">The OpenTelemetry configuration settings.</param>
     /// <param name="meterName">The name of the custom meter to add for application metrics.</param>
     private static void ConfigureMetrics(MeterProviderBuilder metricsBuilder, OpenTelemetryConfig config, string meterName)
     {
@@ -230,7 +247,12 @@ public static class OpenTelemetryExtensions
     /// </summary>
     /// <param name="tracingBuilder">트레이싱 빌더</param>
     /// <param name="config">OpenTelemetry 구성</param>
-    /// <returns>트레이싱 빌더</returns>
+    /// <summary>
+    /// Adds tracing exporters to the <see cref="TracerProviderBuilder"/> based on the specified OpenTelemetry configuration and environment.
+    /// </summary>
+    /// <param name="tracingBuilder">The tracing builder to configure exporters for.</param>
+    /// <param name="config">The OpenTelemetry exporter configuration.</param>
+    /// <returns>The configured <see cref="TracerProviderBuilder"/> instance.</returns>
     private static TracerProviderBuilder AddExporters(this TracerProviderBuilder tracingBuilder, OpenTelemetryConfig config)
     {
         var exporterType = config.Exporter.Type.ToLowerInvariant();
