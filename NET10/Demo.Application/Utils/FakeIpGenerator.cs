@@ -1,4 +1,4 @@
-namespace GamePulse.Utils;
+namespace Demo.Application.Utils;
 
 /// <summary>
 /// Utility class for generating fake IP addresses

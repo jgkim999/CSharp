@@ -1,29 +1,23 @@
+using Demo.Application.Utils;
 using FastEndpoints;
 
 using GamePulse.Processors;
 using GamePulse.Services;
 using GamePulse.Sod.Services;
-using GamePulse.Utils;
 using OpenTelemetry.Trace;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
 
-/// <summary>
-///
-/// </summary>
 public class RttEndpointV1 : Endpoint<RttRequest>
 {
     private readonly ISodBackgroundTaskQueue _taskQueue;
     private readonly IServiceProvider _serviceProvider;
 
     /// <summary>
-    ///
+    /// Initializes a new instance of the <see cref="RttEndpointV1"/> class for handling RTT data submissions.
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="tracer"></param>
-    /// <summary>
-    /// Initializes a new instance of the <see cref="RttEndpointV1"/> class for handling RTT data submissions.
-    /// </summary>
     public RttEndpointV1(ILogger<RttEndpointV1> logger, Tracer tracer, ISodBackgroundTaskQueue taskQueue, IServiceProvider serviceProvider)
     {
         _taskQueue = taskQueue;

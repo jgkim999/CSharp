@@ -34,9 +34,7 @@ public class RttRequest
 public class RttRequestValidator : Validator<RttRequest>
 {
     private static readonly List<string> _allowTypes = ["client", "server"];
-    
-    /// <summary>
-    /// 
+
     /// <summary>
     /// Initializes a new instance of the <see cref="RttRequestValidator"/> class, defining validation rules for <see cref="RttRequest"/> properties.
     /// </summary>

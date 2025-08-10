@@ -1,4 +1,4 @@
-﻿namespace GamePulse.Services.IpToNation;
+﻿namespace Demo.Application.Services;
 
 public interface IIpToNationService
 {

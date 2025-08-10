@@ -3,16 +3,12 @@ using FastEndpoints.Security;
 
 namespace GamePulse.Repositories.Jwt;
 
-/// <summary>
-/// 
-/// </summary>
 public class MemoryJwtRepository : IJwtRepository
 {
     private static readonly ConcurrentDictionary<string, string> Tokens = new();
-    
-    
+
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="response"></param>
     /// <returns></returns>
@@ -26,7 +22,7 @@ public class MemoryJwtRepository : IJwtRepository
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="refreshToken"></param>

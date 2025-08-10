@@ -11,10 +11,7 @@ namespace GamePulse.EndPoints.User.Create;
 public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
 {
     private readonly Tracer _tracer;
-    
-    /// <summary>
-    /// 
-    /// </summary>
+
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateEndpointV1"/> class with the specified OpenTelemetry tracer.
     /// </summary>
@@ -22,9 +19,7 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
     {
         _tracer = tracer;
     }
-    
-    /// <summary>
-    /// Configure
+
     /// <summary>
     /// Configures the endpoint for creating a new user, including route, versioning, validation, access permissions, and metadata.
     /// </summary>
@@ -42,10 +37,6 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
     }
 
     /// <summary>
-    /// Handles user creation request
-    /// </summary>
-    /// <param name="req">User creation request</param>
-    /// <summary>
     /// Processes a user creation request and responds with the user's full name and age status.
     /// </summary>
     /// <param name="req">The user creation request containing first name, last name, and age.</param>
@@ -53,7 +44,7 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
     public override async Task HandleAsync(MyRequest req, CancellationToken ct)
     {
         using var span = _tracer.StartActiveSpan(nameof(CreateEndpointV1));
-        
+
         await Send.OkAsync(new()
         {
             FullName = req.FirstName + " " + req.LastName,

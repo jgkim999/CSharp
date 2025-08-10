@@ -1,11 +1,13 @@
 using System.Diagnostics;
-using GamePulse.Configs;
+using Demo.Application.Repositories;
+using Demo.Infra.Configs;
+using FluentResults;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using StackExchange.Redis;
-using FluentResults;
 
-namespace GamePulse.Repositories.IpToNation.Cache;
+namespace Demo.Infra.Repositories;
 
 /// <summary>
 /// Redis cache implementation for IP to nation mapping

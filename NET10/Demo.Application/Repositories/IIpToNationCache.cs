@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace GamePulse.Repositories.IpToNation.Cache;
+namespace Demo.Application.Repositories;
 
 /// <summary>
 ///
