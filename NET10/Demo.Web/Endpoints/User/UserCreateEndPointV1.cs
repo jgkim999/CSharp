@@ -15,6 +15,8 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
     
     /// <summary>
     /// Initializes a new instance of the <see cref="UserCreateEndpointV1"/> class with the specified command mediator, telemetry service, and logger.
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserCreateEndpointV1"/> class with the specified command mediator, telemetry service, and logger.
     /// </summary>
     public UserCreateEndpointV1(
         ICommandMediator commandMediator, 
@@ -28,6 +30,8 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
     
     /// <summary>
     /// Configures the endpoint to handle HTTP POST requests at the route "/api/user/create" and allows anonymous access.
+    /// <summary>
+    /// Configures the endpoint to handle HTTP POST requests at "/api/user/create" and allows anonymous access.
     /// </summary>
     public override void Configure()
     {
@@ -37,6 +41,10 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
 
     /// <summary>
     /// Processes a user creation request, invoking the user creation command and returning an appropriate HTTP response based on the outcome.
+    /// </summary>
+    /// <param name="req">The user creation request containing name, email, and password.</param>
+    /// <summary>
+    /// Processes a user creation request asynchronously, handling command execution, error reporting, and response sending.
     /// </summary>
     /// <param name="req">The user creation request containing name, email, and password.</param>
     /// <param name="ct">A cancellation token for the asynchronous operation.</param>

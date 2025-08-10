@@ -23,7 +23,11 @@ public class TelemetryCommandHandlerDecorator<TCommand, TResult> : ICommandHandl
     /// </summary>
     /// <param name="innerHandler">실제 명령 핸들러</param>
     /// <param name="logger">로거 인스턴스</param>
-    /// <param name="telemetryService"></param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TelemetryCommandHandlerDecorator{TCommand, TResult}"/> class, wrapping a command handler with telemetry and logging capabilities.
+    /// </summary>
+    /// <param name="innerHandler">The command handler to be decorated.</param>
+    /// <param name="logger">The logger used for structured logging.</param>
     public TelemetryCommandHandlerDecorator(
         ICommandHandler<TCommand, TResult> innerHandler,
         ILogger<TelemetryCommandHandlerDecorator<TCommand, TResult>> logger,
@@ -39,7 +43,13 @@ public class TelemetryCommandHandlerDecorator<TCommand, TResult> : ICommandHandl
     /// </summary>
     /// <param name="command">처리할 명령</param>
     /// <param name="cancellationToken">취소 토큰</param>
+    /// <summary>
+    /// Processes a LiteBus command with telemetry tracing, logging, and business metric recording.
+    /// </summary>
+    /// <param name="command">The command to process.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The result produced by processing the command.</returns>
+    /// <exception cref="Exception">Rethrows any exception encountered during command processing after recording telemetry and metrics.</exception>
     public async Task<TResult> HandleAsync(TCommand command, CancellationToken cancellationToken = default)
     {
         var commandType = typeof(TCommand);
@@ -146,7 +156,12 @@ public class TelemetryCommandHandlerDecorator<TCommand> : ICommandHandler<TComma
     /// <param name="logger">로거 인스턴스</param>
     /// <summary>
     /// Initializes a new instance of the <see cref="TelemetryCommandHandlerDecorator{TCommand}"/> class, enabling telemetry tracing and logging for command handling.
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TelemetryCommandHandlerDecorator{TCommand}"/> class, enabling telemetry tracing and logging for command handling operations.
     /// </summary>
+    /// <param name="innerHandler">The command handler to be decorated with telemetry and logging.</param>
+    /// <param name="logger">The logger used for structured logging of command processing events.</param>
+    /// <param name="telemetryService">The telemetry service used to record tracing and business metrics.</param>
     public TelemetryCommandHandlerDecorator(
         ICommandHandler<TCommand> innerHandler,
         ILogger<TelemetryCommandHandlerDecorator<TCommand>> logger,
@@ -161,6 +176,10 @@ public class TelemetryCommandHandlerDecorator<TCommand> : ICommandHandler<TComma
     /// 텔레메트리 추적과 함께 명령을 처리합니다.
     /// </summary>
     /// <param name="command">처리할 명령</param>
+    /// <summary>
+    /// Handles a LiteBus command with integrated telemetry tracing, logging, and business metric recording.
+    /// </summary>
+    /// <param name="command">The command to process.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     public async Task HandleAsync(TCommand command, CancellationToken cancellationToken = default)
     {

@@ -27,6 +27,21 @@ public static class DatabaseInstrumentationExtensions
     /// <returns>The result of the database operation.</returns>
     /// <remarks>
     /// This method starts an OpenTelemetry activity, logs the operation lifecycle, records execution duration, and handles error tagging and logging. Exceptions thrown by the operation are logged, tagged, and rethrown.
+    /// <summary>
+    /// Executes a database operation asynchronously with OpenTelemetry instrumentation, logging, and tagging of relevant metadata.
+    /// </summary>
+    /// <typeparam name="T">The type of the result returned by the database operation.</typeparam>
+    /// <param name="operationName">A descriptive name for the database operation, used for activity tracking.</param>
+    /// <param name="dbSystem">The database system identifier (e.g., "postgresql", "mysql").</param>
+    /// <param name="dbOperation">The type of database operation (e.g., "SELECT", "INSERT").</param>
+    /// <param name="tableName">The name of the database table involved in the operation.</param>
+    /// <param name="repositoryClass">The name of the repository class initiating the operation.</param>
+    /// <param name="methodName">The name of the method performing the operation.</param>
+    /// <param name="operation">A delegate representing the asynchronous database operation to execute, which receives the current activity.</param>
+    /// <param name="additionalTags">Optional additional tags to include in the activity for enhanced observability.</param>
+    /// <returns>The result of the database operation.</returns>
+    /// <remarks>
+    /// This method tracks the operation's duration, logs its start and completion, and records error information and metrics if an exception occurs. All relevant metadata is attached to the OpenTelemetry activity for distributed tracing.
     /// </remarks>
     public static async Task<T> InstrumentDatabaseOperationAsync<T>(
         this ITelemetryService telemetryService,
