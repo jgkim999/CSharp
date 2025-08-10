@@ -20,7 +20,13 @@ public class UserRepositoryPostgre : IUserRepository
 
     /// <summary>
     /// Initializes a new instance of the UserRepositoryPostgre class with the specified configuration, mapper, logger, and telemetry service.
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserRepositoryPostgre"/> repository with database configuration, mapping, logging, and telemetry services.
     /// </summary>
+    /// <param name="config">Configuration settings for PostgreSQL database connection.</param>
+    /// <param name="mapper">Object mapper for converting between database entities and data transfer objects.</param>
+    /// <param name="logger">Logger for recording repository-related events and diagnostics.</param>
+    /// <param name="telemetryService">Service for tracking and reporting telemetry information.</param>
     public UserRepositoryPostgre(
     PostgresConfig config,
     IMapper mapper,
@@ -35,6 +41,12 @@ public class UserRepositoryPostgre : IUserRepository
 
     /// <summary>
     /// Asynchronously creates a new user record in the PostgreSQL database with the specified name, email, and password hash.
+    /// </summary>
+    /// <param name="name">The user's name.</param>
+    /// <param name="email">The user's email address.</param>
+    /// <param name="passwordSha256">The SHA-256 hash of the user's password.</param>
+    /// <summary>
+    /// Asynchronously creates a new user record in the database with the specified name, email, and password hash.
     /// </summary>
     /// <param name="name">The user's name.</param>
     /// <param name="email">The user's email address.</param>
@@ -75,6 +87,10 @@ public class UserRepositoryPostgre : IUserRepository
     /// <summary>
     /// Retrieves all users from the database and returns them as a list of user DTOs.
     /// </summary>
+    /// <summary>
+    /// Retrieves a list of users from the database, limited by the specified count.
+    /// </summary>
+    /// <param name="limit">The maximum number of users to retrieve (default is 10; maximum allowed is 100).</param>
     /// <returns>A result containing a list of user DTOs if successful; otherwise, a failure result with an error message.</returns>
     public async Task<Result<IEnumerable<UserDto>>> GetAllAsync(int limit = 10)
     {

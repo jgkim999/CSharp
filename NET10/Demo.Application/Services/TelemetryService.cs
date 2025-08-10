@@ -155,7 +155,11 @@ public class TelemetryService : ITelemetryService, IDisposable
     /// Activity에 에러 정보를 설정합니다.
     /// </summary>
     /// <param name="activity">Activity 객체</param>
-    /// <param name="exception">예외 객체</param>
+    /// <summary>
+    /// Marks the specified activity as failed due to an exception and records exception details as tags and an event.
+    /// </summary>
+    /// <param name="activity">The activity to update with error information.</param>
+    /// <param name="exception">The exception that caused the error.</param>
     public void SetActivityError(Activity? activity, Exception exception)
     {
         if (activity == null)
@@ -180,7 +184,11 @@ public class TelemetryService : ITelemetryService, IDisposable
     /// Activity에 성공 상태를 설정합니다.
     /// </summary>
     /// <param name="activity">Activity 객체</param>
-    /// <param name="message">성공 메시지</param>
+    /// <summary>
+    /// Marks the specified activity as successful and sets an optional success message.
+    /// </summary>
+    /// <param name="activity">The activity to update.</param>
+    /// <param name="message">An optional message describing the successful operation.</param>
     public void SetActivitySuccess(Activity? activity, string? message = null)
     {
         if (activity == null)
@@ -196,7 +204,13 @@ public class TelemetryService : ITelemetryService, IDisposable
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="level">로그 레벨</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
-    /// <param name="propertyValues">속성 값들</param>
+    /// <summary>
+    /// Logs a message with the current trace context properties if an activity is present.
+    /// </summary>
+    /// <remarks>
+    /// Adds TraceId, SpanId, ParentId, and OperationName from the current activity to the log context for the duration of the log entry.
+    /// If no current activity exists, the method does nothing.
+    /// </remarks>
     private void LogWithTraceContext(ILogger logger, LogLevel level, 
         string messageTemplate, params object[] propertyValues)
     {
@@ -218,7 +232,11 @@ public class TelemetryService : ITelemetryService, IDisposable
     /// </summary>
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
-    /// <param name="propertyValues">속성 값들</param>
+    /// <summary>
+    /// Logs an informational message including the current trace context, if available.
+    /// </summary>
+    /// <param name="messageTemplate">The message template to log.</param>
+    /// <param name="propertyValues">Optional values to format into the message template.</param>
     public void LogInformationWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
     {
         LogWithTraceContext(logger, LogLevel.Information, messageTemplate, propertyValues);
@@ -229,7 +247,12 @@ public class TelemetryService : ITelemetryService, IDisposable
     /// </summary>
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
-    /// <param name="propertyValues">속성 값들</param>
+    /// <summary>
+    /// Logs a warning message including the current trace context, if available.
+    /// </summary>
+    /// <param name="logger">The logger to write the warning message to.</param>
+    /// <param name="messageTemplate">The message template for the warning log.</param>
+    /// <param name="propertyValues">Optional property values to format the message template.</param>
     public void LogWarningWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
     {
         LogWithTraceContext(logger, LogLevel.Warning, messageTemplate, propertyValues);
@@ -241,7 +264,12 @@ public class TelemetryService : ITelemetryService, IDisposable
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="exception">예외 객체</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
-    /// <param name="propertyValues">속성 값들</param>
+    /// <summary>
+    /// Logs an error message with exception details, including trace context properties if an activity is present.
+    /// </summary>
+    /// <param name="exception">The exception to log.</param>
+    /// <param name="messageTemplate">The message template for the log entry.</param>
+    /// <param name="propertyValues">Optional values to format into the message template.</param>
     public void LogErrorWithTrace(ILogger logger, Exception exception, string messageTemplate, params object[] propertyValues)
     {
         var activity = Activity.Current;
@@ -265,7 +293,11 @@ public class TelemetryService : ITelemetryService, IDisposable
     /// 구조화된 로깅을 위한 로그 컨텍스트를 생성합니다.
     /// </summary>
     /// <param name="properties">추가할 속성들</param>
-    /// <returns>IDisposable 로그 컨텍스트</returns>
+    /// <summary>
+    /// Creates a structured logging context that includes the current trace information and additional user-defined properties.
+    /// </summary>
+    /// <param name="properties">A dictionary of custom properties to include in the log context.</param>
+    /// <returns>An <see cref="IDisposable"/> that manages the lifetime of the pushed log context properties.</returns>
     public IDisposable CreateLogContext(Dictionary<string, object> properties)
     {
         var disposables = new List<IDisposable>();
