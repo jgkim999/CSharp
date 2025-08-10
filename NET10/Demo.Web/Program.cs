@@ -3,6 +3,7 @@ using Demo.Infra;
 using Demo.Web.Configs;
 using Demo.Web.Endpoints.User;
 using Demo.Web.Extensions;
+using Demo.Web.Middleware;
 
 using FastEndpoints;
 
@@ -27,6 +28,10 @@ builder.Configuration
 // OpenTelemetry 설정 바인딩
 var openTelemetryConfig = new OpenTelemetryConfig();
 builder.Configuration.GetSection(OpenTelemetryConfig.SectionName).Bind(openTelemetryConfig);
+
+// RateLimit 설정 바인딩
+var rateLimitConfig = new RateLimitConfig();
+builder.Configuration.GetSection(RateLimitConfig.SectionName).Bind(rateLimitConfig);
 
 // 환경 변수에서 서비스 정보 오버라이드
 var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME");
@@ -106,8 +111,16 @@ try
     builder.Services.AddApplication();
     builder.Services.AddInfra(builder.Configuration);
 
+    // RateLimit 설정을 DI 컨테이너에 등록
+    builder.Services.Configure<RateLimitConfig>(builder.Configuration.GetSection(RateLimitConfig.SectionName));
+    builder.Services.AddSingleton(rateLimitConfig);
+
 
     var app = builder.Build();
+    
+    // Rate Limit 미들웨어 등록 (FastEndpoints보다 먼저 등록)
+    app.UseMiddleware<RateLimitMiddleware>();
+    
     app.UseFastEndpoints(x =>
     {
         x.Errors.UseProblemDetails();
