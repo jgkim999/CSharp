@@ -15,6 +15,8 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TestLoggingEndpoint"/> class with the specified logger and telemetry service.
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TestLoggingEndpoint"/> class for testing logging and telemetry integration.
     /// </summary>
     public TestLoggingEndpoint(ILogger<TestLoggingEndpoint> logger, ITelemetryService telemetryService)
     {
@@ -22,6 +24,9 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
         _telemetryService = telemetryService;
     }
 
+    /// <summary>
+    /// Configures the endpoint to handle GET requests for logging and tracing tests.
+    /// </summary>
     public override void Configure()
     {
         Get("/api/test/logging");
@@ -36,7 +41,11 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
     /// <summary>
     /// Handles the HTTP GET request for the logging test endpoint, performing logging and telemetry operations, simulating nested activities and error handling, and returning trace information in the response.
     /// </summary>
-    /// <param name="ct">Cancellation token for the request.</param>
+    /// <summary>
+    /// Handles an HTTP GET request to test logging and telemetry integration.
+    /// </summary>
+    /// <param name="ct">A cancellation token that can be used to cancel the request.</param>
+    /// <returns>A task representing the asynchronous operation. The HTTP response contains a completion message, trace identifiers, and a timestamp.</returns>
     public override async Task HandleAsync(CancellationToken ct)
     {
         using var activity = _telemetryService.StartActivity("TestLogging", new Dictionary<string, object?>
