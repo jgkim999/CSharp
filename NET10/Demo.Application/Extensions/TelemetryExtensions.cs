@@ -15,7 +15,10 @@ public static class TelemetryExtensions
     /// LiteBus 명령 핸들러에 텔레메트리 데코레이터를 추가합니다.
     /// </summary>
     /// <param name="services">서비스 컬렉션</param>
-    /// <returns>서비스 컬렉션</returns>
+    /// <summary>
+    /// Adds telemetry decorators to all LiteBus command handlers in the service collection.
+    /// </summary>
+    /// <returns>The modified service collection with telemetry integration for command handlers.</returns>
     public static IServiceCollection AddLiteBusTelemetry(this IServiceCollection services)
     {
         // TelemetryService가 등록되어 있는지 확인
@@ -89,7 +92,13 @@ public static class TelemetryExtensions
     /// <param name="provider">서비스 프로바이더</param>
     /// <param name="decoratorType">데코레이터 타입</param>
     /// <param name="innerHandlerType">내부 핸들러 타입</param>
-    /// <returns>데코레이터 인스턴스</returns>
+    /// <summary>
+    /// Creates an instance of a telemetry decorator for a command handler, injecting the inner handler, a logger, and the telemetry service.
+    /// </summary>
+    /// <param name="provider">The service provider used to resolve dependencies.</param>
+    /// <param name="decoratorType">The type of the decorator to instantiate.</param>
+    /// <param name="innerHandlerType">The type of the inner command handler to wrap.</param>
+    /// <returns>An instance of the specified decorator type wrapping the inner handler.</returns>
     private static object CreateDecorator(IServiceProvider provider, Type decoratorType, Type innerHandlerType)
     {
         var innerHandler = provider.GetRequiredService(innerHandlerType);
