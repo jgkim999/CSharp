@@ -2,7 +2,6 @@ using System.Diagnostics;
 
 using Demo.Application.Services;
 using Demo.Web.Configs;
-using Microsoft.Extensions.Options;
 using Npgsql;
 
 using OpenTelemetry.Exporter;
@@ -18,13 +17,13 @@ namespace Demo.Web.Extensions;
 public static class OpenTelemetryExtensions
 {
     /// <summary>
-    /// OpenTelemetry 서비스를 DI 컨테이너에 등록합니다.
+    /// Registers and configures OpenTelemetry tracing and metrics services in the dependency injection container using the provided configuration, service instance ID, and environment.
     /// </summary>
-    /// <param name="services">서비스 컬렉션</param>
-    /// <param name="configuration">구성 객체</param>
-    /// <param name="serviceInstanceId"></param>
-    /// <param name="environment"></param>
-    /// <returns>서비스 컬렉션</returns>
+    /// <param name="services">The service collection to add OpenTelemetry services to.</param>
+    /// <param name="configuration">The application configuration containing OpenTelemetry settings.</param>
+    /// <param name="serviceInstanceId">A unique identifier for the service instance.</param>
+    /// <param name="environment">The current application environment (e.g., Development, Production).</param>
+    /// <returns>The updated service collection with OpenTelemetry services registered.</returns>
     public static IServiceCollection AddOpenTelemetryServices(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -81,10 +80,11 @@ public static class OpenTelemetryExtensions
     }
 
     /// <summary>
-    /// 트레이싱 구성을 설정합니다.
+    /// Configures tracing instrumentation, enrichment, filtering, and exporters for OpenTelemetry using the provided service name and configuration.
     /// </summary>
-    /// <param name="tracingBuilder">트레이싱 빌더</param>
-    /// <param name="config">OpenTelemetry 구성</param>
+    /// <param name="tracingBuilder">The builder used to configure tracing providers.</param>
+    /// <param name="config">The OpenTelemetry configuration settings.</param>
+    /// <param name="serviceName">The name of the service to use for custom ActivitySource registration.</param>
     private static void ConfigureTracing(TracerProviderBuilder tracingBuilder, OpenTelemetryConfig config, string serviceName)
     {
         // ASP.NET Core 자동 계측
@@ -177,10 +177,11 @@ public static class OpenTelemetryExtensions
     }
 
     /// <summary>
-    /// 메트릭 구성을 설정합니다.
+    /// Configures OpenTelemetry metrics instrumentation, meters, histogram views, and OTLP exporting for the application.
     /// </summary>
-    /// <param name="metricsBuilder">메트릭 빌더</param>
-    /// <param name="config">OpenTelemetry 구성</param>
+    /// <param name="metricsBuilder">The metrics builder to configure.</param>
+    /// <param name="config">The OpenTelemetry configuration settings.</param>
+    /// <param name="meterName">The name of the custom meter to add for application metrics.</param>
     private static void ConfigureMetrics(MeterProviderBuilder metricsBuilder, OpenTelemetryConfig config, string meterName)
     {
         // ASP.NET Core 메트릭

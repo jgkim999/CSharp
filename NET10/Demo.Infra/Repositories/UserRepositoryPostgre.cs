@@ -33,7 +33,7 @@ public class UserRepositoryPostgre : IUserRepository
     }
 
     /// <summary>
-    /// Asynchronously creates a new user record in the PostgreSQL database with the specified name, email, and password hash.
+    /// Asynchronously creates a new user record in the database with the specified name, email, and password hash.
     /// </summary>
     /// <param name="name">The user's name.</param>
     /// <param name="email">The user's email address.</param>
@@ -72,8 +72,9 @@ public class UserRepositoryPostgre : IUserRepository
     }
 
     /// <summary>
-    /// Retrieves all users from the database and returns them as a list of user DTOs.
+    /// Asynchronously retrieves a list of users from the database, limited by the specified count.
     /// </summary>
+    /// <param name="limit">The maximum number of users to retrieve (up to 100).</param>
     /// <returns>A result containing a list of user DTOs if successful; otherwise, a failure result with an error message.</returns>
     public async Task<Result<IEnumerable<UserDto>>> GetAllAsync(int limit = 10, CancellationToken ct = default)
     {

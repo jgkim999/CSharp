@@ -19,10 +19,11 @@ public class TelemetryCommandHandlerDecorator<TCommand, TResult> : ICommandHandl
 
     /// <summary>
     /// TelemetryCommandHandlerDecorator 생성자
+    /// Initializes a new instance of the <see cref="TelemetryCommandHandlerDecorator{TCommand, TResult}"/> class, enabling telemetry tracing and logging for command handling operations.
     /// </summary>
     /// <param name="innerHandler">실제 명령 핸들러</param>
     /// <param name="logger">로거 인스턴스</param>
-    /// <param name="telemetryService">텔레메트리 서비스</param>
+    /// <param name="telemetryService"></param>
     public TelemetryCommandHandlerDecorator(
         ICommandHandler<TCommand, TResult> innerHandler,
         ILogger<TelemetryCommandHandlerDecorator<TCommand, TResult>> logger,
@@ -38,7 +39,7 @@ public class TelemetryCommandHandlerDecorator<TCommand, TResult> : ICommandHandl
     /// </summary>
     /// <param name="command">처리할 명령</param>
     /// <param name="cancellationToken">취소 토큰</param>
-    /// <returns>처리 결과</returns>
+    /// <returns>The result produced by processing the command.</returns>
     public async Task<TResult> HandleAsync(TCommand command, CancellationToken cancellationToken = default)
     {
         var commandType = typeof(TCommand);
@@ -143,7 +144,9 @@ public class TelemetryCommandHandlerDecorator<TCommand> : ICommandHandler<TComma
     /// </summary>
     /// <param name="innerHandler">실제 명령 핸들러</param>
     /// <param name="logger">로거 인스턴스</param>
-    /// <param name="telemetryService">텔레메트리 서비스</param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TelemetryCommandHandlerDecorator{TCommand}"/> class, enabling telemetry tracing and logging for command handling.
+    /// </summary>
     public TelemetryCommandHandlerDecorator(
         ICommandHandler<TCommand> innerHandler,
         ILogger<TelemetryCommandHandlerDecorator<TCommand>> logger,
@@ -158,7 +161,7 @@ public class TelemetryCommandHandlerDecorator<TCommand> : ICommandHandler<TComma
     /// 텔레메트리 추적과 함께 명령을 처리합니다.
     /// </summary>
     /// <param name="command">처리할 명령</param>
-    /// <param name="cancellationToken">취소 토큰</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     public async Task HandleAsync(TCommand command, CancellationToken cancellationToken = default)
     {
         var commandType = typeof(TCommand);

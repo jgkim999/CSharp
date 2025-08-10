@@ -1,7 +1,6 @@
 using Demo.Application.Commands;
 using Demo.Application.DTO.User;
 using Demo.Application.Extensions;
-using Demo.Application.Services;
 using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
 using LiteBus.Messaging.Extensions.MicrosoftDependencyInjection;
 using Mapster;

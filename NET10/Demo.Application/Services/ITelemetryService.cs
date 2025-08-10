@@ -13,7 +13,7 @@ public interface ITelemetryService
     /// </summary>
     /// <param name="operationName">작업 이름</param>
     /// <param name="tags">추가할 태그</param>
-    /// <returns>시작된 Activity</returns>
+    /// <returns>The started <see cref="Activity"/> instance, or null if the activity could not be started.</returns>
     Activity? StartActivity(string operationName, Dictionary<string, object?>? tags = null);
 
     /// <summary>
@@ -22,7 +22,7 @@ public interface ITelemetryService
     /// <param name="method">HTTP 메서드</param>
     /// <param name="endpoint">엔드포인트</param>
     /// <param name="statusCode">상태 코드</param>
-    /// <param name="duration">요청 처리 시간</param>
+    /// <param name="duration">The time taken to process the request, in milliseconds.</param>
     void RecordHttpRequest(string method, string endpoint, int statusCode, double duration);
 
     /// <summary>
@@ -30,7 +30,7 @@ public interface ITelemetryService
     /// </summary>
     /// <param name="errorType">에러 타입</param>
     /// <param name="operation">작업 이름</param>
-    /// <param name="message">에러 메시지</param>
+    /// <param name="message">An optional message describing the error.</param>
     void RecordError(string errorType, string operation, string? message = null);
 
     /// <summary>
@@ -38,12 +38,43 @@ public interface ITelemetryService
     /// </summary>
     /// <param name="metricName">메트릭 이름</param>
     /// <param name="value">값</param>
-    /// <param name="tags">태그</param>
+    /// <param name="tags">Optional key-value pairs providing additional context for the metric.</param>
     void RecordBusinessMetric(string metricName, long value, Dictionary<string, object?>? tags = null);
 
+    /// <summary>
+    /// Marks the specified telemetry activity as successful, optionally including a message.
+    /// </summary>
+    /// <param name="activity">The activity to mark as successful.</param>
+    /// <param name="message">An optional message describing the success.</param>
     void SetActivitySuccess(Activity? activity, string? message = null);
+    
+    /// <summary>
+    /// Marks the specified activity as failed due to the provided exception.
+    /// </summary>
     void SetActivityError(Activity? activity, Exception exception);
+
+    /// <summary>
+    /// Logs an informational message with trace context using the provided logger.
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="messageTemplate">The message template for the log entry.</param>
+    /// <param name="propertyValues">Optional property values to format the message template.</param>
     void LogInformationWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues);
+
+    /// <summary>
+    /// Logs a warning message with trace context using the provided logger.
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="messageTemplate">The message template for the warning log entry.</param>
+    /// <param name="propertyValues">Optional property values to format the message template.</param>
     void LogWarningWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues);
+
+    /// <summary>
+    /// Logs an error message with trace context and exception details using the specified logger.
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="exception">The exception to include in the log entry.</param>
+    /// <param name="messageTemplate">The message template for the log entry.</param>
+    /// <param name="propertyValues">Optional property values to format the message template.</param>
     void LogErrorWithTrace(ILogger logger, Exception exception, string messageTemplate, params object[] propertyValues);
 }

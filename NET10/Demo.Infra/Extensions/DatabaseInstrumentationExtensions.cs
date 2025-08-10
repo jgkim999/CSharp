@@ -24,7 +24,10 @@ public static class DatabaseInstrumentationExtensions
     /// <param name="methodName">메서드 이름</param>
     /// <param name="operation">실행할 데이터베이스 작업</param>
     /// <param name="additionalTags">추가 태그</param>
-    /// <returns>작업 결과</returns>
+    /// <returns>The result of the database operation.</returns>
+    /// <remarks>
+    /// This method starts an OpenTelemetry activity, logs the operation lifecycle, records execution duration, and handles error tagging and logging. Exceptions thrown by the operation are logged, tagged, and rethrown.
+    /// </remarks>
     public static async Task<T> InstrumentDatabaseOperationAsync<T>(
         this ITelemetryService telemetryService,
         ILogger logger,
