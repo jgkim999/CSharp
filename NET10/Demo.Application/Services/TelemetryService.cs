@@ -1,8 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using Serilog;
 using Serilog.Context;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -11,7 +9,7 @@ namespace Demo.Application.Services;
 /// <summary>
 /// 사용자 정의 텔레메트리 서비스
 /// </summary>
-public class TelemetryService
+public class TelemetryService : ITelemetryService, IDisposable
 {
     /// <summary>
     /// Demo.Application 애플리케이션의 _activitySource
@@ -158,9 +156,10 @@ public class TelemetryService
     /// </summary>
     /// <param name="activity">Activity 객체</param>
     /// <param name="exception">예외 객체</param>
-    public static void SetActivityError(Activity? activity, Exception exception)
+    public void SetActivityError(Activity? activity, Exception exception)
     {
-        if (activity == null) return;
+        if (activity == null)
+            return;
 
         activity.SetStatus(ActivityStatusCode.Error, exception.Message);
         activity.SetTag("error", true);
@@ -182,9 +181,10 @@ public class TelemetryService
     /// </summary>
     /// <param name="activity">Activity 객체</param>
     /// <param name="message">성공 메시지</param>
-    public static void SetActivitySuccess(Activity? activity, string? message = null)
+    public void SetActivitySuccess(Activity? activity, string? message = null)
     {
-        if (activity == null) return;
+        if (activity == null)
+            return;
 
         activity.SetStatus(ActivityStatusCode.Ok, message ?? "Operation completed successfully");
         activity.SetTag("success", true);
@@ -197,21 +197,17 @@ public class TelemetryService
     /// <param name="level">로그 레벨</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
     /// <param name="propertyValues">속성 값들</param>
-    public static void LogWithTraceContext(ILogger logger, LogLevel level, 
+    private void LogWithTraceContext(ILogger logger, LogLevel level, 
         string messageTemplate, params object[] propertyValues)
     {
         var activity = Activity.Current;
-        if (activity != null)
-        {
-            using (LogContext.PushProperty("TraceId", activity.TraceId.ToString()))
-            using (LogContext.PushProperty("SpanId", activity.SpanId.ToString()))
-            using (LogContext.PushProperty("ParentId", activity.ParentSpanId.ToString()))
-            using (LogContext.PushProperty("OperationName", activity.OperationName))
-            {
-                logger.Log(level, messageTemplate, propertyValues);
-            }
-        }
-        else
+        if (activity == null)
+            return;
+        
+        using (LogContext.PushProperty("TraceId", activity.TraceId.ToString()))
+        using (LogContext.PushProperty("SpanId", activity.SpanId.ToString()))
+        using (LogContext.PushProperty("ParentId", activity.ParentSpanId.ToString()))
+        using (LogContext.PushProperty("OperationName", activity.OperationName))
         {
             logger.Log(level, messageTemplate, propertyValues);
         }
@@ -223,7 +219,7 @@ public class TelemetryService
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
     /// <param name="propertyValues">속성 값들</param>
-    public static void LogInformationWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
+    public void LogInformationWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
     {
         LogWithTraceContext(logger, LogLevel.Information, messageTemplate, propertyValues);
     }
@@ -234,7 +230,7 @@ public class TelemetryService
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
     /// <param name="propertyValues">속성 값들</param>
-    public static void LogWarningWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
+    public void LogWarningWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
     {
         LogWithTraceContext(logger, LogLevel.Warning, messageTemplate, propertyValues);
     }
@@ -246,7 +242,7 @@ public class TelemetryService
     /// <param name="exception">예외 객체</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
     /// <param name="propertyValues">속성 값들</param>
-    public static void LogErrorWithTrace(ILogger logger, Exception exception, string messageTemplate, params object[] propertyValues)
+    public void LogErrorWithTrace(ILogger logger, Exception exception, string messageTemplate, params object[] propertyValues)
     {
         var activity = Activity.Current;
         if (activity != null)
@@ -270,7 +266,7 @@ public class TelemetryService
     /// </summary>
     /// <param name="properties">추가할 속성들</param>
     /// <returns>IDisposable 로그 컨텍스트</returns>
-    public static IDisposable CreateLogContext(Dictionary<string, object> properties)
+    public IDisposable CreateLogContext(Dictionary<string, object> properties)
     {
         var disposables = new List<IDisposable>();
         

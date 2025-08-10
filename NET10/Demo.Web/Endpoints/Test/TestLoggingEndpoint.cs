@@ -11,9 +11,9 @@ namespace Demo.Web.Endpoints.Test;
 public class TestLoggingEndpoint : EndpointWithoutRequest
 {
     private readonly ILogger<TestLoggingEndpoint> _logger;
-    private readonly TelemetryService _telemetryService;
+    private readonly ITelemetryService _telemetryService;
 
-    public TestLoggingEndpoint(ILogger<TestLoggingEndpoint> logger, TelemetryService telemetryService)
+    public TestLoggingEndpoint(ILogger<TestLoggingEndpoint> logger, ITelemetryService telemetryService)
     {
         _logger = logger;
         _telemetryService = telemetryService;
@@ -42,7 +42,7 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
         _logger.LogWarning("테스트 로그 메시지 - 경고 레벨");
         
         // TelemetryService의 헬퍼 메서드 사용
-        TelemetryService.LogInformationWithTrace(_logger, "TelemetryService를 통한 로그 메시지: {TestValue}", "test-value-123");
+        _telemetryService.LogInformationWithTrace(_logger, "TelemetryService를 통한 로그 메시지: {TestValue}", "test-value-123");
 
         // 중첩된 Activity 테스트
         using var nestedActivity = _telemetryService.StartActivity("NestedOperation", new Dictionary<string, object?>
@@ -60,11 +60,11 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
         }
         catch (Exception ex)
         {
-            TelemetryService.LogErrorWithTrace(_logger, ex, "예외 발생 테스트: {ErrorType}", ex.GetType().Name);
-            TelemetryService.SetActivityError(nestedActivity, ex);
+            _telemetryService.LogErrorWithTrace(_logger, ex, "예외 발생 테스트: {ErrorType}", ex.GetType().Name);
+            _telemetryService.SetActivityError(nestedActivity, ex);
         }
 
-        TelemetryService.SetActivitySuccess(activity, "로깅 테스트 완료");
+        _telemetryService.SetActivitySuccess(activity, "로깅 테스트 완료");
 
         Response = new
         {

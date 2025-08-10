@@ -26,7 +26,7 @@ public static class DatabaseInstrumentationExtensions
     /// <param name="additionalTags">추가 태그</param>
     /// <returns>작업 결과</returns>
     public static async Task<T> InstrumentDatabaseOperationAsync<T>(
-        this TelemetryService telemetryService,
+        this ITelemetryService telemetryService,
         ILogger logger,
         string operationName,
         string dbSystem,
@@ -64,7 +64,7 @@ public static class DatabaseInstrumentationExtensions
         try
         {
             // 작업 시작 로그
-            TelemetryService.LogInformationWithTrace(logger, 
+            telemetryService.LogInformationWithTrace(logger, 
                 "데이터베이스 작업 시작 - Operation: {Operation}, Table: {Table}", 
                 dbOperation, tableName);
 
@@ -78,7 +78,7 @@ public static class DatabaseInstrumentationExtensions
             activity?.SetTag("db.total_duration_ms", duration);
 
             // 성공 로그
-            TelemetryService.LogInformationWithTrace(logger, 
+            telemetryService.LogInformationWithTrace(logger, 
                 "데이터베이스 작업 완료 - Operation: {Operation}, Table: {Table}, Duration: {Duration}ms", 
                 dbOperation, tableName, duration);
 
@@ -90,14 +90,14 @@ public static class DatabaseInstrumentationExtensions
             var duration = stopwatch.Elapsed.TotalMilliseconds;
 
             // Activity에 예외 정보 설정
-            TelemetryService.SetActivityError(activity, e);
+            telemetryService.SetActivityError(activity, e);
             activity?.SetTag("db.total_duration_ms", duration);
 
             // 예외 메트릭 기록
             telemetryService.RecordError("DatabaseException", operationName, e.Message);
 
             // 예외 로그
-            TelemetryService.LogErrorWithTrace(logger, e, 
+            telemetryService.LogErrorWithTrace(logger, e, 
                 "데이터베이스 작업 중 예외 발생 - Operation: {Operation}, Table: {Table}", 
                 dbOperation, tableName);
 

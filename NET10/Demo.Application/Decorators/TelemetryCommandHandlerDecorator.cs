@@ -15,7 +15,7 @@ public class TelemetryCommandHandlerDecorator<TCommand, TResult> : ICommandHandl
 {
     private readonly ICommandHandler<TCommand, TResult> _innerHandler;
     private readonly ILogger<TelemetryCommandHandlerDecorator<TCommand, TResult>> _logger;
-    private readonly TelemetryService _telemetryService;
+    private readonly ITelemetryService _telemetryService;
 
     /// <summary>
     /// TelemetryCommandHandlerDecorator 생성자
@@ -26,7 +26,7 @@ public class TelemetryCommandHandlerDecorator<TCommand, TResult> : ICommandHandl
     public TelemetryCommandHandlerDecorator(
         ICommandHandler<TCommand, TResult> innerHandler,
         ILogger<TelemetryCommandHandlerDecorator<TCommand, TResult>> logger,
-        TelemetryService telemetryService)
+        ITelemetryService telemetryService)
     {
         _innerHandler = innerHandler;
         _logger = logger;
@@ -62,7 +62,7 @@ public class TelemetryCommandHandlerDecorator<TCommand, TResult> : ICommandHandl
         try
         {
             // 명령 시작 로그
-            TelemetryService.LogInformationWithTrace(_logger, 
+            _telemetryService.LogInformationWithTrace(_logger, 
                 "LiteBus 명령 처리 시작: {CommandType} in {Assembly}", 
                 commandType.Name, commandType.Assembly.GetName().Name ?? "Unknown");
 
@@ -87,10 +87,10 @@ public class TelemetryCommandHandlerDecorator<TCommand, TResult> : ICommandHandl
             });
 
             // Activity에 성공 상태 설정
-            TelemetryService.SetActivitySuccess(activity, "LiteBus 명령 처리 완료");
+            _telemetryService.SetActivitySuccess(activity, "LiteBus 명령 처리 완료");
             
             // 성공 로그
-            TelemetryService.LogInformationWithTrace(_logger, 
+            _telemetryService.LogInformationWithTrace(_logger, 
                 "LiteBus 명령 처리 완료: {CommandType}, 처리시간: {ElapsedMs}ms", 
                 commandType.Name, stopwatch.ElapsedMilliseconds);
 
@@ -115,10 +115,10 @@ public class TelemetryCommandHandlerDecorator<TCommand, TResult> : ICommandHandl
             });
 
             // Activity에 에러 상태 설정
-            TelemetryService.SetActivityError(activity, ex);
+            _telemetryService.SetActivityError(activity, ex);
             
             // 에러 로그
-            TelemetryService.LogErrorWithTrace(_logger, ex, 
+            _telemetryService.LogErrorWithTrace(_logger, ex, 
                 "LiteBus 명령 처리 중 오류 발생: {CommandType}, 처리시간: {ElapsedMs}ms, 오류: {ErrorMessage}", 
                 commandType.Name, stopwatch.ElapsedMilliseconds, ex.Message);
 
@@ -136,7 +136,7 @@ public class TelemetryCommandHandlerDecorator<TCommand> : ICommandHandler<TComma
 {
     private readonly ICommandHandler<TCommand> _innerHandler;
     private readonly ILogger<TelemetryCommandHandlerDecorator<TCommand>> _logger;
-    private readonly TelemetryService _telemetryService;
+    private readonly ITelemetryService _telemetryService;
 
     /// <summary>
     /// TelemetryCommandHandlerDecorator 생성자
@@ -147,7 +147,7 @@ public class TelemetryCommandHandlerDecorator<TCommand> : ICommandHandler<TComma
     public TelemetryCommandHandlerDecorator(
         ICommandHandler<TCommand> innerHandler,
         ILogger<TelemetryCommandHandlerDecorator<TCommand>> logger,
-        TelemetryService telemetryService)
+        ITelemetryService telemetryService)
     {
         _innerHandler = innerHandler;
         _logger = logger;
@@ -181,7 +181,7 @@ public class TelemetryCommandHandlerDecorator<TCommand> : ICommandHandler<TComma
         try
         {
             // 명령 시작 로그
-            TelemetryService.LogInformationWithTrace(_logger, 
+            _telemetryService.LogInformationWithTrace(_logger, 
                 "LiteBus 명령 처리 시작: {CommandType} in {Assembly}", 
                 commandType.Name, commandType.Assembly.GetName().Name ?? "Unknown");
 
@@ -206,10 +206,10 @@ public class TelemetryCommandHandlerDecorator<TCommand> : ICommandHandler<TComma
             });
 
             // Activity에 성공 상태 설정
-            TelemetryService.SetActivitySuccess(activity, "LiteBus 명령 처리 완료");
+            _telemetryService.SetActivitySuccess(activity, "LiteBus 명령 처리 완료");
             
             // 성공 로그
-            TelemetryService.LogInformationWithTrace(_logger, 
+            _telemetryService.LogInformationWithTrace(_logger, 
                 "LiteBus 명령 처리 완료: {CommandType}, 처리시간: {ElapsedMs}ms", 
                 commandType.Name, stopwatch.ElapsedMilliseconds);
         }
@@ -232,10 +232,10 @@ public class TelemetryCommandHandlerDecorator<TCommand> : ICommandHandler<TComma
             });
 
             // Activity에 에러 상태 설정
-            TelemetryService.SetActivityError(activity, ex);
+            _telemetryService.SetActivityError(activity, ex);
             
             // 에러 로그
-            TelemetryService.LogErrorWithTrace(_logger, ex, 
+            _telemetryService.LogErrorWithTrace(_logger, ex, 
                 "LiteBus 명령 처리 중 오류 발생: {CommandType}, 처리시간: {ElapsedMs}ms, 오류: {ErrorMessage}", 
                 commandType.Name, stopwatch.ElapsedMilliseconds, ex.Message);
 
