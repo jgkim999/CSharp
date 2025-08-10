@@ -2,24 +2,14 @@ using FastEndpoints;
 using FastEndpoints.Security;
 using GamePulse.Configs;
 using GamePulse.Repositories.Jwt;
-using OpenTelemetry.Trace;
 
 namespace GamePulse.Services;
 
-/// <summary>
-/// 
-/// </summary>
 public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
 {
     private readonly ILogger<MyTokenService> _logger;
     private readonly IJwtRepository _jwtRepository;
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="config"></param>
-    /// <param name="logger"></param>
-    /// <param name="jwtRepository"></param>
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MyTokenService"/> class, configuring JWT token parameters and refresh token endpoint settings.
     /// </summary>
@@ -32,34 +22,30 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
             throw new NullReferenceException();
         _logger = logger;
         _jwtRepository = jwtRepository;
-        
+
         var jwtConfig = config.GetSection("Jwt").Get<JwtConfig>();
         if (jwtConfig == null)
             throw new NullReferenceException();
-        
+
         Setup(o =>
         {
             o.TokenSigningKey = jwtConfig.PrivateKey;
             o.AccessTokenValidity = TimeSpan.FromMinutes(60);
             o.RefreshTokenValidity = TimeSpan.FromMinutes(50);
-            
+
             o.Endpoint("/api/refresh-token", ep =>
             {
                 ep.Summary(s => s.Summary = "this is the refresh token endpoint");
             });
         });
     }
-    
+
     /// <summary>
     /// 이 메서드는 새로운 액세스/리프레시 토큰 쌍이 생성될 때마다 호출됩니다.
     /// 토큰과 만료일을 원하는 방식으로 저장하여 향후 리프레시 요청을 검증하는 데 사용하십시오.
     /// </summary>
     /// <param name="response"></param>
     /// <returns></returns>
-    /// <summary>
-    /// Persists the generated access and refresh tokens along with their expiration details.
-    /// </summary>
-    /// <param name="response">The token response containing the tokens and their metadata to be stored.</param>
     public override async Task PersistTokenAsync(TokenResponse response)
     {
         using var span = GamePulseActivitySource.StartActivity("PersistTokenAsync");
@@ -75,9 +61,6 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// </summary>
     /// <param name="req"></param>
     /// <returns></returns>
-    /// <summary>
-    /// Validates the refresh token in the incoming request and adds a validation error if the token is invalid.
-    /// </summary>
     public override async Task RefreshRequestValidationAsync(TokenRequest req)
     {
         using var span = GamePulseActivitySource.StartActivity("RefreshRequestValidationAsync");
@@ -94,11 +77,6 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <param name="request"></param>
     /// <param name="privileges"></param>
     /// <returns></returns>
-    /// <summary>
-    /// Assigns renewal privileges to a user during token refresh, adding the "Manager" role, a "UserId" claim, and the "Manager_Permission" permission.
-    /// </summary>
-    /// <param name="request">The token request containing user information.</param>
-    /// <param name="privileges">The user privileges object to be updated.</param>
     public override async Task SetRenewalPrivilegesAsync(TokenRequest request, UserPrivileges privileges)
     {
         using var span = GamePulseActivitySource.StartActivity("SetRenewalPrivilegesAsync");

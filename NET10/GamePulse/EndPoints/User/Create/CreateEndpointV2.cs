@@ -4,14 +4,11 @@ using GamePulse.Processors;
 
 namespace GamePulse.EndPoints.User.Create;
 
-
 /// <summary>
 /// Creates a new user
 /// </summary>
 public class CreateEndpointV2 : Endpoint<MyRequest, MyResponse>
 {
-    /// <summary>
-    /// Configure
     /// <summary>
     /// Configures the endpoint for creating a user, including route, versioning, pre-processing, and API documentation metadata.
     /// </summary>
@@ -28,10 +25,6 @@ public class CreateEndpointV2 : Endpoint<MyRequest, MyResponse>
         });
     }
 
-    /// <summary>
-    /// Handles user creation request
-    /// </summary>
-    /// <param name="req">User creation request</param>
     /// <summary>
     /// Processes a user creation request and returns a response containing the user's full name and age status.
     /// </summary>

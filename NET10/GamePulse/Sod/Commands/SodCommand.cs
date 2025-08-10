@@ -1,11 +1,8 @@
 using System.Diagnostics;
-using GamePulse.Commands;
+using Demo.Application.Commands;
 
 namespace GamePulse.Sod.Commands;
 
-/// <summary>
-///
-/// </summary>
 public abstract class SodCommand : ICommandJob
 {
     /// <summary>
@@ -19,14 +16,8 @@ public abstract class SodCommand : ICommandJob
         ParentActivity = parentActivity;
     }
 
-    /// <summary>
-    ///
-    /// </summary>
     public string ClientIp { get; set; }
 
-    /// <summary>
-    ///
-    /// </summary>
     public Activity? ParentActivity { get; set; }
 
     /// <summary>

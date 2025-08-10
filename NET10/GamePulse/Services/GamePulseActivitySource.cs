@@ -2,20 +2,10 @@ using System.Diagnostics;
 
 namespace GamePulse.Services;
 
-/// <summary>
-/// 
-/// </summary>
 public static class GamePulseActivitySource
 {
-    /// <summary>
-    /// 
-    /// </summary>
     private static ActivitySource? _activitySource;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="serviceName"></param>
     /// <summary>
     /// Initializes the activity source for tracing with the specified service name and version.
     /// </summary>
@@ -26,11 +16,6 @@ public static class GamePulseActivitySource
         _activitySource = new ActivitySource(serviceName, version);
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="name"></param>
-    /// <param name="kind"></param>
     /// <summary>
     /// Starts and returns a new activity with the specified name and kind using the initialized activity source.
     /// </summary>
@@ -47,12 +32,6 @@ public static class GamePulseActivitySource
         return span;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="name"></param>
-    /// <param name="kind"></param>
-    /// <param name="parentActivity"></param>
     /// <summary>
     /// Starts a new activity with the specified name and kind, using the provided parent activity's context.
     /// </summary>

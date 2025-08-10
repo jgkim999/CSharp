@@ -9,6 +9,7 @@
 ### 1. 환경별 설정
 
 #### 개발 환경
+
 ```json
 {
   "RateLimit": {
@@ -25,6 +26,7 @@
 ```
 
 #### 스테이징 환경
+
 ```json
 {
   "RateLimit": {
@@ -41,6 +43,7 @@
 ```
 
 #### 운영 환경
+
 ```json
 {
   "RateLimit": {
@@ -59,6 +62,7 @@
 ### 2. 프록시/로드 밸런서 설정
 
 #### Nginx 설정 예시
+
 ```nginx
 server {
     listen 80;
@@ -76,10 +80,12 @@ server {
 ```
 
 #### AWS Application Load Balancer
+
 - **X-Forwarded-For 헤더**: 자동으로 추가됨
 - **추가 설정**: 필요 없음
 
 #### Azure Application Gateway
+
 ```json
 {
   "requestRoutingRules": [{
@@ -105,11 +111,13 @@ server {
 ### 1. 핵심 메트릭
 
 #### 애플리케이션 메트릭
+
 - **rate_limit_violations_total**: Rate Limit 위반 총 횟수
 - **rate_limit_requests_total**: Rate Limit 체크된 총 요청 수
 - **rate_limit_blocked_requests_total**: 차단된 요청 수
 
 #### 시스템 메트릭
+
 - **memory_usage**: Rate Limit 저장소 메모리 사용량
 - **response_time**: Rate Limit 체크로 인한 응답 시간 증가
 - **error_rate**: 429 응답 비율
@@ -117,6 +125,7 @@ server {
 ### 2. 로그 모니터링
 
 #### 중요 로그 패턴
+
 ```bash
 # Rate Limit 위반 패턴 검색
 grep "Rate limit exceeded" /var/log/demo-web/*.log | \
@@ -131,6 +140,7 @@ awk '{print $1" "$2}' | cut -c1-13 | uniq -c
 ```
 
 #### ELK Stack 쿼리 예시
+
 ```json
 {
   "query": {
@@ -152,6 +162,7 @@ awk '{print $1" "$2}' | cut -c1-13 | uniq -c
 ### 3. 알림 설정
 
 #### Prometheus + Grafana 알림
+
 ```yaml
 # prometheus.yml
 rule_files:
@@ -180,6 +191,7 @@ groups:
 ```
 
 #### Azure Monitor 알림
+
 ```json
 {
   "name": "RateLimitViolationAlert",
@@ -206,6 +218,7 @@ groups:
 ### 1. 메모리 관리
 
 #### 메모리 사용량 모니터링
+
 ```csharp
 // 메모리 사용량 추적을 위한 커스텀 미들웨어
 public class RateLimitMemoryMonitor
@@ -228,6 +241,7 @@ public class RateLimitMemoryMonitor
 ```
 
 #### 메모리 정리 전략
+
 ```csharp
 // 주기적인 메모리 정리 (필요시)
 public class RateLimitCleanupService : BackgroundService
@@ -247,6 +261,7 @@ public class RateLimitCleanupService : BackgroundService
 ### 2. 응답 시간 최적화
 
 #### 비동기 처리
+
 ```csharp
 // Rate Limit 체크를 비동기로 처리 (FastEndpoints에서 자동 처리됨)
 public override async Task HandleAsync(UserCreateRequest req, CancellationToken ct)
@@ -313,6 +328,7 @@ public class AdaptiveRateLimitService
 ### 1. 일반적인 문제와 해결책
 
 #### 문제: 429 응답이 너무 많이 발생
+
 **진단**:
 ```bash
 # 429 응답 비율 확인
@@ -326,6 +342,7 @@ grep "200\|201" /var/log/nginx/access.log | wc -l
 3. 캐싱 전략 도입
 
 #### 문제: 특정 IP에서 지속적인 위반
+
 **진단**:
 ```bash
 # 특정 IP의 요청 패턴 분석
@@ -341,6 +358,7 @@ awk '{print $1" "$2}' | sort | uniq -c
 ### 2. 성능 문제 해결
 
 #### 메모리 누수 의심시
+
 ```bash
 # 메모리 사용량 모니터링
 ps aux | grep dotnet
@@ -352,6 +370,7 @@ dotnet-counters monitor --process-id $(pgrep dotnet) \
 ```
 
 #### 응답 시간 증가시
+
 ```bash
 # 응답 시간 분석
 tail -f /var/log/nginx/access.log | \
@@ -361,16 +380,19 @@ awk '{print $NF}' | sort -n | tail -10
 ## 유지보수 체크리스트
 
 ### 일일 점검
+
 - [ ] Rate Limit 위반 로그 검토
 - [ ] 시스템 리소스 사용량 확인
 - [ ] 비정상적인 트래픽 패턴 확인
 
 ### 주간 점검
+
 - [ ] Rate Limit 설정 적정성 검토
 - [ ] 성능 메트릭 분석
 - [ ] 보안 이벤트 로그 분석
 
 ### 월간 점검
+
 - [ ] Rate Limit 정책 전반 검토
 - [ ] 용량 계획 수립
 - [ ] 보안 위협 분석 및 대응 방안 수립
@@ -378,11 +400,13 @@ awk '{print $NF}' | sort -n | tail -10
 ## 업그레이드 가이드
 
 ### 1. FastEndpoints 업그레이드시 주의사항
+
 - Rate Limiting API 변경사항 확인
 - 기존 설정 호환성 검증
 - 테스트 환경에서 충분한 검증 후 적용
 
 ### 2. .NET 업그레이드시 고려사항
+
 - 메모리 관리 방식 변경 확인
 - 성능 특성 변화 모니터링
 - 로깅 프레임워크 호환성 확인

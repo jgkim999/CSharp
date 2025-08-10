@@ -296,6 +296,7 @@ if (rateLimitViolations > threshold)
 
 **원인**: NAT 환경에서 여러 사용자가 동일한 IP 공유
 **해결책**:
+
 - Rate Limit 임계값 조정
 - 인증 기반 Rate Limiting 고려
 - 화이트리스트 기능 추가
@@ -304,6 +305,7 @@ if (rateLimitViolations > threshold)
 
 **원인**: 프록시 환경에서 실제 IP 식별 실패
 **해결책**:
+
 - X-Forwarded-For 헤더 설정 확인
 - 프록시 설정 검토
 - 로그를 통한 IP 식별 과정 확인

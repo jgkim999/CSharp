@@ -3,13 +3,8 @@ using FluentValidation;
 
 namespace GamePulse.DTO;
 
-/// <summary>
-/// 
-/// </summary>
 public class LoginRequestValidator : Validator<LoginRequest>
 {
-    /// <summary>
-    /// 
     /// <summary>
     /// Initializes a new instance of the <see cref="LoginRequestValidator"/> class, defining validation rules for <c>Username</c> and <c>Password</c> properties of a <see cref="LoginRequest"/>.
     /// </summary>
@@ -24,7 +19,7 @@ public class LoginRequestValidator : Validator<LoginRequest>
             .WithMessage("name is too short")
             .MaximumLength(8)
             .WithMessage("name is too long");
-                
+
         RuleFor(x => x.Password)
             .NotEmpty()
             .WithMessage("password is required")

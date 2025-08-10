@@ -16,14 +16,7 @@ public class RedisJwtRepository : IJwtRepository
     private static ConnectionMultiplexer? _multiplexer;
     private static string? _keyPrefix;
     private static IDatabase? _database;
-    
-    /// <summary>
-    /// Initializes a new instance of the RedisJwtRepository class
-    /// </summary>
-    /// <param name="logger">Logger instance</param>
-    /// <param name="redisConfig">Redis configuration options</param>
-    /// <param name="redisInstrumentation">Redis instrumentation for telemetry</param>
-    /// <exception cref="Exception">Thrown when Redis connection fails</exception>
+
     /// <summary>
     /// Initializes a new instance of the <see cref="RedisJwtRepository"/> class, establishing a Redis connection for JWT token storage and validation.
     /// </summary>
@@ -38,7 +31,7 @@ public class RedisJwtRepository : IJwtRepository
         StackExchangeRedisInstrumentation? redisInstrumentation)
     {
         _logger = logger;
-        
+
         try
         {
             if (_multiplexer != null)
@@ -51,7 +44,7 @@ public class RedisJwtRepository : IJwtRepository
             _database = _multiplexer.GetDatabase();
             var faker = new Bogus.Faker();
             var key = MakeKey(faker.Random.Uuid().ToString());
-        
+
             _database.StringSet(key, key, TimeSpan.FromDays(1));
             var ret = _database.StringGetDelete(key);
             if (ret != key)
@@ -66,7 +59,7 @@ public class RedisJwtRepository : IJwtRepository
             throw;
         }
     }
-    
+
     /// <summary>
     /// Creates a Redis key for JWT token storage
     /// </summary>
@@ -74,11 +67,11 @@ public class RedisJwtRepository : IJwtRepository
     /// <returns>Formatted Redis key</returns>
     private static string MakeKey(string key)
     {
-        return string.IsNullOrEmpty(_keyPrefix) ? 
+        return string.IsNullOrEmpty(_keyPrefix) ?
             $"jwt:token:{key}" :
             $"{_keyPrefix}:jwt:refreshToken:{key}";
     }
-    
+
     /// <summary>
     /// Stores a refresh token in Redis for the specified user
     /// </summary>

@@ -1,14 +1,13 @@
+using Demo.Application.Repositories;
+using Demo.Application.Services;
+using Demo.Infra.Repositories;
 using FastEndpoints;
 using FastEndpoints.Security;
 
 using GamePulse;
 using GamePulse.Configs;
-using GamePulse.Repositories;
-using GamePulse.Repositories.IpToNation;
-using GamePulse.Repositories.IpToNation.Cache;
 using GamePulse.Repositories.Jwt;
 using GamePulse.Services.Auth;
-using GamePulse.Services.IpToNation;
 using GamePulse.Sod;
 
 using Scalar.AspNetCore;

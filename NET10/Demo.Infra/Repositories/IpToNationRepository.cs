@@ -1,6 +1,9 @@
+using Demo.Application.Repositories;
 using IP2Location;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
-namespace GamePulse.Repositories.IpToNation;
+namespace Demo.Infra.Repositories;
 
 /// <summary>
 /// Repository for IP to nation lookup using IP2Location database

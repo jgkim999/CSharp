@@ -3,15 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GamePulse;
 
-/// <summary>
-///
-/// </summary>
 public static class FastEndpointsInitialize
 {
-    /// <summary>
-    /// Configures the WebApplication to use FastEndpoints middleware with default exception handling, API versioning, and Problem Details error responses.
-    /// </summary>
-    /// <param name="app">The WebApplication instance to configure.</param>
     /// <summary>
     /// Configures the WebApplication to use FastEndpoints with default exception handling, API versioning, and standardized error responses.
     /// </summary>

@@ -362,10 +362,13 @@ public class LoadTestBenchmark
 /// </summary>
 public struct RequestResult
 {
+    public int ClientId { get; set; }
+    public int RequestId { get; set; }
     public bool IsSuccess { get; set; }
     public TimeSpan ResponseTime { get; set; }
     public int StatusCode { get; set; }
     public string? Error { get; set; }
+    public bool Success { get; set; }
 }
 
 /// <summary>
@@ -376,6 +379,7 @@ public struct LoadTestResult
     public int TotalRequests { get; set; }
     public int SuccessfulRequests { get; set; }
     public int FailedRequests { get; set; }
+    public int RateLimitedRequests { get; set; }
     public TimeSpan TotalTime { get; set; }
     public double RequestsPerSecond { get; set; }
     public TimeSpan AverageResponseTime { get; set; }

@@ -3,13 +3,8 @@ using FluentValidation;
 
 namespace GamePulse.DTO;
 
-/// <summary>
-/// 
-/// </summary>
 public class MyRequestValidator : Validator<MyRequest>
 {
-    /// <summary>
-    /// 
     /// <summary>
     /// Initializes a new instance of the <c>MyRequestValidator</c> class, defining validation rules for <c>MyRequest</c> objects.
     /// </summary>

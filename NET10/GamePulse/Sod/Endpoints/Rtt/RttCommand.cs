@@ -1,15 +1,11 @@
 using System.Diagnostics;
-
+using Demo.Application.Services;
 using GamePulse.Services;
-using GamePulse.Services.IpToNation;
 using GamePulse.Sod.Commands;
 using GamePulse.Sod.Metrics;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
 
-/// <summary>
-///
-/// </summary>
 public class RttCommand : SodCommand
 {
     private readonly int _rtt;

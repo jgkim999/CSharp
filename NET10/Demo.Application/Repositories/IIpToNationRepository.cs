@@ -1,4 +1,4 @@
-namespace GamePulse.Repositories;
+namespace Demo.Application.Repositories;
 
 public interface IIpToNationRepository
 {
