@@ -94,7 +94,7 @@ public static class DatabaseInstrumentationExtensions
             activity?.SetTag("db.total_duration_ms", duration);
 
             // 예외 메트릭 기록
-            telemetryService.RecordError("DatabaseException", operationName, e.Message);
+            telemetryService.RecordError(e.GetType().Name, operationName, e.Message);
 
             // 예외 로그
             telemetryService.LogErrorWithTrace(logger, e, 

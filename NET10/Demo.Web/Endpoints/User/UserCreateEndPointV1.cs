@@ -3,6 +3,7 @@ using Demo.Application.Services;
 using FastEndpoints;
 using LiteBus.Commands.Abstractions;
 using Demo.Application.Extensions;
+using FluentResults;
 
 namespace Demo.Web.Endpoints.User;
 
@@ -66,6 +67,8 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
         {
             _logger.LogError(ex, nameof(UserCreateEndpointV1));
             AddError(ex.Message);
+            _telemetryService.SetActivityError(activity, ex);
+            await Send.ErrorsAsync(500, ct);
         }
     }
 }

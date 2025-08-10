@@ -8,7 +8,7 @@ public static class FluentResultErrorExtentions
     {
         if (result.IsSuccess)
             return string.Empty;
-        var errorMessage = string.Join(", ", result.Errors.Select(x => x.Message).ToList());
+        var errorMessage = string.Join(", ", result.Errors.Select(x => x.Message));
         return errorMessage;
     }
 }

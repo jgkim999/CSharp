@@ -9,7 +9,7 @@ namespace Demo.Application.Services;
 /// <summary>
 /// 사용자 정의 텔레메트리 서비스
 /// </summary>
-public class TelemetryService : ITelemetryService, IDisposable
+public sealed class TelemetryService : ITelemetryService, IDisposable
 {
     /// <summary>
     /// Demo.Application 애플리케이션의 _activitySource
@@ -27,9 +27,12 @@ public class TelemetryService : ITelemetryService, IDisposable
     private readonly Counter<long> _errorCounter;
     private readonly Gauge<int> _activeConnections;
     
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Counter<long>> _businessCounters
+        = new();
+    
     public string ActiveSourceName => _activitySource.Name;
     public string MeterName => _meter.Name;
-
+    
     /// <summary>
     /// TelemetryService 생성자
     /// </summary>
@@ -134,10 +137,11 @@ public class TelemetryService : ITelemetryService, IDisposable
     /// <param name="tags">태그</param>
     public void RecordBusinessMetric(string metricName, long value, Dictionary<string, object?>? tags = null)
     {
-        var counter = _meter.CreateCounter<long>(
-            name: $"demo_app_{metricName}",
+        var counter = _businessCounters.GetOrAdd(metricName, m =>
+            _meter.CreateCounter<long>(
+            name: $"business_{m}",
             unit: "1",
-            description: $"Business metric: {metricName}");
+            description: $"Business metric: {m}"));
 
         var tagList = new TagList();
         if (tags != null)
@@ -266,9 +270,11 @@ public class TelemetryService : ITelemetryService, IDisposable
     /// </summary>
     /// <param name="properties">추가할 속성들</param>
     /// <returns>IDisposable 로그 컨텍스트</returns>
-    public IDisposable CreateLogContext(Dictionary<string, object> properties)
+    public IDisposable CreateLogContext(IReadOnlyDictionary<string, object> properties)
     {
         var disposables = new List<IDisposable>();
+        if (properties is null)
+            throw new ArgumentNullException(nameof(properties));
         
         // 현재 Activity의 트레이스 정보 추가
         var activity = Activity.Current;

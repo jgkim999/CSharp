@@ -274,12 +274,7 @@ public static class OpenTelemetryExtensions
                         // 헤더 설정
                         if (config.Exporter.OtlpHeaders.Count > 0)
                         {
-                            var headers = string.Empty;
-                            foreach (var header in config.Exporter.OtlpHeaders)
-                            {
-                                headers += $"{header.Key}={header.Value},";
-                            }
-                            options.Headers = headers.TrimEnd(',');
+                            options.Headers = string.Join(",", config.Exporter.OtlpHeaders.Select(kv => $"{kv.Key}={kv.Value}"));
                         }
                     });
                 }

@@ -19,8 +19,7 @@ public static class TelemetryExtensions
     public static IServiceCollection AddLiteBusTelemetry(this IServiceCollection services)
     {
         // TelemetryService가 등록되어 있는지 확인
-        services.TryAddSingleton<ITelemetryService>();
-
+        //services.TryAddSingleton<ITelemetryService>();
         // 기존 명령 핸들러들을 데코레이터로 감싸기
         DecorateCommandHandlers(services);
 
