@@ -19,7 +19,13 @@ public class UserRepositoryPostgre : IUserRepository
 
     /// <summary>
     /// Initializes a new instance of the UserRepositoryPostgre class with the specified configuration, mapper, logger, and telemetry service.
+    /// <summary>
+    /// Initializes a new instance of the UserRepositoryPostgre class for managing user data in a PostgreSQL database.
     /// </summary>
+    /// <param name="config">The PostgreSQL configuration settings.</param>
+    /// <param name="mapper">The object mapper for entity-to-DTO conversions.</param>
+    /// <param name="logger">The logger for recording repository operations.</param>
+    /// <param name="telemetryService">The telemetry service for activity tracking.</param>
     public UserRepositoryPostgre(
     PostgresConfig config,
     IMapper mapper,
@@ -38,6 +44,13 @@ public class UserRepositoryPostgre : IUserRepository
     /// <param name="name">The user's name.</param>
     /// <param name="email">The user's email address.</param>
     /// <param name="passwordSha256">The SHA-256 hash of the user's password.</param>
+    /// <summary>
+    /// Asynchronously creates a new user record in the PostgreSQL database with the specified name, email, and password hash.
+    /// </summary>
+    /// <param name="name">The user's name.</param>
+    /// <param name="email">The user's email address.</param>
+    /// <param name="passwordSha256">The SHA-256 hash of the user's password.</param>
+    /// <param name="ct">Optional cancellation token.</param>
     /// <returns>A <see cref="Result"/> indicating success if the user was created, or failure with an error message if the operation did not succeed.</returns>
     public async Task<Result> CreateAsync(string name, string email, string passwordSha256, CancellationToken ct = default)
     {
@@ -74,6 +87,11 @@ public class UserRepositoryPostgre : IUserRepository
     /// <summary>
     /// Retrieves all users from the database and returns them as a list of user DTOs.
     /// </summary>
+    /// <summary>
+    /// Asynchronously retrieves a list of users from the database, limited by the specified count.
+    /// </summary>
+    /// <param name="limit">The maximum number of users to retrieve (must be between 1 and 100).</param>
+    /// <param name="ct">A cancellation token for the asynchronous operation.</param>
     /// <returns>A result containing a list of user DTOs if successful; otherwise, a failure result with an error message.</returns>
     public async Task<Result<IEnumerable<UserDto>>> GetAllAsync(int limit = 10, CancellationToken ct = default)
     {
