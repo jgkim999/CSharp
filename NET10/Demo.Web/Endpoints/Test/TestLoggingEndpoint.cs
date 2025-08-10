@@ -13,6 +13,9 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
     private readonly ILogger<TestLoggingEndpoint> _logger;
     private readonly ITelemetryService _telemetryService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TestLoggingEndpoint"/> class with the specified logger and telemetry service.
+    /// </summary>
     public TestLoggingEndpoint(ILogger<TestLoggingEndpoint> logger, ITelemetryService telemetryService)
     {
         _logger = logger;
@@ -30,6 +33,11 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
         });
     }
 
+    /// <summary>
+    /// Handles a test request to verify logging and telemetry integration, including nested activities and error simulation.
+    /// </summary>
+    /// <param name="ct">A cancellation token for the request.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public override async Task HandleAsync(CancellationToken ct)
     {
         using var activity = _telemetryService.StartActivity("TestLogging", new Dictionary<string, object?>
