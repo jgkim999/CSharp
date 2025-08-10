@@ -20,8 +20,6 @@ public class UserRepositoryPostgre : IUserRepository
 
     /// <summary>
     /// Initializes a new instance of the UserRepositoryPostgre class with the specified configuration, mapper, logger, and telemetry service.
-    /// <summary>
-    /// Initializes a new instance of the UserRepositoryPostgre class with the specified configuration, mapper, logger, and telemetry service.
     /// </summary>
     public UserRepositoryPostgre(
     PostgresConfig config,
@@ -35,12 +33,6 @@ public class UserRepositoryPostgre : IUserRepository
         _telemetryService = telemetryService;
     }
 
-    /// <summary>
-    /// Asynchronously creates a new user record in the PostgreSQL database with the specified name, email, and password hash.
-    /// </summary>
-    /// <param name="name">The user's name.</param>
-    /// <param name="email">The user's email address.</param>
-    /// <param name="passwordSha256">The SHA-256 hash of the user's password.</param>
     /// <summary>
     /// Asynchronously creates a new user record in the database with the specified name, email, and password hash.
     /// </summary>
@@ -80,9 +72,6 @@ public class UserRepositoryPostgre : IUserRepository
       }
     }
 
-    /// <summary>
-    /// Retrieves all users from the database and returns them as a list of user DTOs.
-    /// </summary>
     /// <summary>
     /// Asynchronously retrieves a list of users from the database, limited by the specified count.
     /// </summary>

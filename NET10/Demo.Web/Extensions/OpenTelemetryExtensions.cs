@@ -2,7 +2,6 @@ using System.Diagnostics;
 
 using Demo.Application.Services;
 using Demo.Web.Configs;
-using Microsoft.Extensions.Options;
 using Npgsql;
 
 using OpenTelemetry.Exporter;
@@ -17,13 +16,6 @@ namespace Demo.Web.Extensions;
 /// </summary>
 public static class OpenTelemetryExtensions
 {
-    /// <summary>
-    /// OpenTelemetry 서비스를 DI 컨테이너에 등록합니다.
-    /// </summary>
-    /// <param name="services">서비스 컬렉션</param>
-    /// <param name="configuration">구성 객체</param>
-    /// <param name="serviceInstanceId"></param>
-    /// <param name="environment"></param>
     /// <summary>
     /// Registers and configures OpenTelemetry tracing and metrics services in the dependency injection container using the provided configuration, service instance ID, and environment.
     /// </summary>
@@ -87,10 +79,6 @@ public static class OpenTelemetryExtensions
         return services;
     }
 
-    /// <summary>
-    /// 트레이싱 구성을 설정합니다.
-    /// </summary>
-    /// <param name="tracingBuilder">트레이싱 빌더</param>
     /// <summary>
     /// Configures tracing instrumentation, enrichment, filtering, and exporters for OpenTelemetry using the provided service name and configuration.
     /// </summary>
@@ -188,10 +176,6 @@ public static class OpenTelemetryExtensions
         tracingBuilder.AddExporters(config);
     }
 
-    /// <summary>
-    /// 메트릭 구성을 설정합니다.
-    /// </summary>
-    /// <param name="metricsBuilder">메트릭 빌더</param>
     /// <summary>
     /// Configures OpenTelemetry metrics instrumentation, meters, histogram views, and OTLP exporting for the application.
     /// </summary>
