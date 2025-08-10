@@ -3,6 +3,7 @@
 ## 🚀 빠른 시작
 
 ### 기본 설정
+
 ```csharp
 // 엔드포인트에 Rate Limiting 적용
 public override void Configure()
@@ -13,6 +14,7 @@ public override void Configure()
 ```
 
 ### 설정 파일
+
 ```json
 {
   "RateLimit": {
@@ -46,6 +48,7 @@ public override void Configure()
 | Production | 10 | 60 | 운영 환경 |
 
 ### 클라이언트 식별 우선순위
+
 1. `X-Forwarded-For` 헤더
 2. `HttpContext.Connection.RemoteIpAddress`
 3. 실패시 403 Forbidden 응답
@@ -53,11 +56,13 @@ public override void Configure()
 ## 🚨 중요 제한사항
 
 ### ⚠️ 보안 제한사항
+
 - **DDOS 방어 부적합**: 강력한 공격 방어용 아님
 - **헤더 조작 가능**: X-Forwarded-For 헤더 조작 가능
 - **NAT 환경 이슈**: 동일 IP 공유시 부정확
 
 ### 💡 권장 대안
+
 - API Gateway 레벨 Rate Limiting
 - 인증 기반 Rate Limiting
 - 다층 보안 전략
@@ -65,11 +70,13 @@ public override void Configure()
 ## 📝 로그 패턴
 
 ### 정상 동작
+
 ```
 [INFO] Rate limit applied for IP: 192.168.1.100, Endpoint: /api/user/create
 ```
 
 ### 위반 발생
+
 ```
 [WARN] Rate limit exceeded for IP: 192.168.1.100, Endpoint: /api/user/create, Count: 11
 ```
@@ -77,6 +84,7 @@ public override void Configure()
 ## 🔍 디버깅 명령어
 
 ### 로그 확인
+
 ```bash
 # Rate Limit 관련 로그 검색
 grep "Rate limit" logs/demo-web-*.log
@@ -89,6 +97,7 @@ grep "Rate limit exceeded" logs/*.log | awk '{print $1" "$2}' | cut -c1-13 | uni
 ```
 
 ### 테스트 명령어
+
 ```bash
 # Rate Limit 테스트
 for i in {1..15}; do
@@ -112,6 +121,7 @@ done
 ### 긴급 대응
 
 #### Rate Limit 일시 비활성화
+
 ```csharp
 // 긴급시 Rate Limit 비활성화
 public override void Configure()
@@ -122,6 +132,7 @@ public override void Configure()
 ```
 
 #### 설정 즉시 변경
+
 ```json
 {
   "RateLimit": {
@@ -134,11 +145,13 @@ public override void Configure()
 ## 📞 연락처 및 리소스
 
 ### 관련 문서
+
 - [구현 가이드](Rate-Limiting-Implementation-Guide.md)
 - [운영 가이드](Rate-Limiting-Operational-Guide.md)
 - [FastEndpoints 문서](https://fast-endpoints.com/)
 
 ### 지원팀
+
 - **개발팀**: dev-team@company.com
 - **운영팀**: ops-team@company.com
 - **보안팀**: security-team@company.com
