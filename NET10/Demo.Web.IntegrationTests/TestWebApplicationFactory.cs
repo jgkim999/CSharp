@@ -31,6 +31,33 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
             }
 
+            // 테스트용 Rate Limiting 설정 추가
+            var rateLimitDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(Demo.Web.Configs.RateLimitConfig));
+            if (rateLimitDescriptor == null)
+            {
+                var testRateLimitConfig = new Demo.Web.Configs.RateLimitConfig
+                {
+                    UserCreateEndpoint = new Demo.Web.Configs.UserCreateEndpointConfig
+                    {
+                        Enabled = true,
+                        HitLimit = 10,
+                        DurationSeconds = 60,
+                        HeaderName = null,
+                        ErrorMessage = "Too many requests. Please try again later.",
+                        RetryAfterSeconds = 60
+                    },
+                    Global = new Demo.Web.Configs.GlobalRateLimitConfig
+                    {
+                        EnableLogging = true,
+                        LogRateLimitApplied = true,
+                        LogRateLimitExceeded = true,
+                        IncludeClientIpInLogs = true,
+                        IncludeRequestCountInLogs = true
+                    }
+                };
+                services.AddSingleton(testRateLimitConfig);
+            }
+
             // 테스트용 OpenTelemetry 설정
             services.AddOpenTelemetry()
                 .WithTracing(tracingBuilder =>
