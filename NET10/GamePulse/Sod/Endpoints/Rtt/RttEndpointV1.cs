@@ -17,7 +17,13 @@ public class RttEndpointV1 : Endpoint<RttRequest>
     /// Initializes a new instance of the <see cref="RttEndpointV1"/> class for handling RTT data submissions.
     /// </summary>
     /// <param name="logger"></param>
-    /// <param name="tracer"></param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RttEndpointV1"/> class with the specified dependencies.
+    /// </summary>
+    /// <param name="logger">The logger instance for logging endpoint activity.</param>
+    /// <param name="tracer">The tracer used for distributed tracing.</param>
+    /// <param name="taskQueue">The background task queue for processing RTT commands.</param>
+    /// <param name="serviceProvider">The service provider for resolving scoped services.</param>
     public RttEndpointV1(ILogger<RttEndpointV1> logger, Tracer tracer, ISodBackgroundTaskQueue taskQueue, IServiceProvider serviceProvider)
     {
         _taskQueue = taskQueue;

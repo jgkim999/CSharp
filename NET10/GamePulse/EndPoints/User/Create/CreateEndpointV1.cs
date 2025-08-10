@@ -14,6 +14,8 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateEndpointV1"/> class with the specified OpenTelemetry tracer.
+    /// <summary>
+    /// Initializes a new instance of the CreateEndpointV1 class with the specified tracer for OpenTelemetry instrumentation.
     /// </summary>
     public CreateEndpointV1(Tracer tracer)
     {
@@ -22,6 +24,8 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
 
     /// <summary>
     /// Configures the endpoint for creating a new user, including route, versioning, validation, access permissions, and metadata.
+    /// <summary>
+    /// Configures the endpoint for handling user creation requests, including route, versioning, validation, access permissions, and API documentation metadata.
     /// </summary>
     public override void Configure()
     {
@@ -36,6 +40,10 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
         });
     }
 
+    /// <summary>
+    /// Processes a user creation request and responds with the user's full name and age status.
+    /// </summary>
+    /// <param name="req">The user creation request containing first name, last name, and age.</param>
     /// <summary>
     /// Processes a user creation request and responds with the user's full name and age status.
     /// </summary>

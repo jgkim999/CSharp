@@ -7,6 +7,8 @@ public class LoginRequestValidator : Validator<LoginRequest>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="LoginRequestValidator"/> class, defining validation rules for <c>Username</c> and <c>Password</c> properties of a <see cref="LoginRequest"/>.
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LoginRequestValidator"/> class and defines validation rules for the <c>Username</c> and <c>Password</c> properties of a <see cref="LoginRequest"/>.
     /// </summary>
     public LoginRequestValidator()
     {

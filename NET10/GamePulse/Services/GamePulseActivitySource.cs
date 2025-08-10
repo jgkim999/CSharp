@@ -10,6 +10,10 @@ public static class GamePulseActivitySource
     /// Initializes the activity source for tracing with the specified service name and version.
     /// </summary>
     /// <param name="serviceName">The name of the service to associate with the activity source.</param>
+    /// <summary>
+    /// Initializes the activity source for tracing with the specified service name and version.
+    /// </summary>
+    /// <param name="serviceName">The name of the service to associate with the activity source.</param>
     /// <param name="version">The version of the service.</param>
     public static void Initialize(string serviceName, string version)
     {
@@ -21,6 +25,11 @@ public static class GamePulseActivitySource
     /// </summary>
     /// <param name="name">The name of the activity to start.</param>
     /// <param name="kind">The kind of activity to create. Defaults to <see cref="ActivityKind.Internal"/>.</param>
+    /// <summary>
+    /// Starts a new activity with the specified name and kind using the initialized activity source.
+    /// </summary>
+    /// <param name="name">The name of the activity to start.</param>
+    /// <param name="kind">The kind of activity to start. Defaults to <see cref="ActivityKind.Internal"/>.</param>
     /// <returns>The started <see cref="Activity"/> instance, or <c>null</c> if the activity source is not initialized or the activity cannot be started.</returns>
     public static Activity? StartActivity(string name, ActivityKind kind = ActivityKind.Internal)
     {

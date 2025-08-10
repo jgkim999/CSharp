@@ -62,7 +62,12 @@ public class RateLimitingLoadTestBenchmark
 
     /// <summary>
     /// 다수의 동시 요청에 대한 Rate Limiting 동작을 테스트합니다.
+    /// <summary>
+    /// Executes a concurrent load test against the user creation API endpoint, simulating multiple clients each sending a specified number of requests to evaluate rate limiting behavior.
     /// </summary>
+    /// <param name="clientCount">The number of simulated clients making requests concurrently.</param>
+    /// <param name="requestsPerClient">The number of requests each client sends.</param>
+    /// <returns>A <see cref="LoadTestResult"/> summarizing request outcomes, response times, and rate limiting statistics.</returns>
     [Benchmark]
     [Arguments(10, 5)]   // 10개 클라이언트, 각각 5개 요청
     [Arguments(20, 10)]  // 20개 클라이언트, 각각 10개 요청
@@ -142,7 +147,11 @@ public class RateLimitingLoadTestBenchmark
 
     /// <summary>
     /// 단일 IP에서 Rate Limit을 초과하는 동시 요청을 테스트합니다.
+    /// <summary>
+    /// Executes a benchmark that sends multiple concurrent POST requests from the same IP address to the user creation endpoint, measuring rate limiting behavior when exceeding the allowed request rate.
     /// </summary>
+    /// <param name="concurrentRequests">The number of simultaneous requests to send from the fixed IP address.</param>
+    /// <returns>A <see cref="LoadTestResult"/> summarizing request outcomes, response times, and rate limiting statistics.</returns>
     [Benchmark]
     [Arguments(20)]  // 20개 동시 요청 (Rate Limit: 10)
     [Arguments(50)]  // 50개 동시 요청 (Rate Limit: 10)
@@ -209,7 +218,10 @@ public class RateLimitingLoadTestBenchmark
 
     /// <summary>
     /// 메모리 사용량 집약적인 시나리오를 테스트합니다.
+    /// <summary>
+    /// Simulates a memory-intensive load test by sending concurrent POST requests from 100 unique IP addresses to the user creation endpoint.
     /// </summary>
+    /// <returns>A <see cref="LoadTestResult"/> summarizing request outcomes, response times, and rate limiting statistics.</returns>
     [Benchmark]
     public async Task<LoadTestResult> MemoryIntensive_MultipleIPs()
     {

@@ -9,6 +9,10 @@ public abstract class SodCommand : ICommandJob
     /// Initializes a new instance of the <see cref="SodCommand"/> class with the specified client IP address and optional parent activity.
     /// </summary>
     /// <param name="clientIp">The IP address of the client associated with the command.</param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SodCommand"/> class with the specified client IP address and optional parent activity for tracing.
+    /// </summary>
+    /// <param name="clientIp">The IP address of the client associated with the command.</param>
     /// <param name="parentActivity">An optional parent <see cref="Activity"/> for tracing or diagnostics.</param>
     protected SodCommand(string clientIp, Activity? parentActivity)
     {

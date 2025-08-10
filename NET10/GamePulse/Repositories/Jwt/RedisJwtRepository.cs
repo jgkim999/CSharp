@@ -24,6 +24,13 @@ public class RedisJwtRepository : IJwtRepository
     /// <param name="redisConfig">Redis configuration options. Must not be null.</param>
     /// <param name="redisInstrumentation">Optional telemetry instrumentation for Redis connections.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="redisConfig"/> is null.</exception>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="RedisJwtRepository"/> class and establishes a Redis connection for storing JWT refresh tokens.
+    /// </summary>
+    /// <param name="logger">Logger instance for logging events and errors.</param>
+    /// <param name="redisConfig">Configuration options containing the Redis connection string and key prefix.</param>
+    /// <param name="redisInstrumentation">Optional telemetry instrumentation for Redis.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="redisConfig"/> is null.</exception>
     /// <exception cref="InvalidDataException">Thrown when the Redis connection test fails.</exception>
     public RedisJwtRepository(
         ILogger<RedisJwtRepository> logger,
@@ -64,7 +71,11 @@ public class RedisJwtRepository : IJwtRepository
     /// Creates a Redis key for JWT token storage
     /// </summary>
     /// <param name="key">User ID or token identifier</param>
-    /// <returns>Formatted Redis key</returns>
+    /// <summary>
+    /// Generates a Redis key for storing a user's refresh token, using a configured prefix if available.
+    /// </summary>
+    /// <param name="key">The user identifier to include in the Redis key.</param>
+    /// <returns>The formatted Redis key string.</returns>
     private static string MakeKey(string key)
     {
         return string.IsNullOrEmpty(_keyPrefix) ?

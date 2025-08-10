@@ -11,6 +11,8 @@ public class CreateEndpointV2 : Endpoint<MyRequest, MyResponse>
 {
     /// <summary>
     /// Configures the endpoint for creating a user, including route, versioning, pre-processing, and API documentation metadata.
+    /// <summary>
+    /// Configures the API endpoint for creating a user in version 2, including route, versioning, pre-processing, access permissions, and documentation metadata.
     /// </summary>
     public override void Configure()
     {

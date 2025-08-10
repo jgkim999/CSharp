@@ -19,7 +19,11 @@ public class LoginEndpointV1 : Endpoint<LoginRequest, TokenResponse>
     /// Initializes a new instance of the <see cref="LoginEndpointV1"/> class with the specified authentication service, logger, and tracer.
     /// </summary>
     /// <param name="authService"></param>
-    /// <param name="logger"></param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LoginEndpointV1"/> class with authentication, logging, and tracing services.
+    /// </summary>
+    /// <param name="authService">Service for handling authentication operations.</param>
+    /// <param name="tracer">OpenTelemetry tracer for distributed tracing.</param>
     public LoginEndpointV1(IAuthService authService, ILogger<LoginEndpointV1> logger, Tracer tracer)
     {
         _logger = logger;
@@ -29,6 +33,8 @@ public class LoginEndpointV1 : Endpoint<LoginRequest, TokenResponse>
 
     /// <summary>
     /// Configures the login endpoint with versioning, route, anonymous access, validation error logging, rate limiting, and API documentation summary.
+    /// <summary>
+    /// Configures the login endpoint with versioning, route, anonymous access, validation error logging, rate limiting, and API documentation.
     /// </summary>
     public override void Configure()
     {
@@ -57,7 +63,11 @@ public class LoginEndpointV1 : Endpoint<LoginRequest, TokenResponse>
     ///
     /// </summary>
     /// <param name="req"></param>
-    /// <param name="ct"></param>
+    /// <summary>
+    /// Handles a login request by validating credentials and generating a JWT token with assigned roles, permissions, and claims.
+    /// </summary>
+    /// <param name="req">The login request containing username and password.</param>
+    /// <param name="ct">A cancellation token for the asynchronous operation.</param>
     public override async Task HandleAsync(LoginRequest req, CancellationToken ct)
     {
         using var span = _tracer.StartActiveSpan("Login");

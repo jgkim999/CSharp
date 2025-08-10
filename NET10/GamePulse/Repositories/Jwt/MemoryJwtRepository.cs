@@ -11,7 +11,9 @@ public class MemoryJwtRepository : IJwtRepository
     ///
     /// </summary>
     /// <param name="response"></param>
-    /// <returns></returns>
+    /// <summary>
+    /// Stores or updates the refresh token for a user in memory.
+    /// </summary>
     public async Task StoreTokenAsync(TokenResponse response)
     {
         await Task.CompletedTask;
