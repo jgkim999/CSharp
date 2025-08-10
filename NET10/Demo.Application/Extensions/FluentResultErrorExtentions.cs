@@ -10,7 +10,11 @@ public static class FluentResultErrorExtentions
     /// <param name="result">The <see cref="Result"/> instance to extract error messages from.</param>
     /// <returns>
     /// A comma-separated string of all error messages if the result indicates failure; otherwise, an empty string if the result is successful.
-    /// </returns>
+    /// <summary>
+    /// Returns a comma-separated string of all error messages from a failed <c>Result</c>; returns an empty string if the result is successful.
+    /// </summary>
+    /// <param name="result">The <c>Result</c> instance to extract error messages from.</param>
+    /// <returns>A single string containing all error messages, or an empty string if there are no errors.</returns>
     public static string GetErrorMessageAll(this Result result)
     {
         if (result.IsSuccess)
