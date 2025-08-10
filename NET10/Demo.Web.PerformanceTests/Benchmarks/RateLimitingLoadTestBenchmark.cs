@@ -96,7 +96,7 @@ public class RateLimitingLoadTestBenchmark
                         {
                             ClientId = clientId,
                             RequestId = requestId,
-                            StatusCode = response.StatusCode,
+                            StatusCode = (int)response.StatusCode,
                             ResponseTime = requestStopwatch.Elapsed,
                             Success = response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.TooManyRequests
                         });
@@ -108,7 +108,7 @@ public class RateLimitingLoadTestBenchmark
                         {
                             ClientId = clientId,
                             RequestId = requestId,
-                            StatusCode = HttpStatusCode.InternalServerError,
+                            StatusCode = (int)HttpStatusCode.InternalServerError,
                             ResponseTime = requestStopwatch.Elapsed,
                             Success = false,
                             Error = ex.Message
@@ -130,7 +130,7 @@ public class RateLimitingLoadTestBenchmark
         {
             TotalRequests = resultsList.Count,
             SuccessfulRequests = resultsList.Count(r => r.Success),
-            RateLimitedRequests = resultsList.Count(r => r.StatusCode == HttpStatusCode.TooManyRequests),
+            RateLimitedRequests = resultsList.Count(r => r.StatusCode == (int)HttpStatusCode.TooManyRequests),
             FailedRequests = resultsList.Count(r => !r.Success),
             TotalTime = stopwatch.Elapsed,
             AverageResponseTime = TimeSpan.FromMilliseconds(resultsList.Average(r => r.ResponseTime.TotalMilliseconds)),
@@ -169,7 +169,7 @@ public class RateLimitingLoadTestBenchmark
                 {
                     ClientId = 0,
                     RequestId = requestId,
-                    StatusCode = response.StatusCode,
+                    StatusCode = (int)response.StatusCode,
                     ResponseTime = requestStopwatch.Elapsed,
                     Success = response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.TooManyRequests
                 });
@@ -181,7 +181,7 @@ public class RateLimitingLoadTestBenchmark
                 {
                     ClientId = 0,
                     RequestId = requestId,
-                    StatusCode = HttpStatusCode.InternalServerError,
+                    StatusCode = (int)HttpStatusCode.InternalServerError,
                     ResponseTime = requestStopwatch.Elapsed,
                     Success = false,
                     Error = ex.Message
@@ -196,8 +196,8 @@ public class RateLimitingLoadTestBenchmark
         return new LoadTestResult
         {
             TotalRequests = resultsList.Count,
-            SuccessfulRequests = resultsList.Count(r => r.StatusCode == HttpStatusCode.OK),
-            RateLimitedRequests = resultsList.Count(r => r.StatusCode == HttpStatusCode.TooManyRequests),
+            SuccessfulRequests = resultsList.Count(r => r.StatusCode == (int)HttpStatusCode.OK),
+            RateLimitedRequests = resultsList.Count(r => r.StatusCode == (int)HttpStatusCode.TooManyRequests),
             FailedRequests = resultsList.Count(r => !r.Success),
             TotalTime = stopwatch.Elapsed,
             AverageResponseTime = TimeSpan.FromMilliseconds(resultsList.Average(r => r.ResponseTime.TotalMilliseconds)),
@@ -238,7 +238,7 @@ public class RateLimitingLoadTestBenchmark
                     {
                         ClientId = ipIndex,
                         RequestId = requestId,
-                        StatusCode = response.StatusCode,
+                        StatusCode = (int)response.StatusCode,
                         ResponseTime = requestStopwatch.Elapsed,
                         Success = response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.TooManyRequests
                     });
@@ -250,7 +250,7 @@ public class RateLimitingLoadTestBenchmark
                     {
                         ClientId = ipIndex,
                         RequestId = requestId,
-                        StatusCode = HttpStatusCode.InternalServerError,
+                        StatusCode = (int)HttpStatusCode.InternalServerError,
                         ResponseTime = requestStopwatch.Elapsed,
                         Success = false,
                         Error = ex.Message
@@ -267,7 +267,7 @@ public class RateLimitingLoadTestBenchmark
         {
             TotalRequests = resultsList.Count,
             SuccessfulRequests = resultsList.Count(r => r.Success),
-            RateLimitedRequests = resultsList.Count(r => r.StatusCode == HttpStatusCode.TooManyRequests),
+            RateLimitedRequests = resultsList.Count(r => r.StatusCode == (int)HttpStatusCode.TooManyRequests),
             FailedRequests = resultsList.Count(r => !r.Success),
             TotalTime = stopwatch.Elapsed,
             AverageResponseTime = TimeSpan.FromMilliseconds(resultsList.Average(r => r.ResponseTime.TotalMilliseconds)),
@@ -277,4 +277,3 @@ public class RateLimitingLoadTestBenchmark
         };
     }
 }
-
