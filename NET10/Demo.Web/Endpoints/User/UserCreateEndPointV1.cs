@@ -15,6 +15,8 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
     
     /// <summary>
     /// Initializes a new instance of the <see cref="UserCreateEndpointV1"/> class with the specified command mediator and telemetry service.
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserCreateEndpointV1"/> class for handling user creation requests.
     /// </summary>
     public UserCreateEndpointV1(
         ICommandMediator commandMediator, 
@@ -39,7 +41,12 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
     /// Processes a user creation request by sending a command to create a new user and responds with the appropriate HTTP status based on the result.
     /// </summary>
     /// <param name="req">The user creation request containing name, email, and password.</param>
+    /// <summary>
+    /// Handles an HTTP request to create a new user asynchronously.
+    /// </summary>
+    /// <param name="req">The user creation request containing name, email, and password.</param>
     /// <param name="ct">A cancellation token for the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public override async Task HandleAsync(UserCreateRequest req, CancellationToken ct)
     {
         using var activity = _telemetryService.StartActivity("user.create");

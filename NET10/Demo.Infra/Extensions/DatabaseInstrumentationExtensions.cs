@@ -24,7 +24,19 @@ public static class DatabaseInstrumentationExtensions
     /// <param name="methodName">메서드 이름</param>
     /// <param name="operation">실행할 데이터베이스 작업</param>
     /// <param name="additionalTags">추가 태그</param>
-    /// <returns>작업 결과</returns>
+    /// <summary>
+    /// Executes a database operation asynchronously with OpenTelemetry instrumentation, logging, and tagging for tracing and diagnostics.
+    /// </summary>
+    /// <typeparam name="T">The type of the result returned by the database operation.</typeparam>
+    /// <param name="operationName">A descriptive name for the database operation.</param>
+    /// <param name="dbSystem">The database system identifier (e.g., "postgresql", "mssql").</param>
+    /// <param name="dbOperation">The type of database operation (e.g., "SELECT", "INSERT").</param>
+    /// <param name="tableName">The name of the database table involved in the operation.</param>
+    /// <param name="repositoryClass">The name of the repository class invoking the operation.</param>
+    /// <param name="methodName">The name of the method performing the operation.</param>
+    /// <param name="operation">A delegate representing the asynchronous database operation to execute, which receives the current Activity.</param>
+    /// <param name="additionalTags">Optional additional tags to include in the telemetry activity.</param>
+    /// <returns>The result of the database operation.</returns>
     public static async Task<T> InstrumentDatabaseOperationAsync<T>(
         this ITelemetryService telemetryService,
         ILogger logger,
