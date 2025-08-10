@@ -13,6 +13,11 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
     private readonly ILogger<TestLoggingEndpoint> _logger;
     private readonly ITelemetryService _telemetryService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TestLoggingEndpoint"/> class with the specified logger and telemetry service.
+    /// </summary>
+    /// <param name="logger">The logger used for recording log messages.</param>
+    /// <param name="telemetryService">The telemetry service for tracing and activity management.</param>
     public TestLoggingEndpoint(ILogger<TestLoggingEndpoint> logger, ITelemetryService telemetryService)
     {
         _logger = logger;
@@ -30,6 +35,13 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
         });
     }
 
+    /// <summary>
+    /// Handles an HTTP GET request to test logging and telemetry tracing integration.
+    /// </summary>
+    /// <param name="ct">A cancellation token for the asynchronous operation.</param>
+    /// <remarks>
+    /// This method demonstrates logging at various levels, telemetry activity creation (including nested activities), and error handling with trace context. It logs messages, simulates an exception, and sets the HTTP response with trace information and a timestamp.
+    /// </remarks>
     public override async Task HandleAsync(CancellationToken ct)
     {
         using var activity = _telemetryService.StartActivity("TestLogging", new Dictionary<string, object?>
