@@ -77,4 +77,16 @@ public interface ITelemetryService
     /// <param name="messageTemplate">The message template for the log entry.</param>
     /// <param name="propertyValues">Optional property values to format the message template.</param>
     void LogErrorWithTrace(ILogger logger, Exception exception, string messageTemplate, params object[] propertyValues);
+
+    /// <summary>
+    /// RTT(Round Trip Time) 메트릭을 기록합니다.
+    /// 이 메서드는 RTT 카운터, 히스토그램, 네트워크 품질, 게이지 메트릭을 기록합니다.
+    /// </summary>
+    /// <param name="countryCode">국가 코드 (null 또는 빈 문자열일 수 없음)</param>
+    /// <param name="rtt">RTT 값 (초 단위, 음수일 수 없음)</param>
+    /// <param name="quality">네트워크 품질 점수 (0-100 범위의 유효한 값이어야 함)</param>
+    /// <param name="gameType">게임 타입 (기본값: "sod")</param>
+    /// <exception cref="ArgumentException">countryCode가 null 또는 빈 문자열인 경우</exception>
+    /// <exception cref="ArgumentOutOfRangeException">rtt가 음수이거나 quality가 유효 범위를 벗어난 경우</exception>
+    void RecordRttMetrics(string countryCode, double rtt, double quality, string gameType = "sod");
 }
