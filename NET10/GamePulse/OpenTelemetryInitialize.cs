@@ -1,6 +1,6 @@
 using GamePulse.Configs;
 using GamePulse.Services;
-using GamePulse.Sod.Metrics;
+using Demo.Application.Services;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Metrics;
@@ -15,11 +15,11 @@ namespace GamePulse;
 public static class OpenTelemetryInitialize
 {
     /// <summary>
-    /// Configures and adds OpenTelemetry tracing and metrics services to the dependency injection container using the specified configuration.
+    /// OpenTelemetry 추적 및 메트릭 서비스를 지정된 구성을 사용하여 의존성 주입 컨테이너에 구성하고 추가합니다.
     /// </summary>
-    /// <param name="service"></param>
-    /// <param name="config">The OpenTelemetry configuration settings, including service name, version, endpoint, and trace sampling argument.</param>
-    /// <returns>The updated <see cref="IServiceCollection"/> with OpenTelemetry services registered.</returns>
+    /// <param name="service">서비스 컬렉션</param>
+    /// <param name="config">서비스 이름, 버전, 엔드포인트 및 추적 샘플링 인수를 포함한 OpenTelemetry 구성 설정</param>
+    /// <returns>OpenTelemetry 서비스가 등록된 업데이트된 <see cref="IServiceCollection"/></returns>
     public static IServiceCollection AddOpenTelemetryServices(this IServiceCollection service, OtelConfig config)
     {
         var openTelemetryBuilder = service.AddOpenTelemetry();
@@ -59,7 +59,11 @@ public static class OpenTelemetryInitialize
             metrics.SetResourceBuilder(
                 ResourceBuilder.CreateDefault()
                     .AddService(serviceName: config.ServiceName, serviceVersion: config.ServiceVersion));
-            metrics.AddMeter(SodMetrics.M1);
+
+            // TelemetryService의 MeterName을 OpenTelemetry에 등록
+            // 서비스 이름을 사용하여 메트릭 수집 설정
+            metrics.AddMeter(config.ServiceName);
+
             metrics.AddAspNetCoreInstrumentation();
             metrics.AddRuntimeInstrumentation();
             metrics.AddHttpClientInstrumentation();

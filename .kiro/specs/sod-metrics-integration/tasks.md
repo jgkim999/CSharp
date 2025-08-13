@@ -12,46 +12,46 @@
   - OpenTelemetry 명명 규칙에 따른 메트릭 이름 설정
   - _요구사항: 1.1, 4.1, 4.2_
 
-- [ ] 3. TelemetryService에 RecordRttMetrics 메서드 구현
+- [x] 3. TelemetryService에 RecordRttMetrics 메서드 구현
   - 입력 매개변수 유효성 검사 로직 구현
   - TagList를 사용한 메트릭 태그 생성
   - 각 메트릭 타입별 기록 로직 구현 (Counter, Histogram, Gauge)
   - 예외 처리 및 로깅 추가
   - _요구사항: 1.1, 1.2, 4.3, 5.1_
 
-- [ ] 4. GamePulse 프로젝트에 Demo.Application 참조 추가
+- [x] 4. GamePulse 프로젝트에 Demo.Application 참조 추가
   - GamePulse.csproj에 Demo.Application 프로젝트 참조 추가
   - 네임스페이스 충돌 방지를 위한 using 문 정리
   - 순환 참조 검사 및 해결
   - _요구사항: 2.1_
 
-- [ ] 5. RttCommand에서 SodMetrics를 ITelemetryService로 교체
+- [x] 5. RttCommand에서 SodMetrics를 ITelemetryService로 교체
   - RttCommand.cs에서 SodMetrics 의존성 제거
   - ITelemetryService 의존성 주입으로 변경
   - AddRtt 메서드 호출을 RecordRttMetrics 호출로 변경
   - 매개변수 매핑 및 단위 변환 검증
   - _요구사항: 2.2, 3.1_
 
-- [ ] 6. GamePulse 의존성 주입 설정 수정
+- [x] 6. GamePulse 의존성 주입 설정 수정
   - SodInitialize.cs에서 SodMetrics 등록 제거
   - ITelemetryService 및 TelemetryService 등록 추가
   - 서비스 생명주기 설정 (Singleton)
   - OtelConfig를 TelemetryService 생성자에 매핑
   - _요구사항: 2.1, 3.1_
 
-- [ ] 7. OpenTelemetry 설정에서 SodMetrics 참조 제거
+- [x] 7. OpenTelemetry 설정에서 SodMetrics 참조 제거
   - OpenTelemetryInitialize.cs에서 SodMetrics.M1 참조 제거
   - TelemetryService의 MeterName을 OpenTelemetry에 등록
   - 메트릭 수집 설정 검증
   - _요구사항: 2.1, 4.1_
 
-- [ ] 8. SodMetrics.cs 파일 삭제
+- [x] 8. SodMetrics.cs 파일 삭제
   - GamePulse/Sod/Metrics/SodMetrics.cs 파일 제거
   - 컴파일 오류 확인 및 해결
   - 사용하지 않는 using 문 정리
   - _요구사항: 2.1, 2.3_
 
-- [ ] 9. 단위 테스트 작성
+- [-] 9. 단위 테스트 작성
   - TelemetryService.RecordRttMetrics 메서드 단위 테스트 작성
   - 유효한 입력값에 대한 메트릭 기록 검증 테스트
   - 잘못된 입력값에 대한 예외 처리 테스트

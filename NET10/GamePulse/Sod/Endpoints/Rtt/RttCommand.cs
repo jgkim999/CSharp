@@ -2,7 +2,6 @@ using System.Diagnostics;
 using Demo.Application.Services;
 using GamePulse.Services;
 using GamePulse.Sod.Commands;
-using GamePulse.Sod.Metrics;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
 
@@ -36,7 +35,7 @@ public class RttCommand : SodCommand
     {
         var logger = serviceProvider.GetService<ILogger<RttCommand>>();
         var ipToNationService = serviceProvider.GetService<IIpToNationService>();
-        var metrics = serviceProvider.GetService<SodMetrics>();
+        var telemetryService = serviceProvider.GetService<ITelemetryService>();
         using var span = GamePulseActivitySource.StartActivity(nameof(RttCommand), ActivityKind.Internal, parentActivity: ParentActivity);
 
         //span?.AddTag("ClientIp", ClientIp);
@@ -44,9 +43,9 @@ public class RttCommand : SodCommand
         Debug.Assert(ipToNationService != null, nameof(ipToNationService) + " != null");
         var countryCode = await ipToNationService.GetNationCodeAsync(ClientIp, ct);
 
-        // RTT 처리
+        // RTT 처리 - 밀리초를 초 단위로 변환
         var rtt = _rtt / (double)1000;
-        metrics?.AddRtt(countryCode, rtt, _quality);
+        telemetryService?.RecordRttMetrics(countryCode, rtt, _quality, "sod");
         logger?.LogInformation(
             "{Game} {ClientIp} {CountryCode} {Rtt} {Quality}",
             "sod", ClientIp, countryCode, rtt, _quality);

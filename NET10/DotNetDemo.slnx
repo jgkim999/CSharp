@@ -1,0 +1,15 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Demo.Application/Demo.Application.csproj" />
+  <Project Path="Demo.Application.Tests/Demo.Application.Tests.csproj" />
+  <Project Path="Demo.Infra/Demo.Infra.csproj" />
+  <Project Path="Demo.Web.IntegrationTests/Demo.Web.IntegrationTests.csproj" />
+  <Project Path="Demo.Web.PerformanceTests/Demo.Web.PerformanceTests.csproj" />
+  <Project Path="Demo.Web/Demo.Web.csproj" />
+  <Project Path="GamePulse.Test/GamePulse.Test.csproj" />
+  <Project Path="GamePulse/GamePulse.csproj" />
+</Solution>
