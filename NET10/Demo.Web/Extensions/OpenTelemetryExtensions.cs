@@ -38,8 +38,11 @@ public static class OpenTelemetryExtensions
         services.Configure<OpenTelemetryConfig>(configuration.GetSection(OpenTelemetryConfig.SectionName));
 
         // TelemetryService 등록
-        var telemetryService = new TelemetryService(otelConfig.ServiceName, otelConfig.ServiceVersion);
-        services.AddSingleton<ITelemetryService>(telemetryService);
+        services.AddSingleton<ITelemetryService>(provider =>
+        {
+            var logger = provider.GetRequiredService<ILogger<TelemetryService>>();
+            return new TelemetryService(otelConfig.ServiceName, otelConfig.ServiceVersion, logger);
+        });
 
         // OpenTelemetry 서비스 등록
         var openTelemetryBuilder = services.AddOpenTelemetry();
@@ -64,7 +67,7 @@ public static class OpenTelemetryExtensions
         {
             if (otelConfig.Tracing.Enabled)
             {
-                ConfigureTracing(tracingBuilder, otelConfig, telemetryService.ActiveSourceName);
+                ConfigureTracing(tracingBuilder, otelConfig, otelConfig.ServiceName);
             }
         });
             
@@ -72,7 +75,7 @@ public static class OpenTelemetryExtensions
         {
             if (otelConfig.Metrics.Enabled)
             {
-                ConfigureMetrics(metricsBuilder, otelConfig, telemetryService.MeterName);
+                ConfigureMetrics(metricsBuilder, otelConfig, otelConfig.ServiceName);
             }
         });
 
