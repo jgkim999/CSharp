@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Demo.Application.Services;
 using Demo.Infra.Services;
-using GamePulse.Sod.Commands;
+using Demo.Application.Commands.Sod;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
 

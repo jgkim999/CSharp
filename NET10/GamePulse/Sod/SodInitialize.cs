@@ -1,4 +1,5 @@
-using GamePulse.Sod.Services;
+using Demo.Application.Services.Sod;
+using Demo.Infra.Services.Sod;
 using Demo.Application.Configs;
 using Demo.Application.Services;
 using Microsoft.Extensions.Options;

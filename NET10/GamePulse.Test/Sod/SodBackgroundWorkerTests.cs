@@ -1,7 +1,7 @@
 using FluentAssertions;
-using Demo.Infra.Services;
-using GamePulse.Sod.Commands;
-using GamePulse.Sod.Services;
+using Demo.Application.Commands.Sod;
+using Demo.Application.Services.Sod;
+using Demo.Infra.Services.Sod;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;

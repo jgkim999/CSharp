@@ -3,7 +3,7 @@ using FastEndpoints;
 
 using Demo.Application.Processors;
 using Demo.Infra.Services;
-using GamePulse.Sod.Services;
+using Demo.Application.Services.Sod;
 using OpenTelemetry.Trace;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
