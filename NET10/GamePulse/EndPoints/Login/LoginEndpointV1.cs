@@ -2,7 +2,7 @@ using FastEndpoints;
 using FastEndpoints.Security;
 using Demo.Web.DTO;
 using Bogus;
-using GamePulse.Processors;
+using Demo.Application.Processors;
 using OpenTelemetry.Trace;
 using Demo.Application.Services.Auth;
 using Demo.Infra.Services;
