@@ -1,0 +1,25 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build Demo.Web",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/Demo.Web/Demo.Web.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build GamePulse",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/GamePulse/GamePulse.csproj"
+      ],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

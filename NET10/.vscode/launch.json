@@ -1,0 +1,28 @@
+{
+  // IntelliSense를 사용하여 가능한 특성에 대해 알아보세요.
+  // 기존 특성에 대한 설명을 보려면 가리킵니다.
+  // 자세한 내용을 보려면 https://go.microsoft.com/fwlink/?linkid=830387을(를) 방문하세요.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "coreclr",
+      "request": "launch",
+      "name": "Launch Demo.Web",
+      "program": "${workspaceFolder}/Demo.Web/bin/Debug/net9.0/Demo.Web.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/Demo.Web",
+      "stopAtEntry": false,
+      "preLaunchTask": "build Demo.Web"
+    },
+    {
+      "type": "coreclr",
+      "request": "launch",
+      "name": "Launch GamePulse",
+      "program": "${workspaceFolder}/GamePulse/bin/Debug/net9.0/GamePulse.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/GamePulse",
+      "stopAtEntry": false,
+      "preLaunchTask": "build GamePulse"
+    }
+  ]
+}
