@@ -1,15 +1,17 @@
 using FastEndpoints;
-using Microsoft.AspNetCore.Mvc;
 
-namespace GamePulse;
+namespace Demo.Web.Extensions;
 
-public static class FastEndpointsInitialize
+/// <summary>
+/// FastEndpoints 설정을 위한 확장 메서드
+/// </summary>
+public static class FastEndpointsExtensions
 {
     /// <summary>
-    /// Configures the WebApplication to use FastEndpoints with default exception handling, API versioning, and standardized error responses.
+    /// 기본 예외 처리, API 버전 관리 및 표준화된 오류 응답과 함께 FastEndpoints를 사용하도록 WebApplication을 구성합니다
     /// </summary>
-    /// <param name="app">The WebApplication instance to configure.</param>
-    /// <returns>The configured WebApplication instance.</returns>
+    /// <param name="app">구성할 WebApplication 인스턴스</param>
+    /// <returns>구성된 WebApplication 인스턴스</returns>
     public static WebApplication UseFastEndpointsInitialize(this WebApplication app)
     {
         app.UseDefaultExceptionHandler();
