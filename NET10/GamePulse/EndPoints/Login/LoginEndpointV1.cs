@@ -1,6 +1,6 @@
 using FastEndpoints;
 using FastEndpoints.Security;
-using GamePulse.DTO;
+using Demo.Web.DTO;
 using Bogus;
 using GamePulse.Processors;
 using OpenTelemetry.Trace;

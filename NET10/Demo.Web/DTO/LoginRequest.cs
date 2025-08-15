@@ -1,10 +1,7 @@
-using FastEndpoints;
-using FluentValidation;
-
-namespace GamePulse.DTO;
+namespace Demo.Web.DTO;
 
 /// <summary>
-/// Login 요청
+/// 로그인 요청 DTO
 /// </summary>
 public class LoginRequest
 {
@@ -12,6 +9,7 @@ public class LoginRequest
     /// 로그인 사용자명
     /// </summary>
     public string Username { get; set; } = string.Empty;
+
     /// <summary>
     /// 로그인 비밀번호
     /// </summary>

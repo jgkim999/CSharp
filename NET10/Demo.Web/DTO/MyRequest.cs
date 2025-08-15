@@ -1,7 +1,7 @@
-namespace GamePulse.DTO;
+namespace Demo.Web.DTO;
 
 /// <summary>
-/// 요청 예제
+/// 요청 예제 DTO
 /// </summary>
 public class MyRequest
 {
@@ -9,13 +9,14 @@ public class MyRequest
     /// 이름 (성)
     /// </summary>
     public string FirstName { get; set; } = string.Empty;
+
     /// <summary>
     /// 이름 (명)
     /// </summary>
     public string LastName { get; set; } = string.Empty;
+
     /// <summary>
     /// 나이
     /// </summary>
     public int Age { get; set; }
 }
-

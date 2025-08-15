@@ -1,5 +1,5 @@
 using FastEndpoints;
-using GamePulse.DTO;
+using Demo.Web.DTO;
 using GamePulse.Processors;
 
 namespace GamePulse.EndPoints.User.Create;

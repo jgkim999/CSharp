@@ -1,19 +1,20 @@
 using System.Text.Json.Serialization;
 
-namespace GamePulse.DTO;
+namespace Demo.Web.DTO;
 
 /// <summary>
-/// Response Exam
+/// 응답 예제 DTO
 /// </summary>
 [JsonSerializable(typeof(MyResponse))]
 public class MyResponse
 {
     /// <summary>
-    /// Full name
+    /// 전체 이름
     /// </summary>
     public string FullName { get; set; } = string.Empty;
+
     /// <summary>
-    /// Is age over 18
+    /// 18세 이상 여부
     /// </summary>
     public bool IsOver18 { get; set; }
 }

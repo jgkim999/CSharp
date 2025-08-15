@@ -1,12 +1,15 @@
 using FastEndpoints;
 using FluentValidation;
 
-namespace GamePulse.DTO;
+namespace Demo.Web.DTO;
 
+/// <summary>
+/// MyRequest 유효성 검사기
+/// </summary>
 public class MyRequestValidator : Validator<MyRequest>
 {
     /// <summary>
-    /// Initializes a new instance of the <c>MyRequestValidator</c> class, defining validation rules for <c>MyRequest</c> objects.
+    /// MyRequest 객체에 대한 유효성 검사 규칙을 정의하여 MyRequestValidator 클래스의 새 인스턴스를 초기화합니다
     /// </summary>
     public MyRequestValidator()
     {

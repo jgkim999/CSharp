@@ -1,5 +1,5 @@
 using FluentAssertions;
-using GamePulse.DTO;
+using Demo.Web.DTO;
 
 namespace GamePulse.Test.DTO;
 
