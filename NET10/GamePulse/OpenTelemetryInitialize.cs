@@ -1,4 +1,4 @@
-using GamePulse.Configs;
+using Demo.Web.Configs;
 using GamePulse.Services;
 using Demo.Application.Services;
 using OpenTelemetry.Exporter;

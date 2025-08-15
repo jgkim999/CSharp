@@ -1,4 +1,4 @@
-namespace GamePulse.Configs;
+namespace Demo.Web.Configs;
 
 /// <summary>
 /// Jwt 인증
