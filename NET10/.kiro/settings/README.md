@@ -1,9 +1,15 @@
+# MCP
+
+## Windows
+
+```json
 {
   "mcpServers": {
     "aws-diagram": {
-      "command": "uvx",
+      "command": "python",
       "args": [
-        "awslabs.aws-diagram-mcp-server@latest"
+        "-m",
+        "awslabs.aws_diagram_mcp_server.server"
       ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
@@ -14,9 +20,10 @@
       ]
     },
     "aws-eks": {
-      "command": "uvx",
+      "command": "python",
       "args": [
-        "awslabs.eks-mcp-server@latest"
+        "-m",
+        "awslabs.eks_mcp_server.server"
       ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
@@ -36,9 +43,10 @@
       "autoApprove": []
     },
     "fetch": {
-      "command": "uvx",
+      "command": "python",
       "args": [
-        "mcp-server-fetch@latest"
+        "-m",
+        "mcp_server_fetch"
       ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
@@ -47,18 +55,12 @@
       "autoApprove": []
     },
     "git": {
-      "command": "uvx",
-      "args": ["mcp-server-git"]
-    },
-    "awslabs.ecs-mcp-server": {
-      "command": "uvx",
-      "args": ["--from", "awslabs-ecs-mcp-server", "ecs-mcp-server"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR",
-        "FASTMCP_LOG_FILE": "/path/to/ecs-mcp-server.log",
-        "ALLOW_WRITE": "false",
-        "ALLOW_SENSITIVE_DATA": "false"
-      }
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_server_git"
+      ]
     }
   }
 }
+```

@@ -11,6 +11,8 @@ namespace Demo.Application.Services;
 /// </summary>
 public sealed class TelemetryService : ITelemetryService, IDisposable
 {
+    private readonly ILogger<TelemetryService> _logger;
+    
     /// <summary>
     /// Demo.Application 애플리케이션의 _activitySource
     /// </summary>
@@ -27,17 +29,24 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     private readonly Counter<long> _errorCounter;
     private readonly Gauge<int> _activeConnections;
     
+    // RTT 관련 메트릭 정의
+    private readonly Counter<long> _rttCounter;
+    private readonly Histogram<double> _rttHistogram;
+    private readonly Histogram<double> _networkQualityHistogram;
+    private readonly Gauge<double> _rttGauge;
+    
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, Counter<long>> _businessCounters
         = new();
-    
-    public string ActiveSourceName => _activitySource.Name;
-    public string MeterName => _meter.Name;
+
+    string ITelemetryService.ActiveSourceName => _activitySource.Name;
+    string ITelemetryService.MeterName => _meter.Name;
     
     /// <summary>
     /// TelemetryService 생성자
     /// </summary>
-    public TelemetryService(string serviceName, string serviceVersion)
+    public TelemetryService(string serviceName, string serviceVersion, ILogger<TelemetryService> logger)
     {
+        _logger = logger;
         _activitySource = new ActivitySource(serviceName, serviceVersion);
         _meter = new Meter(serviceName, serviceVersion);
 
@@ -64,6 +73,27 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
             name: "demo_app_active_connections",
             unit: "1",
             description: "Number of active connections");
+
+        // RTT 관련 메트릭 초기화
+        _rttCounter = _meter.CreateCounter<long>(
+            name: "demo_app_rtt_calls_total",
+            unit: "1",
+            description: "Total number of RTT measurements recorded");
+
+        _rttHistogram = _meter.CreateHistogram<double>(
+            name: "demo_app_rtt_duration_seconds",
+            unit: "s",
+            description: "Distribution of RTT measurements in seconds");
+
+        _networkQualityHistogram = _meter.CreateHistogram<double>(
+            name: "demo_app_network_quality_score",
+            unit: "1",
+            description: "Distribution of network quality scores");
+
+        _rttGauge = _meter.CreateGauge<double>(
+            name: "demo_app_rtt_current_seconds",
+            unit: "s",
+            description: "Current RTT measurement in seconds");
     }
 
     /// <summary>
@@ -72,7 +102,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// <param name="operationName">작업 이름</param>
     /// <param name="tags">추가할 태그</param>
     /// <returns>시작된 Activity</returns>
-    public Activity? StartActivity(string operationName, Dictionary<string, object?>? tags = null)
+    Activity? ITelemetryService.StartActivity(string operationName, Dictionary<string, object?>? tags)
     {
         var activity = _activitySource.StartActivity(operationName);
 
@@ -94,7 +124,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// <param name="endpoint">엔드포인트</param>
     /// <param name="statusCode">상태 코드</param>
     /// <param name="duration">요청 처리 시간</param>
-    public void RecordHttpRequest(string method, string endpoint, int statusCode, double duration)
+    void ITelemetryService.RecordHttpRequest(string method, string endpoint, int statusCode, double duration)
     {
         var tags = new TagList
         {
@@ -113,7 +143,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// <param name="errorType">에러 타입</param>
     /// <param name="operation">작업 이름</param>
     /// <param name="message">에러 메시지</param>
-    public void RecordError(string errorType, string operation, string? message = null)
+    void ITelemetryService.RecordError(string errorType, string operation, string? message)
     {
         var tags = new TagList
         {
@@ -135,7 +165,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// <param name="metricName">메트릭 이름</param>
     /// <param name="value">값</param>
     /// <param name="tags">태그</param>
-    public void RecordBusinessMetric(string metricName, long value, Dictionary<string, object?>? tags = null)
+    void ITelemetryService.RecordBusinessMetric(string metricName, long value, Dictionary<string, object?>? tags)
     {
         var counter = _businessCounters.GetOrAdd(metricName, m =>
             _meter.CreateCounter<long>(
@@ -160,7 +190,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// </summary>
     /// <param name="activity">Activity 객체</param>
     /// <param name="exception">예외 객체</param>
-    public void SetActivityError(Activity? activity, Exception exception)
+    void ITelemetryService.SetActivityError(Activity? activity, Exception exception)
     {
         if (activity == null)
             return;
@@ -185,7 +215,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// </summary>
     /// <param name="activity">Activity 객체</param>
     /// <param name="message">성공 메시지</param>
-    public void SetActivitySuccess(Activity? activity, string? message = null)
+    void ITelemetryService.SetActivitySuccess(Activity? activity, string? message)
     {
         if (activity == null)
             return;
@@ -223,7 +253,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
     /// <param name="propertyValues">속성 값들</param>
-    public void LogInformationWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
+    void ITelemetryService.LogInformationWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
     {
         LogWithTraceContext(logger, LogLevel.Information, messageTemplate, propertyValues);
     }
@@ -234,9 +264,41 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
     /// <param name="propertyValues">속성 값들</param>
-    public void LogWarningWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
+    void ITelemetryService.LogWarningWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
     {
         LogWithTraceContext(logger, LogLevel.Warning, messageTemplate, propertyValues);
+    }
+
+    /// <summary>
+    /// RTT 측정값을 기록합니다.
+    /// </summary>
+    /// <param name="rttSeconds">RTT 시간 (초)</param>
+    /// <param name="endpoint">엔드포인트</param>
+    /// <param name="networkType">네트워크 타입</param>
+    public void RecordRtt(double rttSeconds, string endpoint, string? networkType = null)
+    {
+        var tags = new TagList
+        {
+            { "endpoint", endpoint }
+        };
+
+        if (!string.IsNullOrEmpty(networkType))
+        {
+            tags.Add("network_type", networkType);
+        }
+
+        _rttCounter.Add(1, tags);
+        _rttHistogram.Record(rttSeconds, tags);
+        _rttGauge.Record(rttSeconds, tags);
+    }
+
+    /// <summary>
+    /// 활성 연결 수를 업데이트합니다.
+    /// </summary>
+    /// <param name="connectionCount">연결 수</param>
+    public void UpdateActiveConnections(int connectionCount)
+    {
+        _activeConnections.Record(connectionCount);
     }
 
     /// <summary>
@@ -246,7 +308,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// <param name="exception">예외 객체</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
     /// <param name="propertyValues">속성 값들</param>
-    public void LogErrorWithTrace(ILogger logger, Exception exception, string messageTemplate, params object[] propertyValues)
+    void ITelemetryService.LogErrorWithTrace(ILogger logger, Exception exception, string messageTemplate, params object[] propertyValues)
     {
         var activity = Activity.Current;
         if (activity != null)
@@ -262,6 +324,79 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
         else
         {
             logger.LogError(exception, messageTemplate, propertyValues);
+        }
+    }
+
+    /// <summary>
+    /// RTT(Round Trip Time) 메트릭을 기록합니다.
+    /// 이 메서드는 RTT 카운터, 히스토그램, 네트워크 품질, 게이지 메트릭을 기록합니다.
+    /// </summary>
+    /// <param name="countryCode">국가 코드 (null 또는 빈 문자열일 수 없음)</param>
+    /// <param name="rtt">RTT 값 (초 단위, 음수일 수 없음)</param>
+    /// <param name="quality">네트워크 품질 점수 (0-100 범위의 유효한 값이어야 함)</param>
+    /// <param name="gameType">게임 타입 (기본값: "sod")</param>
+    /// <exception cref="ArgumentException">countryCode가 null 또는 빈 문자열인 경우</exception>
+    /// <exception cref="ArgumentOutOfRangeException">rtt가 음수이거나 quality가 유효 범위를 벗어난 경우</exception>
+    void ITelemetryService.RecordRttMetrics(string countryCode, double rtt, double quality, string gameType)
+    {
+        try
+        {
+            // 입력 매개변수 유효성 검사
+            if (string.IsNullOrWhiteSpace(countryCode))
+            {
+                throw new ArgumentException("국가 코드는 null 또는 빈 문자열일 수 없습니다.", nameof(countryCode));
+            }
+
+            if (rtt < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(rtt), rtt, "RTT 값은 음수일 수 없습니다.");
+            }
+
+            if (quality < 0 || quality > 100)
+            {
+                throw new ArgumentOutOfRangeException(nameof(quality), quality, "네트워크 품질 점수는 0-100 범위 내의 값이어야 합니다.");
+            }
+
+            if (string.IsNullOrWhiteSpace(gameType))
+            {
+                gameType = "sod"; // 기본값 설정
+            }
+
+            // TagList를 사용한 메트릭 태그 생성
+            var rttTags = new TagList
+            {
+                { "country", countryCode },
+                { "game", gameType }
+            };
+
+            // 각 메트릭 타입별 기록 로직 구현
+            
+            // RTT 카운터 증가 (호출 횟수 기록)
+            _rttCounter.Add(1, rttTags);
+
+            // RTT 히스토그램 기록 (RTT 분포 추적)
+            _rttHistogram.Record(rtt, rttTags);
+
+            // 네트워크 품질 히스토그램 기록 (품질 점수 분포 추적)
+            _networkQualityHistogram.Record(quality, rttTags);
+
+            // RTT 게이지 기록 (현재 RTT 값)
+            _rttGauge.Record(rtt, rttTags);
+        }
+        catch (ArgumentException ex)
+        {
+            // 매개변수 유효성 검사 예외는 다시 던짐
+            _logger.LogError(ex, nameof(TelemetryService));
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // 예상치 못한 예외 발생 시 로깅 후 무시 (메트릭 기록 실패가 애플리케이션 흐름에 영향을 주지 않도록)
+            // 로거가 없으므로 System.Diagnostics.Debug를 사용하여 디버그 출력
+            _logger.LogDebug(ex, "RTT 메트릭 기록 중 예외 발생: {Message}", ex.Message);
+            
+            // 메트릭 기록 실패는 애플리케이션 흐름을 중단시키지 않음
+            // 따라서 예외를 다시 던지지 않음
         }
     }
 
@@ -300,8 +435,8 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// </summary>
     public void Dispose()
     {
-        _activitySource?.Dispose();
-        _meter?.Dispose();
+        _activitySource.Dispose();
+        _meter.Dispose();
     }
 }
 
@@ -311,7 +446,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
 public class CompositeDisposable : IDisposable
 {
     private readonly List<IDisposable> _disposables;
-    private bool _disposed = false;
+    private bool _disposed;
 
     /// <summary>
     /// CompositeDisposable 생성자
@@ -331,7 +466,7 @@ public class CompositeDisposable : IDisposable
         {
             foreach (var disposable in _disposables)
             {
-                disposable?.Dispose();
+                disposable.Dispose();
             }
             _disposed = true;
             GC.SuppressFinalize(this);
