@@ -1,19 +1,22 @@
-using Demo.Application.Services.Sod;
-using Demo.Infra.Services.Sod;
 using Demo.Application.Configs;
 using Demo.Application.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace GamePulse.Sod;
+namespace Demo.Application.Extensions;
 
-public static class SodInitialize
+/// <summary>
+/// SOD 서비스 등록을 위한 확장 메서드
+/// </summary>
+public static class SodServiceExtensions
 {
     /// <summary>
-    /// SOD 백그라운드 작업 큐 및 워커 서비스와 텔레메트리 서비스를 의존성 주입 컨테이너에 등록합니다.
+    /// SOD 텔레메트리 서비스를 의존성 주입 컨테이너에 등록합니다
     /// </summary>
     /// <param name="services">서비스 컬렉션</param>
-    /// <returns>업데이트된 <see cref="IServiceCollection"/> 인스턴스</returns>
-    public static IServiceCollection AddSod(this IServiceCollection services)
+    /// <returns>업데이트된 IServiceCollection 인스턴스</returns>
+    public static IServiceCollection AddSodServices(this IServiceCollection services)
     {
         // ITelemetryService 및 TelemetryService를 Singleton으로 등록
         services.AddSingleton<ITelemetryService>(serviceProvider =>
@@ -27,9 +30,6 @@ public static class SodInitialize
                 logger: logger
             );
         });
-
-        services.AddSingleton<ISodBackgroundTaskQueue, SodBackgroundTaskQueue>();
-        services.AddHostedService<SodBackgroundWorker>();
 
         return services;
     }

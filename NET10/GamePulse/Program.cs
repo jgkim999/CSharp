@@ -9,7 +9,8 @@ using Demo.Application.Configs;
 using Demo.Web.Extensions;
 using RedisConfig = Demo.Application.Configs.RedisConfig;
 using Demo.Application.Services.Auth;
-using GamePulse.Sod;
+using Demo.Application.Extensions;
+using Demo.Infra.Extensions;
 
 using Scalar.AspNetCore;
 
@@ -66,7 +67,8 @@ try
     builder.Services.AddSingleton<IIpToNationCache, IpToNationRedisCache>();
     builder.Services.AddSingleton<IIpToNationService, IpToNationService>();
 
-    builder.Services.AddSod();
+    builder.Services.AddSodServices();
+    builder.Services.AddSodInfrastructure();
 
     builder.Services.AddOpenTelemetryServices(openTelemetryConfig);
 
