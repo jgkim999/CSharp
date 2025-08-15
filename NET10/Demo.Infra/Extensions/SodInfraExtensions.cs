@@ -9,16 +9,16 @@ namespace Demo.Infra.Extensions;
 /// </summary>
 public static class SodInfraExtensions
 {
-    /// <summary>
-    /// SOD 백그라운드 작업 큐 및 워커 서비스를 의존성 주입 컨테이너에 등록합니다
-    /// </summary>
-    /// <param name="services">서비스 컬렉션</param>
-    /// <returns>업데이트된 IServiceCollection 인스턴스</returns>
-    public static IServiceCollection AddSodInfrastructure(this IServiceCollection services)
-    {
-        services.AddSingleton<ISodBackgroundTaskQueue, SodBackgroundTaskQueue>();
-        services.AddHostedService<SodBackgroundWorker>();
+  /// <summary>
+  /// SOD 백그라운드 작업 큐 및 워커 서비스를 의존성 주입 컨테이너에 등록합니다
+  /// </summary>
+  /// <param name="services">서비스 컬렉션</param>
+  /// <returns>업데이트된 IServiceCollection 인스턴스</returns>
+  public static IServiceCollection AddSodInfrastructure(this IServiceCollection services)
+  {
+    services.AddSingleton<ISodBackgroundTaskQueue, SodBackgroundTaskQueue>();
+    services.AddHostedService<SodBackgroundWorker>();
 
-        return services;
-    }
+    return services;
+  }
 }

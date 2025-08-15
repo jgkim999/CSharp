@@ -1,20 +1,21 @@
 using FastEndpoints.Swagger;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace GamePulse;
+namespace Demo.Application.Extensions;
 
 /// <summary>
-/// 
+/// OpenAPI 서비스 설정을 위한 확장 메서드
 /// </summary>
-public static class OpenApiInitialize
+public static class OpenApiExtensions
 {
     /// <summary>
-    /// 
+    /// OpenAPI 및 Swagger 문서 서비스를 의존성 주입 컨테이너에 등록합니다
     /// </summary>
-    /// <param name="service"></param>
-    /// <returns></returns>
-    public static IServiceCollection AddOpenApiServices(this IServiceCollection service)
+    /// <param name="services">서비스 컬렉션</param>
+    /// <returns>업데이트된 IServiceCollection 인스턴스</returns>
+    public static IServiceCollection AddOpenApiServices(this IServiceCollection services)
     {
-        service.SwaggerDocument(o =>
+        services.SwaggerDocument(o =>
             {
                 o.DocumentSettings = s =>
                 {
@@ -46,11 +47,12 @@ public static class OpenApiInitialize
                     s.Version = "v2";
                 };
             });
-        // Add services to the container.
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        service.AddOpenApi("v1");
-        service.AddOpenApi("v2");
 
-        return service;
+        // OpenAPI 서비스를 컨테이너에 추가
+        // ASP.NET Core OpenAPI 구성에 대한 자세한 내용: https://aka.ms/aspnet/openapi
+        services.AddOpenApi("v1");
+        services.AddOpenApi("v2");
+
+        return services;
     }
 }
