@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GamePulse\GamePulse.csproj" />
+    <ProjectReference Include="..\Demo.Application\Demo.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

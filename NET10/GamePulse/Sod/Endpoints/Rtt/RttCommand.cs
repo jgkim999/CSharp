@@ -40,7 +40,16 @@ public class RttCommand : SodCommand
 
         //span?.AddTag("ClientIp", ClientIp);
         // IP 주소를 국가 코드로 변환
-        Debug.Assert(ipToNationService != null, nameof(ipToNationService) + " != null");
+        if (ipToNationService == null)
+        {
+            logger?.LogWarning("IpToNationService가 null입니다. 기본 국가 코드 'Unknown'을 사용합니다.");
+            telemetryService?.RecordRttMetrics("Unknown", _rtt / (double)1000, _quality, "sod");
+            logger?.LogInformation(
+                "{Game} {ClientIp} {CountryCode} {Rtt} {Quality}",
+                "sod", ClientIp, "Unknown", _rtt / (double)1000, _quality);
+            return;
+        }
+
         var countryCode = await ipToNationService.GetNationCodeAsync(ClientIp, ct);
 
         // RTT 처리 - 밀리초를 초 단위로 변환
