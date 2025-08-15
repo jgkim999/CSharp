@@ -1,11 +1,13 @@
+using Demo.Application.Repositories;
+using Demo.Application.Configs;
 using FastEndpoints.Security;
-using GamePulse.Configs;
-using GamePulse.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using StackExchange.Redis;
+using System.Diagnostics;
 
-namespace GamePulse.Repositories.Jwt;
+namespace Demo.Infra.Repositories;
 
 /// <summary>
 /// Redis-based JWT token repository for storing and validating refresh tokens
@@ -81,7 +83,7 @@ public class RedisJwtRepository : IJwtRepository
     {
         try
         {
-            using var span = GamePulseActivitySource.StartActivity("StoreTokenAsync");
+            using var activity = Activity.Current?.Source.StartActivity("StoreTokenAsync");
             if (_database is null)
                 throw new NullReferenceException();
             await _database.StringSetAsync(MakeKey(response.UserId), response.RefreshToken, TimeSpan.FromDays(1));
@@ -103,7 +105,7 @@ public class RedisJwtRepository : IJwtRepository
     {
         try
         {
-            using var span = GamePulseActivitySource.StartActivity("TokenIsValidAsync");
+            using var activity = Activity.Current?.Source.StartActivity("TokenIsValidAsync");
             if (_database is null)
                 throw new NullReferenceException();
             var token = await _database.StringGetAsync(MakeKey(userId));

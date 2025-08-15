@@ -1,8 +1,7 @@
 using FastEndpoints.Security;
 using FluentAssertions;
-using GamePulse.Configs;
-using GamePulse.Repositories.Jwt;
-using GamePulse.Services;
+using Demo.Application.Configs;
+using Demo.Infra.Repositories;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;

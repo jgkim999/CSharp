@@ -1,7 +1,7 @@
 using FastEndpoints;
 using FastEndpoints.Security;
 using GamePulse.Configs;
-using GamePulse.Repositories.Jwt;
+using Demo.Application.Repositories;
 
 namespace GamePulse.Services;
 

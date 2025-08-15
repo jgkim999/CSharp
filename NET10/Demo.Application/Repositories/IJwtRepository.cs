@@ -1,6 +1,6 @@
 using FastEndpoints.Security;
 
-namespace GamePulse.Repositories.Jwt;
+namespace Demo.Application.Repositories;
 
 /// <summary>
 /// Interface for JWT token repository operations

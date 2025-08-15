@@ -1,6 +1,6 @@
 using FastEndpoints.Security;
 using FluentAssertions;
-using GamePulse.Repositories.Jwt;
+using Demo.Infra.Repositories;
 
 namespace GamePulse.Test.Repositories;
 

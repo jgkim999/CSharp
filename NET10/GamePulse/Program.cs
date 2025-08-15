@@ -6,7 +6,7 @@ using FastEndpoints.Security;
 
 using GamePulse;
 using GamePulse.Configs;
-using GamePulse.Repositories.Jwt;
+using RedisConfig = Demo.Application.Configs.RedisConfig;
 using GamePulse.Services.Auth;
 using GamePulse.Sod;
 
@@ -60,7 +60,7 @@ try
     builder.Services.AddOpenApiServices();
 
     builder.Services.AddSingleton<IAuthService, AuthService>();
-    builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
+    builder.Services.AddTransient<IJwtRepository, Demo.Infra.Repositories.RedisJwtRepository>();
     builder.Services.AddSingleton<IIpToNationRepository, IpToNationRepository>();
     builder.Services.AddSingleton<IIpToNationCache, IpToNationRedisCache>();
     builder.Services.AddSingleton<IIpToNationService, IpToNationService>();

@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\GamePulse\GamePulse.csproj" />
     <ProjectReference Include="..\Demo.Application\Demo.Application.csproj" />
+    <ProjectReference Include="..\Demo.Infra\Demo.Infra.csproj" />
   </ItemGroup>
 
   <ItemGroup>
