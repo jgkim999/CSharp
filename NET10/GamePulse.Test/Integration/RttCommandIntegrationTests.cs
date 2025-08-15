@@ -183,8 +183,6 @@ public class RttCommandIntegrationTests
         await command.ExecuteAsync(serviceProvider, CancellationToken.None);
         
         // Assert
-        var expectedRttSeconds = rttMs / 1000.0;
-        
         // 로그가 호출되었는지 확인 (구체적인 로그 내용 검증은 복잡하므로 호출 여부만 확인)
         mockLogger.Verify(
             x => x.Log(

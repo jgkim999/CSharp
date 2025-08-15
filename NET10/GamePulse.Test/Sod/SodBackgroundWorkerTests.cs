@@ -1,5 +1,5 @@
 using FluentAssertions;
-using GamePulse.Services;
+using Demo.Infra.Services;
 using GamePulse.Sod.Commands;
 using GamePulse.Sod.Services;
 using Microsoft.Extensions.DependencyInjection;

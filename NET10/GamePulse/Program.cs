@@ -5,9 +5,9 @@ using FastEndpoints;
 using FastEndpoints.Security;
 
 using GamePulse;
-using Demo.Web.Configs;
+using Demo.Application.Configs;
 using RedisConfig = Demo.Application.Configs.RedisConfig;
-using GamePulse.Services.Auth;
+using Demo.Application.Services.Auth;
 using GamePulse.Sod;
 
 using Scalar.AspNetCore;

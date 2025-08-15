@@ -1,5 +1,5 @@
 using GamePulse.Sod.Services;
-using Demo.Web.Configs;
+using Demo.Application.Configs;
 using Demo.Application.Services;
 using Microsoft.Extensions.Options;
 

@@ -1,7 +1,7 @@
 using FluentAssertions;
 using OpenTelemetry.Trace;
 using OpenTelemetry;
-using GamePulse.Services.Auth;
+using Demo.Application.Services.Auth;
 using System.Diagnostics;
 
 namespace GamePulse.Test.Services;
@@ -54,7 +54,7 @@ public class AuthServiceTests : IDisposable
     [InlineData("testuser", null)]
     [InlineData("", "")]
     [InlineData(null, null)]
-    public async Task CredentialsAreValidAsync_NullOrEmptyCredentials_OnlyValidWhenPasswordIsAdmin(string username, string password)
+    public async Task CredentialsAreValidAsync_NullOrEmptyCredentials_OnlyValidWhenPasswordIsAdmin(string? username, string? password)
     {
         // Act
         var result = await _authService.CredentialsAreValidAsync(username, password, CancellationToken.None);
@@ -91,7 +91,7 @@ public class AuthServiceTests : IDisposable
     [InlineData("administrator", "admin")]
     [InlineData("", "admin")]
     [InlineData(null, "admin")]
-    public async Task CredentialsAreValidAsync_DifferentUsernames_WithValidPassword_ReturnsTrue(string username, string password)
+    public async Task CredentialsAreValidAsync_DifferentUsernames_WithValidPassword_ReturnsTrue(string? username, string password)
     {
         // Act
         var result = await _authService.CredentialsAreValidAsync(username, password, CancellationToken.None);

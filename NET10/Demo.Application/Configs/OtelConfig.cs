@@ -1,4 +1,4 @@
-namespace Demo.Web.Configs;
+namespace Demo.Application.Configs;
 
 /// <summary>
 /// OpenTelemetry 설정

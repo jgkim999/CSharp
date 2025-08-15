@@ -1,20 +1,28 @@
 using FastEndpoints;
 using FastEndpoints.Security;
-using Demo.Web.Configs;
+using Demo.Application.Configs;
 using Demo.Application.Repositories;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
-namespace GamePulse.Services;
+namespace Demo.Infra.Services;
 
+/// <summary>
+/// JWT 토큰 서비스 구현체
+/// </summary>
 public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
 {
     private readonly ILogger<MyTokenService> _logger;
     private readonly IJwtRepository _jwtRepository;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="MyTokenService"/> class, configuring JWT token parameters and refresh token endpoint settings.
+    /// JWT 토큰 매개변수와 리프레시 토큰 엔드포인트 설정을 구성하여 MyTokenService 클래스의 새 인스턴스를 초기화합니다
     /// </summary>
+    /// <param name="config">구성 정보</param>
+    /// <param name="logger">로거</param>
+    /// <param name="jwtRepository">JWT 저장소</param>
     /// <exception cref="NullReferenceException">
-    /// Thrown if <paramref name="config"/>, <paramref name="logger"/>, <paramref name="jwtRepository"/>, or the "Jwt" configuration section is null.
+    /// config, logger, jwtRepository 또는 "Jwt" 구성 섹션이 null인 경우 발생
     /// </exception>
     public MyTokenService(IConfiguration config, ILogger<MyTokenService> logger, IJwtRepository jwtRepository)
     {
@@ -44,8 +52,8 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// 이 메서드는 새로운 액세스/리프레시 토큰 쌍이 생성될 때마다 호출됩니다.
     /// 토큰과 만료일을 원하는 방식으로 저장하여 향후 리프레시 요청을 검증하는 데 사용하십시오.
     /// </summary>
-    /// <param name="response"></param>
-    /// <returns></returns>
+    /// <param name="response">토큰 응답</param>
+    /// <returns>비동기 작업</returns>
     public override async Task PersistTokenAsync(TokenResponse response)
     {
         using var span = GamePulseActivitySource.StartActivity("PersistTokenAsync");
@@ -59,8 +67,8 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// 추가한 오류는 요청한 클라이언트에게 전송됩니다. 오류가 추가되지 않으면
     /// 검증이 통과되며 새로운 토큰 쌍이 생성되어 클라이언트에게 전송됩니다.
     /// </summary>
-    /// <param name="req"></param>
-    /// <returns></returns>
+    /// <param name="req">토큰 요청</param>
+    /// <returns>비동기 작업</returns>
     public override async Task RefreshRequestValidationAsync(TokenRequest req)
     {
         using var span = GamePulseActivitySource.StartActivity("RefreshRequestValidationAsync");
@@ -74,9 +82,9 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// 이 설정은 리프레시 엔드포인트로 수신된 리뉴얼/리프레시 요청에만 적용되며,
     /// 초기 JWT 생성 시에는 적용되지 않습니다.
     /// </summary>
-    /// <param name="request"></param>
-    /// <param name="privileges"></param>
-    /// <returns></returns>
+    /// <param name="request">토큰 요청</param>
+    /// <param name="privileges">사용자 권한</param>
+    /// <returns>비동기 작업</returns>
     public override async Task SetRenewalPrivilegesAsync(TokenRequest request, UserPrivileges privileges)
     {
         using var span = GamePulseActivitySource.StartActivity("SetRenewalPrivilegesAsync");

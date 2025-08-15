@@ -1,7 +1,7 @@
-namespace Demo.Web.Configs;
+namespace Demo.Application.Configs;
 
 /// <summary>
-/// Jwt 인증
+/// JWT 인증 설정
 /// </summary>
 public class JwtConfig
 {

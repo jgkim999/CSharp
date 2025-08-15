@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-using GamePulse.Services;
+using Demo.Infra.Services;
 
 namespace GamePulse.Sod.Services;
 

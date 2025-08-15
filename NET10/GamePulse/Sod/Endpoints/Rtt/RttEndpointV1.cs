@@ -2,7 +2,7 @@ using Demo.Application.Utils;
 using FastEndpoints;
 
 using GamePulse.Processors;
-using GamePulse.Services;
+using Demo.Infra.Services;
 using GamePulse.Sod.Services;
 using OpenTelemetry.Trace;
 

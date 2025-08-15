@@ -1,11 +1,11 @@
 using FastEndpoints;
 using FastEndpoints.Security;
 using GamePulse.DTO;
-using GamePulse.Services;
 using Bogus;
 using GamePulse.Processors;
 using OpenTelemetry.Trace;
-using GamePulse.Services.Auth;
+using Demo.Application.Services.Auth;
+using Demo.Infra.Services;
 
 namespace GamePulse.EndPoints.Login;
 

@@ -1,6 +1,5 @@
-using Demo.Web.Configs;
-using GamePulse.Services;
-using Demo.Application.Services;
+using Demo.Application.Configs;
+using Demo.Infra.Services;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Metrics;

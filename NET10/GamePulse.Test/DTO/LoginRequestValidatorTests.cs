@@ -34,12 +34,12 @@ public class LoginRequestValidatorTests
     [InlineData(null, "admin")]
     [InlineData("ab", "admin")]
     [InlineData("verylongusername", "admin")]
-    public void Validate_InvalidUsername_ShouldFail(string username, string password)
+    public void Validate_InvalidUsername_ShouldFail(string? username, string password)
     {
         // Arrange
         var request = new LoginRequest
         {
-            Username = username,
+            Username = username!,
             Password = password
         };
 
@@ -56,13 +56,13 @@ public class LoginRequestValidatorTests
     [InlineData("admin", null)]
     [InlineData("admin", "ab")]
     [InlineData("admin", "verylongpassword")]
-    public void Validate_InvalidPassword_ShouldFail(string username, string password)
+    public void Validate_InvalidPassword_ShouldFail(string username, string? password)
     {
         // Arrange
         var request = new LoginRequest
         {
             Username = username,
-            Password = password
+            Password = password!
         };
 
         // Act
