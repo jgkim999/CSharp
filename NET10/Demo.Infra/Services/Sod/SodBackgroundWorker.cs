@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Demo.Application.Services.Sod;
 using Demo.Infra.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -69,7 +70,8 @@ public class SodBackgroundWorker : BackgroundService
             {
                 var workItem = await _taskQueue.DequeueAsync(stoppingToken);
                 using var span = GamePulseActivitySource.StartActivity($"{nameof(SodBackgroundWorker)}-{workerId}", ActivityKind.Consumer, workItem.ParentActivity);
-                await workItem.ExecuteAsync(_serviceProvider, stoppingToken);
+                using var scope = _serviceProvider.CreateScope();
+                await workItem.ExecuteAsync(scope.ServiceProvider, stoppingToken);
             }
             catch (OperationCanceledException)
             {
