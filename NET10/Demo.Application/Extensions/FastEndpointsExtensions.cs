@@ -1,6 +1,7 @@
 using FastEndpoints;
+using Microsoft.AspNetCore.Builder;
 
-namespace Demo.Web.Extensions;
+namespace Demo.Application.Extensions;
 
 /// <summary>
 /// FastEndpoints 설정을 위한 확장 메서드

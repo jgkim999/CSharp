@@ -36,7 +36,8 @@ public class RttCommand : SodCommand
         var logger = serviceProvider.GetService<ILogger<RttCommand>>();
         var ipToNationService = serviceProvider.GetService<IIpToNationService>();
         var telemetryService = serviceProvider.GetService<ITelemetryService>();
-        using var span = GamePulseActivitySource.StartActivity(nameof(RttCommand), ActivityKind.Internal, parentActivity: ParentActivity);
+        using var span = GamePulseActivitySource.StartActivity(nameof(RttCommand), ActivityKind.Internal,
+            parentActivity: ParentActivity);
 
         //span?.AddTag("ClientIp", ClientIp);
         // IP 주소를 국가 코드로 변환

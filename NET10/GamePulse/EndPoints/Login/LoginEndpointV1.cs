@@ -1,11 +1,11 @@
 using FastEndpoints;
 using FastEndpoints.Security;
-using Demo.Web.DTO;
 using Bogus;
 using Demo.Application.Processors;
 using OpenTelemetry.Trace;
 using Demo.Application.Services.Auth;
 using Demo.Infra.Services;
+using Demo.Web.DTO;
 
 namespace GamePulse.EndPoints.Login;
 
