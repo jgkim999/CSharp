@@ -2,7 +2,6 @@ using FastEndpoints;
 using FastEndpoints.Security;
 
 using Demo.Application.Configs;
-using Demo.Web.Extensions;
 using RedisConfig = Demo.Application.Configs.RedisConfig;
 using Demo.Application.Extensions;
 using Demo.Infra;

@@ -1,7 +1,7 @@
 using FastEndpoints;
 using FluentValidation;
 
-namespace Demo.Web.DTO;
+namespace Demo.Application.DTO;
 
 /// <summary>
 /// MyRequest 유효성 검사기

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Demo.Web.DTO;
+namespace Demo.Application.DTO;
 
 /// <summary>
 /// 응답 예제 DTO

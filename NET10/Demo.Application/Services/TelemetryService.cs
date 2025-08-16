@@ -52,46 +52,46 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
 
         // 카운터 메트릭 초기화
         _requestCounter = _meter.CreateCounter<long>(
-            name: "demo_app_requests_total",
+            name: "requests_total",
             unit: "1",
             description: "Total number of requests processed");
 
         // 히스토그램 메트릭 초기화
         _requestDuration = _meter.CreateHistogram<double>(
-            name: "demo_app_request_duration_seconds",
+            name: "request_duration_seconds",
             unit: "s",
             description: "Duration of requests in seconds");
 
         // 에러 카운터 초기화
         _errorCounter = _meter.CreateCounter<long>(
-            name: "demo_app_errors_total",
+            name: "errors_total",
             unit: "1",
             description: "Total number of errors occurred");
 
         // 게이지 메트릭 초기화
         _activeConnections = _meter.CreateGauge<int>(
-            name: "demo_app_active_connections",
+            name: "active_connections",
             unit: "1",
             description: "Number of active connections");
 
         // RTT 관련 메트릭 초기화
         _rttCounter = _meter.CreateCounter<long>(
-            name: "demo_app_rtt_calls_total",
+            name: "rtt_calls_total",
             unit: "1",
             description: "Total number of RTT measurements recorded");
 
         _rttHistogram = _meter.CreateHistogram<double>(
-            name: "demo_app_rtt_duration_seconds",
+            name: "rtt_duration_seconds",
             unit: "s",
             description: "Distribution of RTT measurements in seconds");
 
         _networkQualityHistogram = _meter.CreateHistogram<double>(
-            name: "demo_app_network_quality_score",
+            name: "network_quality_score",
             unit: "1",
             description: "Distribution of network quality scores");
 
         _rttGauge = _meter.CreateGauge<double>(
-            name: "demo_app_rtt_current_seconds",
+            name: "rtt_current_seconds",
             unit: "s",
             description: "Current RTT measurement in seconds");
     }
@@ -270,29 +270,6 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     }
 
     /// <summary>
-    /// RTT 측정값을 기록합니다.
-    /// </summary>
-    /// <param name="rttSeconds">RTT 시간 (초)</param>
-    /// <param name="endpoint">엔드포인트</param>
-    /// <param name="networkType">네트워크 타입</param>
-    public void RecordRtt(double rttSeconds, string endpoint, string? networkType = null)
-    {
-        var tags = new TagList
-        {
-            { "endpoint", endpoint }
-        };
-
-        if (!string.IsNullOrEmpty(networkType))
-        {
-            tags.Add("network_type", networkType);
-        }
-
-        _rttCounter.Add(1, tags);
-        _rttHistogram.Record(rttSeconds, tags);
-        _rttGauge.Record(rttSeconds, tags);
-    }
-
-    /// <summary>
     /// 활성 연결 수를 업데이트합니다.
     /// </summary>
     /// <param name="connectionCount">연결 수</param>
@@ -401,75 +378,11 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     }
 
     /// <summary>
-    /// 구조화된 로깅을 위한 로그 컨텍스트를 생성합니다.
-    /// </summary>
-    /// <param name="properties">추가할 속성들</param>
-    /// <returns>IDisposable 로그 컨텍스트</returns>
-    public IDisposable CreateLogContext(IReadOnlyDictionary<string, object> properties)
-    {
-        var disposables = new List<IDisposable>();
-        if (properties is null)
-            throw new ArgumentNullException(nameof(properties));
-        
-        // 현재 Activity의 트레이스 정보 추가
-        var activity = Activity.Current;
-        if (activity != null)
-        {
-            disposables.Add(LogContext.PushProperty("TraceId", activity.TraceId.ToString()));
-            disposables.Add(LogContext.PushProperty("SpanId", activity.SpanId.ToString()));
-            disposables.Add(LogContext.PushProperty("ParentId", activity.ParentSpanId.ToString()));
-            disposables.Add(LogContext.PushProperty("OperationName", activity.OperationName));
-        }
-
-        // 사용자 정의 속성 추가
-        foreach (var property in properties)
-        {
-            disposables.Add(LogContext.PushProperty(property.Key, property.Value));
-        }
-
-        return new CompositeDisposable(disposables);
-    }
-
-    /// <summary>
     /// 리소스 정리
     /// </summary>
     public void Dispose()
     {
         _activitySource.Dispose();
         _meter.Dispose();
-    }
-}
-
-/// <summary>
-/// 여러 IDisposable 객체를 관리하는 복합 Disposable 클래스
-/// </summary>
-public class CompositeDisposable : IDisposable
-{
-    private readonly List<IDisposable> _disposables;
-    private bool _disposed;
-
-    /// <summary>
-    /// CompositeDisposable 생성자
-    /// </summary>
-    /// <param name="disposables">관리할 IDisposable 객체들</param>
-    public CompositeDisposable(List<IDisposable> disposables)
-    {
-        _disposables = disposables ?? throw new ArgumentNullException(nameof(disposables));
-    }
-
-    /// <summary>
-    /// 리소스 정리
-    /// </summary>
-    public void Dispose()
-    {
-        if (!_disposed)
-        {
-            foreach (var disposable in _disposables)
-            {
-                disposable.Dispose();
-            }
-            _disposed = true;
-            GC.SuppressFinalize(this);
-        }
     }
 }

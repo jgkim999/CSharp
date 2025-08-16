@@ -33,7 +33,7 @@ public class RttRequest
 /// </summary>
 public class RttRequestValidator : Validator<RttRequest>
 {
-    private static readonly List<string> _allowTypes = ["client", "server"];
+    private static readonly List<string> AllowTypes = ["client", "server"];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RttRequestValidator"/> class, defining validation rules for <see cref="RttRequest"/> properties.
@@ -45,7 +45,7 @@ public class RttRequestValidator : Validator<RttRequest>
             .WithMessage("Type 은 null 이면 안됩니다")
             .NotEmpty()
             .WithMessage("Type 은 비어 있으면 안됩니다")
-            .Must(item => _allowTypes.Contains(item))
+            .Must(item => AllowTypes.Contains(item))
             .WithMessage("허용되지 않은 type 문자열 입니다");
 
         RuleFor(x => x.Rtt)

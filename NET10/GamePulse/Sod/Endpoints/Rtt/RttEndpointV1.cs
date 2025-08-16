@@ -1,3 +1,4 @@
+using Bogus;
 using Demo.Application.Utils;
 using FastEndpoints;
 
@@ -39,6 +40,11 @@ public class RttEndpointV1 : Endpoint<RttRequest>
             s.Summary = "Rtt 저장";
             s.Description = "Mirror 에서 측정한 rtt 값을 기록합니다.";
             s.Response(200, "Success");
+            s.ExampleRequest = new RttRequest()
+            {
+                Type = "client",
+                Rtt = Random.Shared.Next(8, 200)
+            };
         });
     }
 

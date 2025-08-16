@@ -1,5 +1,5 @@
+using Demo.Application.DTO;
 using FluentAssertions;
-using Demo.Web.DTO;
 
 namespace GamePulse.Test.DTO;
 

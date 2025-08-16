@@ -1,4 +1,4 @@
-namespace Demo.Web.DTO;
+namespace Demo.Application.DTO;
 
 /// <summary>
 /// 로그인 요청 DTO
