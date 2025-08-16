@@ -18,7 +18,9 @@ public class RttEndpointV1 : Endpoint<RttRequest>
     /// Initializes a new instance of the <see cref="RttEndpointV1"/> class for handling RTT data submissions.
     /// </summary>
     /// <param name="logger"></param>
-    /// <param name="taskQueue"></param>
+    /// <summary>
+    /// Initializes a new instance of <see cref="RttEndpointV1"/> with the provided logger and background task queue.
+    /// </summary>
     public RttEndpointV1(ILogger<RttEndpointV1> logger, ISodBackgroundTaskQueue taskQueue)
     {
         _logger = logger;
@@ -27,7 +29,15 @@ public class RttEndpointV1 : Endpoint<RttRequest>
 
     /// <summary>
     /// Configures the RTT endpoint to accept anonymous HTTP POST requests for recording round-trip time values measured by Mirror.
+    /// <summary>
+    /// Configures the RTT v1 endpoint: registers POST /api/sod/rtt (version 1), allows anonymous access,
+    /// adds request validation pre-processing, and provides documentation metadata including summary,
+    /// description, response mapping, and an example request.
     /// </summary>
+    /// <remarks>
+    /// The endpoint accepts RttRequest payloads and is documented with a sample request (Type = "client",
+    /// Rtt between 8 and 200). A throttle configuration is present in code but currently commented out.
+    /// </remarks>
     public override void Configure()
     {
         Version(1);
@@ -55,6 +65,17 @@ public class RttEndpointV1 : Endpoint<RttRequest>
     /// <param name="ct">A cancellation token for the asynchronous operation.</param>
     /// <remarks>
     /// Responds with HTTP 400 if the client IP address cannot be determined; otherwise, enqueues the RTT command and responds with HTTP 200.
+    /// <summary>
+    /// Handles an incoming RTT submission: validates the client IP, enqueues a background RttCommand, and returns an HTTP response.
+    /// </summary>
+    /// <param name="req">The incoming RTT payload.</param>
+    /// <param name="ct">Cancellation token for the request lifetime.</param>
+    /// <returns>A task representing the asynchronous operation; on success sends HTTP 200, on unknown IP sends HTTP 400, and on error sends an error response.</returns>
+    /// <remarks>
+    /// Side effects:
+    /// - Enqueues an <c>RttCommand</c> into the background task queue for processing.
+    /// - Sends HTTP responses directly (200 "Success", 400 "Unknown ip address", or an error payload on exception).
+    /// - Logs exceptions when they occur.
     /// </remarks>
     public override async Task HandleAsync(RttRequest req, CancellationToken ct)
     {

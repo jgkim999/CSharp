@@ -10,7 +10,14 @@ public class LoginRequestValidator : Validator<LoginRequest>
 {
     /// <summary>
     /// LoginRequest의 Username과 Password 속성에 대한 유효성 검사 규칙을 정의하여 LoginRequestValidator 클래스의 새 인스턴스를 초기화합니다
+    /// <summary>
+    /// Initializes a new instance of <see cref="LoginRequestValidator"/> and configures validation rules for <c>LoginRequest</c>.
     /// </summary>
+    /// <remarks>
+    /// Validation rules:
+    /// - <c>Username</c>: required (not empty, not null), length between 3 and 8 characters; messages are provided in Korean.
+    /// - <c>Password</c>: required (not empty, not null), length between 3 and 8 characters; messages are provided in Korean.
+    /// </remarks>
     public LoginRequestValidator()
     {
         RuleFor(x => x.Username)

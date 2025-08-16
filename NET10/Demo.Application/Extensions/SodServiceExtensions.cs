@@ -15,7 +15,18 @@ public static class SodServiceExtensions
     /// SOD 텔레메트리 서비스를 의존성 주입 컨테이너에 등록합니다
     /// </summary>
     /// <param name="services">서비스 컬렉션</param>
-    /// <returns>업데이트된 IServiceCollection 인스턴스</returns>
+    /// <summary>
+    /// Registers the telemetry implementation (ITelemetryService) as a singleton using values from OtelConfig.
+    /// </summary>
+    /// <returns>The updated <see cref="IServiceCollection"/>.</returns>
+    /// <remarks>
+    /// The factory reads <see cref="OtelConfig"/> via <see cref="IOptions{OtelConfig}"/> and resolves
+    /// <see cref="ILogger{TelemetryService}"/> to construct a <see cref="TelemetryService"/> instance
+    /// with the configured service name and version.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown if the required services (IOptions&lt;OtelConfig&gt; or ILogger&lt;TelemetryService&gt;) are not registered.
+    /// </exception>
     public static IServiceCollection AddSodServices(this IServiceCollection services)
     {
         // ITelemetryService 및 TelemetryService를 Singleton으로 등록

@@ -16,7 +16,15 @@ public static class OpenTelemetryApplicationExtensions
     /// </summary>
     /// <param name="services">서비스 컬렉션</param>
     /// <param name="config">OpenTelemetry 구성 설정</param>
-    /// <returns>구성된 OpenTelemetryBuilder</returns>
+    /// <summary>
+    /// Configures OpenTelemetry for the Application layer and registers a tracer in DI.
+    /// </summary>
+    /// <remarks>
+    /// Parses <c>config.TracesSamplerArg</c> as a probability for a <see cref="TraceIdRatioBasedSampler"/> and falls back to 1.0 on parse failure.
+    /// Configures resource attributes (service name and version), enables tracing and metrics using the configured service name, and registers a singleton tracer obtained from <c>TracerProvider.Default.GetTracer</c>.
+    /// </remarks>
+    /// <param name="config">OpenTelemetry settings; expected to provide <c>ServiceName</c>, <c>ServiceVersion</c>, and <c>TracesSamplerArg</c>.</param>
+    /// <returns>The configured <see cref="OpenTelemetryBuilder"/>.</returns>
     public static OpenTelemetryBuilder AddOpenTelemetryApplication(this IServiceCollection services, OtelConfig config)
     {
         var openTelemetryBuilder = services.AddOpenTelemetry();

@@ -11,7 +11,11 @@ public abstract class SodCommand : ICommandJob
     /// 지정된 클라이언트 IP 주소와 선택적 부모 활동으로 SodCommand 클래스의 새 인스턴스를 초기화합니다
     /// </summary>
     /// <param name="clientIp">명령과 연결된 클라이언트의 IP 주소</param>
-    /// <param name="parentActivity">추적 또는 진단을 위한 선택적 부모 Activity</param>
+    /// <summary>
+    /// Initializes a new instance of the SodCommand base class with the specified client IP and optional parent Activity for tracing.
+    /// </summary>
+    /// <param name="clientIp">The IP address of the client associated with this command.</param>
+    /// <param name="parentActivity">An optional parent <see cref="Activity"/> used for tracing/diagnostics context.</param>
     protected SodCommand(string clientIp, Activity? parentActivity)
     {
         ClientIp = clientIp;
@@ -33,6 +37,14 @@ public abstract class SodCommand : ICommandJob
     /// </summary>
     /// <param name="serviceProvider">명령에 필요한 종속성을 해결하는 데 사용되는 서비스 공급자</param>
     /// <param name="ct">명령을 실행하는 동안 관찰할 취소 토큰</param>
-    /// <returns>명령의 비동기 실행을 나타내는 작업</returns>
+    /// <summary>
+/// Asynchronously executes this command.
+/// </summary>
+/// <remarks>
+/// Implementations perform the command's work and may resolve required services from the provided <see cref="IServiceProvider"/>.
+/// Implementations must observe the cancellation token and stop promptly when cancellation is requested.
+/// </remarks>
+/// <param name="ct">A <see cref="CancellationToken"/> that can be used to cancel the operation.</param>
+/// <returns>A <see cref="Task"/> representing the asynchronous execution of the command.</returns>
     public abstract Task ExecuteAsync(IServiceProvider serviceProvider, CancellationToken ct);
 }

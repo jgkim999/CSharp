@@ -19,6 +19,11 @@ public interface IJwtRepository
     /// </summary>
     /// <param name="userId">User identifier</param>
     /// <param name="refreshToken">Refresh token to validate</param>
-    /// <returns>True if token is valid, false otherwise</returns>
+    /// <summary>
+/// Asynchronously checks whether the provided refresh token is valid for the given user.
+/// </summary>
+/// <param name="userId">The identifier of the user to validate the token against.</param>
+/// <param name="refreshToken">The refresh token to validate.</param>
+/// <returns>A task that resolves to true if the refresh token is valid for the user; otherwise false.</returns>
     Task<bool> TokenIsValidAsync(string userId, string refreshToken);
 }

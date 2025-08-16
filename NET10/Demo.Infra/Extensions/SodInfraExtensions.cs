@@ -13,7 +13,14 @@ public static class SodInfraExtensions
   /// SOD 백그라운드 작업 큐 및 워커 서비스를 의존성 주입 컨테이너에 등록합니다
   /// </summary>
   /// <param name="services">서비스 컬렉션</param>
-  /// <returns>업데이트된 IServiceCollection 인스턴스</returns>
+  /// <summary>
+  /// Registers SOD infrastructure services in the dependency injection container.
+  /// </summary>
+  /// <remarks>
+  /// Adds a singleton ISodBackgroundTaskQueue implemented by SodBackgroundTaskQueue
+  /// and registers SodBackgroundWorker as a hosted background service.
+  /// </remarks>
+  /// <returns>The updated IServiceCollection to allow method chaining.</returns>
   public static IServiceCollection AddSodInfrastructure(this IServiceCollection services)
   {
     services.AddSingleton<ISodBackgroundTaskQueue, SodBackgroundTaskQueue>();

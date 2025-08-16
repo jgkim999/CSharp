@@ -78,7 +78,12 @@ public class RedisJwtRepository : IJwtRepository
     /// Stores a refresh token in Redis for the specified user
     /// </summary>
     /// <param name="response">Token response containing user ID and refresh token</param>
-    /// <returns>Task representing the asynchronous operation</returns>
+    /// <summary>
+    /// Stores a user's refresh token in Redis with a 1-day expiry.
+    /// </summary>
+    /// <param name="response">Token response containing the user ID and refresh token to store.</param>
+    /// <returns>A task that completes when the token has been written to Redis.</returns>
+    /// <exception cref="NullReferenceException">Thrown if the Redis database has not been initialized.</exception>
     public async Task StoreTokenAsync(TokenResponse response)
     {
         try
@@ -100,7 +105,13 @@ public class RedisJwtRepository : IJwtRepository
     /// </summary>
     /// <param name="userId">User identifier</param>
     /// <param name="refreshToken">Refresh token to validate</param>
-    /// <returns>True if token is valid, false otherwise</returns>
+    /// <summary>
+    /// Validates whether the provided refresh token matches the token stored in Redis for the given user.
+    /// </summary>
+    /// <param name="userId">Identifier of the user whose stored refresh token will be checked (used to build the Redis key).</param>
+    /// <param name="refreshToken">Refresh token to validate against the stored value.</param>
+    /// <returns>True when the provided token matches the value stored in Redis; otherwise false.</returns>
+    /// <exception cref="NullReferenceException">Thrown when the Redis database reference has not been initialized.</exception>
     public async Task<bool> TokenIsValidAsync(string userId, string refreshToken)
     {
         try

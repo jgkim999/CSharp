@@ -30,6 +30,15 @@ public class RttCommand : SodCommand
     /// </summary>
     /// <param name="serviceProvider">The service provider used to resolve dependencies.</param>
     /// <param name="ct">A cancellation token for the asynchronous operation.</param>
+    /// <summary>
+    /// Asynchronously records RTT telemetry and logs an informational entry for the configured client IP.
+    /// </summary>
+    /// <remarks>
+    /// Converts the stored RTT (milliseconds) to seconds, resolves the client IP to a country code using IIpToNationService
+    /// when available, and records metrics via ITelemetryService. If IIpToNationService is unavailable, the country code
+    /// "Unknown" is used. Operation is traced using an internal activity span.
+    /// </remarks>
+    /// <param name="ct">Cancellation token to cancel the operation.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     public override async Task ExecuteAsync(IServiceProvider serviceProvider, CancellationToken ct)
     {

@@ -23,7 +23,11 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <param name="jwtRepository">JWT 저장소</param>
     /// <exception cref="NullReferenceException">
     /// config, logger, jwtRepository 또는 "Jwt" 구성 섹션이 null인 경우 발생
-    /// </exception>
+    /// <summary>
+    /// Initializes a MyTokenService, validating inputs, loading JWT settings from the "Jwt" configuration section,
+    /// and configuring token parameters (signing key, access/refresh validity) and the refresh endpoint.
+    /// </summary>
+    /// <exception cref="System.NullReferenceException">Thrown if any of <c>config</c>, <c>logger</c>, or <c>jwtRepository</c> is null, or if the "Jwt" configuration section is missing or invalid.</exception>
     public MyTokenService(IConfiguration config, ILogger<MyTokenService> logger, IJwtRepository jwtRepository)
     {
         if (config is null || logger is null || jwtRepository is null)
@@ -53,7 +57,11 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// 토큰과 만료일을 원하는 방식으로 저장하여 향후 리프레시 요청을 검증하는 데 사용하십시오.
     /// </summary>
     /// <param name="response">토큰 응답</param>
-    /// <returns>비동기 작업</returns>
+    /// <summary>
+    /// Persists the given token response to the JWT repository.
+    /// </summary>
+    /// <param name="response">The token response to store (contains access and refresh token data and metadata).</param>
+    /// <returns>A task that completes when the token has been persisted.</returns>
     public override async Task PersistTokenAsync(TokenResponse response)
     {
         using var span = GamePulseActivitySource.StartActivity("PersistTokenAsync");
@@ -68,7 +76,13 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// 검증이 통과되며 새로운 토큰 쌍이 생성되어 클라이언트에게 전송됩니다.
     /// </summary>
     /// <param name="req">토큰 요청</param>
-    /// <returns>비동기 작업</returns>
+    /// <summary>
+    /// Validates a refresh-token request for the given user and records a validation error if the token is invalid.
+    /// </summary>
+    /// <param name="req">The token renewal request containing the user identifier and refresh token to validate.</param>
+    /// <remarks>
+    /// Executes asynchronously and, on failure, registers a validation error targeting the RefreshToken field.
+    /// </remarks>
     public override async Task RefreshRequestValidationAsync(TokenRequest req)
     {
         using var span = GamePulseActivitySource.StartActivity("RefreshRequestValidationAsync");
@@ -84,7 +98,12 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// </summary>
     /// <param name="request">토큰 요청</param>
     /// <param name="privileges">사용자 권한</param>
-    /// <returns>비동기 작업</returns>
+    /// <summary>
+    /// Grants renewal privileges required for issuing a renewed access token.
+    /// </summary>
+    /// <param name="request">The token renewal request; the user's identifier from this request is added as a claim.</param>
+    /// <param name="privileges">The UserPrivileges instance to update. Roles, claims, and permissions are added to this object.</param>
+    /// <returns>A Task that completes when the privileges have been updated.</returns>
     public override async Task SetRenewalPrivilegesAsync(TokenRequest request, UserPrivileges privileges)
     {
         using var span = GamePulseActivitySource.StartActivity("SetRenewalPrivilegesAsync");

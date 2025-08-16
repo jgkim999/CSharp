@@ -37,7 +37,15 @@ public class RttRequestValidator : Validator<RttRequest>
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RttRequestValidator"/> class, defining validation rules for <see cref="RttRequest"/> properties.
+    /// <summary>
+    /// Initializes a new <see cref="RttRequestValidator"/> and configures validation rules for <see cref="RttRequest"/>.
     /// </summary>
+    /// <remarks>
+    /// Validation enforced:
+    /// - Type: must be non-null, non-empty, and one of the allowed values ("client", "server").
+    /// - Rtt: must be non-null and greater than 0.
+    /// - Quality: must be non-null and an integer between 1 and 4 (inclusive).
+    /// </remarks>
     public RttRequestValidator()
     {
         RuleFor(x => x.Type)

@@ -14,7 +14,12 @@ public class ValidationErrorLogger<TRequest> : IPreProcessor<TRequest>
     /// <summary>
     /// ValidationErrorLogger 클래스의 새 인스턴스를 초기화합니다
     /// </summary>
-    /// <param name="logger">로거 인스턴스</param>
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ValidationErrorLogger{TRequest}"/> class.
+    /// </summary>
+    /// <remarks>
+    /// Stores a logger used to record validation failures for the request type.
+    /// </remarks>
     public ValidationErrorLogger(ILogger<ValidationErrorLogger<TRequest>> logger)
     {
         _logger = logger;
@@ -25,7 +30,12 @@ public class ValidationErrorLogger<TRequest> : IPreProcessor<TRequest>
     /// </summary>
     /// <param name="context">요청과 유효성 검사 결과를 포함하는 전처리기 컨텍스트</param>
     /// <param name="ct">취소 토큰</param>
-    /// <returns>완료된 작업</returns>
+    /// <summary>
+    /// Pre-processes a request by logging validation failures, if any.
+    /// </summary>
+    /// <param name="context">Pre-processor context containing validation failures for the request.</param>
+    /// <param name="ct">Cancellation token (not observed by this implementation).</param>
+    /// <returns>A completed <see cref="Task"/>.</returns>
     public Task PreProcessAsync(IPreProcessorContext<TRequest> context, CancellationToken ct)
     {
         if (context.ValidationFailures.Count > 0)

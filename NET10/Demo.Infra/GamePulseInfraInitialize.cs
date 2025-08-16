@@ -8,6 +8,11 @@ namespace Demo.Infra;
 
 public static class GamePulseInfraInitialize
 {
+    /// <summary>
+    /// Registers GamePulse infrastructure services into the provided <see cref="IServiceCollection"/>:
+    /// authentication service, IP-to-nation repository/cache/service, and JWT repository.
+    /// </summary>
+    /// <returns>The same <see cref="IServiceCollection"/> instance to allow fluent chaining.</returns>
     public static IServiceCollection AddGamePulse(this IServiceCollection services)
     {
         services.AddSingleton<IAuthService, AuthService>();

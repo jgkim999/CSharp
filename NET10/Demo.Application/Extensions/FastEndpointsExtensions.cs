@@ -12,7 +12,10 @@ public static class FastEndpointsExtensions
     /// 기본 예외 처리, API 버전 관리 및 표준화된 오류 응답과 함께 FastEndpoints를 사용하도록 WebApplication을 구성합니다
     /// </summary>
     /// <param name="app">구성할 WebApplication 인스턴스</param>
-    /// <returns>구성된 WebApplication 인스턴스</returns>
+    /// <summary>
+    /// Configures the WebApplication to use FastEndpoints with default exception handling, an API versioning prefix of "v", and ProblemDetails-based error responses.
+    /// </summary>
+    /// <returns>The same <see cref="WebApplication"/> instance for fluent chaining.</returns>
     public static WebApplication UseFastEndpointsInitialize(this WebApplication app)
     {
         app.UseDefaultExceptionHandler();

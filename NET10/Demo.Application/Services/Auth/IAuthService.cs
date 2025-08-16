@@ -11,6 +11,12 @@ public interface IAuthService
     /// <param name="username">검증할 사용자명 (null 허용)</param>
     /// <param name="password">검증할 비밀번호 (null 허용)</param>
     /// <param name="ct">취소 토큰</param>
-    /// <returns>자격 증명이 유효하면 true, 그렇지 않으면 false</returns>
+    /// <summary>
+/// Asynchronously verifies whether the provided username and password are valid.
+/// </summary>
+/// <param name="username">The username to validate; may be null.</param>
+/// <param name="password">The password to validate; may be null.</param>
+/// <param name="ct">A cancellation token to cancel the validation operation.</param>
+/// <returns>A task that resolves to true if the credentials are valid; otherwise false.</returns>
     Task<bool> CredentialsAreValidAsync(string? username, string? password, CancellationToken ct);
 }

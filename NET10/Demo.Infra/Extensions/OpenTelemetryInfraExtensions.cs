@@ -22,7 +22,17 @@ public static class OpenTelemetryInfraExtensions
     /// </summary>
     /// <param name="builder">OpenTelemetryBuilder 인스턴스</param>
     /// <param name="config">OpenTelemetry 구성 설정</param>
-    /// <returns>구성된 OpenTelemetryBuilder</returns>
+    /// <summary>
+    /// Configures OpenTelemetry tracing and metrics instrumentation and exporters for the infrastructure layer.
+    /// </summary>
+    /// <remarks>
+    /// Initializes the GamePulseActivitySource with the service name and version from <paramref name="config"/>.
+    /// Tracing: enables ASP.NET Core, HttpClient and Redis instrumentation, and adds an OTLP exporter using the endpoint and gRPC protocol from <paramref name="config"/>.
+    /// Metrics: enables ASP.NET Core, Runtime and HttpClient instrumentation, registers common ASP.NET and System.Net meters, and adds an OTLP exporter with a 5000 ms metric export interval.
+    /// If Redis instrumentation is created, it is registered into the DI container as a singleton.
+    /// </remarks>
+    /// <param name="config">OpenTelemetry configuration containing at least Endpoint, ServiceName and ServiceVersion.</param>
+    /// <returns>The same <see cref="OpenTelemetryBuilder"/> instance for chaining.</returns>
     public static OpenTelemetryBuilder AddOpenTelemetryInfrastructure(this OpenTelemetryBuilder builder, OtelConfig config)
     {
         StackExchangeRedisInstrumentation? redisInstrumentation = null;

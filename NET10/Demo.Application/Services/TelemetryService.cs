@@ -43,7 +43,12 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     
     /// <summary>
     /// TelemetryService 생성자
+    /// <summary>
+    /// Initializes a new <see cref="TelemetryService"/> for the given service identity and configures telemetry instruments.
+    /// Creates an <see cref="ActivitySource"/> and <see cref="Meter"/> (using <paramref name="serviceName"/> and <paramref name="serviceVersion"/>) and initializes the built-in metrics used by the service (request counters and duration histogram, error counter, active-connections gauge, and RTT-related counters/histograms/gauge).
     /// </summary>
+    /// <param name="serviceName">Logical service name used as the ActivitySource and Meter name.</param>
+    /// <param name="serviceVersion">Service version applied to the ActivitySource and Meter.</param>
     public TelemetryService(string serviceName, string serviceVersion, ILogger<TelemetryService> logger)
     {
         _logger = logger;
@@ -263,7 +268,12 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// </summary>
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="messageTemplate">메시지 템플릿</param>
-    /// <param name="propertyValues">속성 값들</param>
+    /// <summary>
+    /// Logs a warning message enriched with the current trace/span context (TraceId, SpanId, ParentId, OperationName).
+    /// If there is no current Activity, the call is a no-op.
+    /// </summary>
+    /// <param name="messageTemplate">The message template to log.</param>
+    /// <param name="propertyValues">Values to format into the message template.</param>
     void ITelemetryService.LogWarningWithTrace(ILogger logger, string messageTemplate, params object[] propertyValues)
     {
         LogWithTraceContext(logger, LogLevel.Warning, messageTemplate, propertyValues);
@@ -313,7 +323,15 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// <param name="quality">네트워크 품질 점수 (0-100 범위의 유효한 값이어야 함)</param>
     /// <param name="gameType">게임 타입 (기본값: "sod")</param>
     /// <exception cref="ArgumentException">countryCode가 null 또는 빈 문자열인 경우</exception>
-    /// <exception cref="ArgumentOutOfRangeException">rtt가 음수이거나 quality가 유효 범위를 벗어난 경우</exception>
+    /// <summary>
+    /// Records RTT-related telemetry (calls, duration distribution, current value) and network quality metrics with country and game tags.
+    /// </summary>
+    /// <param name="countryCode">ISO country code used as the "country" tag; must be non-empty.</param>
+    /// <param name="rtt">Round-trip time in seconds; must be &gt;= 0. Recorded to RTT histogram and gauge.</param>
+    /// <param name="quality">Network quality score in the range 0–100 inclusive; recorded to the network quality histogram.</param>
+    /// <param name="gameType">Game type used as the "game" tag; if null or whitespace, defaults to "sod".</param>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="countryCode"/> is null or whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="rtt"/> is negative or <paramref name="quality"/> is outside 0–100.</exception>
     void ITelemetryService.RecordRttMetrics(string countryCode, double rtt, double quality, string gameType)
     {
         try
@@ -379,6 +397,8 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
 
     /// <summary>
     /// 리소스 정리
+    /// <summary>
+    /// Releases telemetry resources used by this instance by disposing the underlying ActivitySource and Meter.
     /// </summary>
     public void Dispose()
     {

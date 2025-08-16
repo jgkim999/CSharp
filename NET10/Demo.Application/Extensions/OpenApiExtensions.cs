@@ -12,7 +12,14 @@ public static class OpenApiExtensions
     /// OpenAPI 및 Swagger 문서 서비스를 의존성 주입 컨테이너에 등록합니다
     /// </summary>
     /// <param name="services">서비스 컬렉션</param>
-    /// <returns>업데이트된 IServiceCollection 인스턴스</returns>
+    /// <summary>
+    /// Configures OpenAPI/Swagger documents and registers OpenAPI services on the provided <see cref="IServiceCollection"/>.
+    /// </summary>
+    /// <remarks>
+    /// Registers three Swagger documents (initial, release 1, release 2) with distinct document names and versions,
+    /// and adds OpenAPI endpoints for "v1" and "v2".
+    /// </remarks>
+    /// <returns>The same <see cref="IServiceCollection"/> instance after OpenAPI/Swagger configuration.</returns>
     public static IServiceCollection AddOpenApiServices(this IServiceCollection services)
     {
         services.SwaggerDocument(o =>
