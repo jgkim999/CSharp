@@ -65,9 +65,15 @@ try
 
     var app = builder.Build();
     app.UseAuthentication();
-    app.UseAuthentication();
+    app.UseAuthorization();
     app.UseFastEndpointsInitialize();
     //app.UseStaticFiles();
+
+    // Prometheus 메트릭 엔드포인트 추가 (프로덕션 환경에서만)
+    if (openTelemetryConfig.EnablePrometheusExporter)
+    {
+        app.MapPrometheusScrapingEndpoint();
+    }
 
     // Configure the HTTP request pipeline.
     //if (app.Environment.IsDevelopment())
