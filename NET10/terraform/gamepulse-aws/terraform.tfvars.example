@@ -1,0 +1,25 @@
+# GamePulse AWS 배포를 위한 예시 변수 파일
+# 실제 사용 시 terraform.tfvars로 복사하여 사용
+
+# 기본 설정
+aws_region   = "ap-northeast-2"
+environment  = "prod"
+project_name = "gamepulse"
+
+# VPC 설정
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = 3
+
+# ECS 설정
+ecs_cluster_name = "gamepulse-cluster"
+app_cpu          = 1024
+app_memory       = 2048
+app_desired_count = 2
+
+# 모니터링 설정
+monitoring_cpu    = 512
+monitoring_memory = 1024
+
+# 보안 설정
+enable_deletion_protection = true
+backup_retention_days     = 30
