@@ -1,6 +1,6 @@
+using Demo.Application.DTO;
 using FastEndpoints;
-using GamePulse.DTO;
-using GamePulse.Processors;
+using Demo.Application.Processors;
 using OpenTelemetry.Trace;
 
 namespace GamePulse.EndPoints.User.Create;

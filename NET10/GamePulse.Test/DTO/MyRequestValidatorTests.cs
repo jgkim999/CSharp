@@ -1,5 +1,5 @@
+using Demo.Application.DTO;
 using FluentAssertions;
-using GamePulse.DTO;
 
 namespace GamePulse.Test.DTO;
 
@@ -33,12 +33,12 @@ public class MyRequestValidatorTests
     [Theory]
     [InlineData("", "길동", 30)]
     [InlineData(null, "길동", 30)]
-    public void Validate_InvalidFirstName_ShouldFail(string firstName, string lastName, int age)
+    public void Validate_InvalidFirstName_ShouldFail(string? firstName, string lastName, int age)
     {
         // Arrange
         var request = new MyRequest
         {
-            FirstName = firstName,
+            FirstName = firstName!,
             LastName = lastName,
             Age = age
         };
@@ -54,13 +54,13 @@ public class MyRequestValidatorTests
     [Theory]
     [InlineData("홍", "", 30)]
     [InlineData("홍", null, 30)]
-    public void Validate_InvalidLastName_ShouldFail(string firstName, string lastName, int age)
+    public void Validate_InvalidLastName_ShouldFail(string firstName, string? lastName, int age)
     {
         // Arrange
         var request = new MyRequest
         {
             FirstName = firstName,
-            LastName = lastName,
+            LastName = lastName!,
             Age = age
         };
 

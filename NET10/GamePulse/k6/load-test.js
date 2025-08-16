@@ -4,8 +4,8 @@ import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.2.0/index.js';
 
 export const options = {
   stages: [
-    { duration: '1m', target: 300 },
-    { duration: '360m', target: 300 },
+    { duration: '1m', target: 10 },
+    { duration: '360m', target: 10 },
     { duration: '10s', target: 0 },
   ],
 };

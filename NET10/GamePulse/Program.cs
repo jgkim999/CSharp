@@ -1,14 +1,11 @@
-using Demo.Application.Repositories;
-using Demo.Application.Services;
-using Demo.Infra.Repositories;
 using FastEndpoints;
 using FastEndpoints.Security;
 
-using GamePulse;
-using GamePulse.Configs;
-using GamePulse.Repositories.Jwt;
-using GamePulse.Services.Auth;
-using GamePulse.Sod;
+using Demo.Application.Configs;
+using RedisConfig = Demo.Application.Configs.RedisConfig;
+using Demo.Application.Extensions;
+using Demo.Infra;
+using Demo.Infra.Extensions;
 
 using Scalar.AspNetCore;
 
@@ -59,15 +56,12 @@ try
 
     builder.Services.AddOpenApiServices();
 
-    builder.Services.AddSingleton<IAuthService, AuthService>();
-    builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
-    builder.Services.AddSingleton<IIpToNationRepository, IpToNationRepository>();
-    builder.Services.AddSingleton<IIpToNationCache, IpToNationRedisCache>();
-    builder.Services.AddSingleton<IIpToNationService, IpToNationService>();
+    builder.Services.AddGamePulse();
+    builder.Services.AddSodServices();
+    builder.Services.AddSodInfrastructure();
 
-    builder.Services.AddSod();
-
-    builder.Services.AddOpenTelemetryServices(openTelemetryConfig);
+    var openTelemetryBuilder = builder.Services.AddOpenTelemetryApplication(openTelemetryConfig);
+    openTelemetryBuilder.AddOpenTelemetryInfrastructure(openTelemetryConfig);
 
     var app = builder.Build();
     app.UseAuthentication();

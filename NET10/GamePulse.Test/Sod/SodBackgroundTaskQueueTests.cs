@@ -1,6 +1,6 @@
 using FluentAssertions;
-using GamePulse.Sod.Commands;
-using GamePulse.Sod.Services;
+using Demo.Application.Commands.Sod;
+using Demo.Infra.Services.Sod;
 
 namespace GamePulse.Test.Sod;
 

@@ -1,9 +1,10 @@
+using Bogus;
 using Demo.Application.Utils;
 using FastEndpoints;
 
-using GamePulse.Processors;
-using GamePulse.Services;
-using GamePulse.Sod.Services;
+using Demo.Application.Processors;
+using Demo.Infra.Services;
+using Demo.Application.Services.Sod;
 using OpenTelemetry.Trace;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
@@ -11,17 +12,17 @@ namespace GamePulse.Sod.Endpoints.Rtt;
 public class RttEndpointV1 : Endpoint<RttRequest>
 {
     private readonly ISodBackgroundTaskQueue _taskQueue;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<RttEndpointV1> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RttEndpointV1"/> class for handling RTT data submissions.
     /// </summary>
     /// <param name="logger"></param>
-    /// <param name="tracer"></param>
-    public RttEndpointV1(ILogger<RttEndpointV1> logger, Tracer tracer, ISodBackgroundTaskQueue taskQueue, IServiceProvider serviceProvider)
+    /// <param name="taskQueue"></param>
+    public RttEndpointV1(ILogger<RttEndpointV1> logger, ISodBackgroundTaskQueue taskQueue)
     {
+        _logger = logger;
         _taskQueue = taskQueue;
-        _serviceProvider = serviceProvider;
     }
 
     /// <summary>
@@ -39,6 +40,11 @@ public class RttEndpointV1 : Endpoint<RttRequest>
             s.Summary = "Rtt 저장";
             s.Description = "Mirror 에서 측정한 rtt 값을 기록합니다.";
             s.Response(200, "Success");
+            s.ExampleRequest = new RttRequest()
+            {
+                Type = "client",
+                Rtt = Random.Shared.Next(8, 200)
+            };
         });
     }
 
@@ -52,18 +58,27 @@ public class RttEndpointV1 : Endpoint<RttRequest>
     /// </remarks>
     public override async Task HandleAsync(RttRequest req, CancellationToken ct)
     {
-        using var span = GamePulseActivitySource.StartActivity(nameof(RttEndpointV1));
-        //string? clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
-        string? clientIp = FakeIpGenerator.Get();
-        if (clientIp is null)
+        try
         {
-            await Send.StringAsync("Unknown ip address", 400, cancellation: ct);
-            return;
-        }
+            using var span = GamePulseActivitySource.StartActivity(nameof(RttEndpointV1));
+            //string? clientIp = HttpContext.Connection.RemoteIpAddress?.ToString();
+            string? clientIp = FakeIpGenerator.Get();
+            if (clientIp is null)
+            {
+                await Send.StringAsync("Unknown ip address", 400, cancellation: ct);
+                return;
+            }
 
-        //var cmd = new RttCommand(clientIp, req.Rtt, req.Quality, span);
-        //await cmd.ExecuteAsync(_serviceProvider, ct);
-        await _taskQueue.EnqueueAsync(new RttCommand(clientIp, req.Rtt, req.Quality, span));
-        await Send.OkAsync("Success", ct);
+            //var cmd = new RttCommand(clientIp, req.Rtt, req.Quality, span);
+            //await cmd.ExecuteAsync(_serviceProvider, ct);
+            await _taskQueue.EnqueueAsync(new RttCommand(clientIp, req.Rtt, req.Quality, span));
+            await Send.OkAsync("Success", ct);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, nameof(RttEndpointV1));
+            AddError(e.Message);
+            await Send.ErrorsAsync(cancellation: ct);
+        }
     }
 }

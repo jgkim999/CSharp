@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Demo.Application.Repositories;
-using Demo.Infra.Configs;
+using Demo.Application.Configs;
 using FluentResults;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

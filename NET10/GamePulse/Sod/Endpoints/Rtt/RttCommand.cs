@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Demo.Application.Services;
-using GamePulse.Services;
-using GamePulse.Sod.Commands;
+using Demo.Infra.Services;
+using Demo.Application.Commands.Sod;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
 
@@ -36,11 +36,21 @@ public class RttCommand : SodCommand
         var logger = serviceProvider.GetService<ILogger<RttCommand>>();
         var ipToNationService = serviceProvider.GetService<IIpToNationService>();
         var telemetryService = serviceProvider.GetService<ITelemetryService>();
-        using var span = GamePulseActivitySource.StartActivity(nameof(RttCommand), ActivityKind.Internal, parentActivity: ParentActivity);
+        using var span = GamePulseActivitySource.StartActivity(nameof(RttCommand), ActivityKind.Internal,
+            parentActivity: ParentActivity);
 
         //span?.AddTag("ClientIp", ClientIp);
         // IP 주소를 국가 코드로 변환
-        Debug.Assert(ipToNationService != null, nameof(ipToNationService) + " != null");
+        if (ipToNationService == null)
+        {
+            logger?.LogWarning("IpToNationService가 null입니다. 기본 국가 코드 'Unknown'을 사용합니다.");
+            telemetryService?.RecordRttMetrics("Unknown", _rtt / (double)1000, _quality, "sod");
+            logger?.LogInformation(
+                "{Game} {ClientIp} {CountryCode} {Rtt} {Quality}",
+                "sod", ClientIp, "Unknown", _rtt / (double)1000, _quality);
+            return;
+        }
+
         var countryCode = await ipToNationService.GetNationCodeAsync(ClientIp, ct);
 
         // RTT 처리 - 밀리초를 초 단위로 변환
