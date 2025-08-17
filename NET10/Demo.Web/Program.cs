@@ -6,8 +6,10 @@ using Demo.Web.Endpoints.User;
 using FastEndpoints;
 
 using FluentValidation;
-
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
 using Serilog;
+using Serilog.Sinks.OpenTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,12 +29,19 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 try
 {
-    builder.AddSerilogApplication();
+    //builder.AddSerilogApplication();
+    builder.Host.UseSerilog();
+    
+    builder.Services.AddSerilog((services, lc) =>
+    {
+        lc.ReadFrom.Configuration(builder.Configuration);
+        lc.ReadFrom.Services(services);
+    });
     
     Log.Information("Starting application");
 
     // OpenTelemetry 서비스 등록
-    var openTelemetry = builder.AddOpenTelemetryApplication();
+    var openTelemetry = builder.AddOpenTelemetryApplication(Log.Logger);
     openTelemetry.openTelemetryBuilder.AddOpenTelemetryInfrastructure(openTelemetry.otelConfig);
     
     builder.AddDemoWebApplication();

@@ -87,16 +87,6 @@ public static class OpenTelemetryApplicationExtensions
             ConfigureMetric(metrics, serviceName, otlpEndpoint);
         });
 
-        // 로깅 설정
-        openTelemetryBuilder.WithLogging(logging =>
-        {
-            logging.AddOtlpExporter(options =>
-            {
-                options.Endpoint = new Uri(otlpEndpoint);
-                options.Protocol = OtlpExportProtocol.Grpc;
-            });
-        });
-
         // TelemetryService 등록
         builder.Services.AddSingleton<ITelemetryService>(provider =>
         {
