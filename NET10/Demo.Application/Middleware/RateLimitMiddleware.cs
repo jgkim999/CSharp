@@ -1,9 +1,11 @@
-using Demo.Application.DTO;
 using System.Collections.Concurrent;
 using System.Text.Json;
 using Demo.Application.Configs;
+using Demo.Application.DTO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
-namespace Demo.Web.Middleware;
+namespace Demo.Application.Middleware;
 
 /// <summary>
 /// Rate Limit 응답을 사용자 정의 형식으로 변환하고 로깅을 처리하는 미들웨어

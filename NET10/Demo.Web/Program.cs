@@ -1,10 +1,9 @@
 using Demo.Application;
 using Demo.Application.Configs;
 using Demo.Application.Extensions;
+using Demo.Application.Middleware;
 using Demo.Infra;
 using Demo.Web.Endpoints.User;
-using Demo.Web.Middleware;
-
 using FastEndpoints;
 
 using FluentValidation;
