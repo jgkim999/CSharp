@@ -8,6 +8,8 @@ using OpenTelemetry.Trace;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
+using OpenTelemetry.Metrics;
 
 namespace Demo.Application.Extensions;
 
@@ -21,7 +23,8 @@ public static class OpenTelemetryApplicationExtensions
     /// </summary>
     /// <param name="builder"></param>
     /// <returns>구성된 OpenTelemetryBuilder</returns>
-    public static (WebApplicationBuilder builder, OpenTelemetryBuilder openTelemetryBuilder, OtelConfig otelConfig) AddOpenTelemetryApplication(this WebApplicationBuilder builder)
+    public static (WebApplicationBuilder builder, OpenTelemetryBuilder openTelemetryBuilder, OtelConfig otelConfig) 
+        AddOpenTelemetryApplication(this WebApplicationBuilder builder)
     {
         var openTelemetryConfig = builder.Configuration.GetSection("OpenTelemetry").Get<OtelConfig>();
         if (openTelemetryConfig is null)
@@ -66,19 +69,11 @@ public static class OpenTelemetryApplicationExtensions
         // 추적 설정
         openTelemetryBuilder.WithTracing(tracing =>
         {
-            tracing.AddSource(serviceName);
-            tracing.SetSampler(new TraceIdRatioBasedSampler(probability));
+            ConfigureTrace(tracing, serviceName, probability);
         });
 
         // 메트릭 설정
-        openTelemetryBuilder.WithMetrics(metrics =>
-        {
-            // TelemetryService의 MeterName을 OpenTelemetry에 등록
-            metrics.AddMeter(serviceName);
-            
-            // .NET 런타임 메트릭 추가
-            metrics.AddMeter("System.Runtime");
-        });
+        openTelemetryBuilder.WithMetrics(metrics => { ConfigureMetric(metrics, serviceName); });
 
         // 로깅 설정은 Infrastructure 레이어에서 처리
 
@@ -88,10 +83,122 @@ public static class OpenTelemetryApplicationExtensions
             var logger = provider.GetRequiredService<ILogger<TelemetryService>>();
             return new TelemetryService(serviceName, serviceVersion, logger);
         });
-
+        
         // Tracer 서비스 등록
         openTelemetryBuilder.Services.AddSingleton(TracerProvider.Default.GetTracer(serviceName));
 
         return (builder, openTelemetryBuilder, openTelemetryConfig);
+    }
+
+    private static void ConfigureMetric(MeterProviderBuilder metrics, string serviceName)
+    {
+        // TelemetryService의 MeterName을 OpenTelemetry에 등록
+        metrics.AddMeter(serviceName);
+        // ASP.NET Core 메트릭
+        metrics.AddAspNetCoreInstrumentation();
+        // HTTP 클라이언트 메트릭
+        metrics.AddHttpClientInstrumentation();
+        // .NET 런타임 메트릭
+        metrics.AddRuntimeInstrumentation();
+        // 프로세스 메트릭
+        metrics.AddProcessInstrumentation();
+        // Metrics provides by ASP.NET Core
+        metrics.AddMeter("Microsoft.AspNetCore.Hosting");
+        metrics.AddMeter("Microsoft.AspNetCore.Server.Kestrel");
+        // .NET 런타임 메트릭 추가
+        metrics.AddMeter("System.Runtime");
+        metrics.AddMeter("System.Net.Http");
+        metrics.AddMeter("System.Net.NameResolution");
+        // TODO: 사용자 정의 메터 추가
+        //metrics.AddMeter(meterName);
+        // 뷰 구성 (히스토그램 버킷 사용자 정의)
+        metrics.AddView("http.server.request.duration", new ExplicitBucketHistogramConfiguration
+        {
+            Boundaries = [0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]
+        });
+        metrics.AddView("http.client.request.duration", new ExplicitBucketHistogramConfiguration
+        {
+            Boundaries = [0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]
+        });
+    }
+
+    private static void ConfigureTrace(TracerProviderBuilder tracing, string serviceName, double probability)
+    {
+        tracing.AddSource(serviceName);
+        // TODO: 사용자 정의 ActivitySource 등록
+        tracing.AddSource(serviceName);
+        //tracing.AddSource("Demo.Application");
+        //tracing.AddSource("Demo.Infra");
+        tracing.SetSampler(new TraceIdRatioBasedSampler(probability));
+        // ASP.NET Core 자동 계측
+        tracing.AddAspNetCoreInstrumentation(options =>
+        {
+            // HTTP 요청 필터링 (헬스체크 등 제외)
+            options.Filter = context =>
+            {
+                var path = context.Request.Path.Value?.ToLowerInvariant();
+                return !string.IsNullOrEmpty(path) &&
+                       !path.Contains("/health") &&
+                       !path.Contains("/metrics") &&
+                       !path.Contains("/favicon.ico");
+            };
+
+            // 요청 및 응답 세부 정보 수집
+            options.RecordException = true;
+            options.EnrichWithHttpRequest = (activity, request) =>
+            {
+                activity.SetTag("http.request.method", request.Method);
+                activity.SetTag("http.request.scheme", request.Scheme);
+                activity.SetTag("http.request.host", request.Host.Value);
+                activity.SetTag("user_agent", request.Headers.UserAgent.ToString());
+
+                // 사용자 정의 헤더 추가 (필요시)
+                if (request.Headers.ContainsKey("X-Request-ID"))
+                {
+                    activity.SetTag("request.id", request.Headers["X-Request-ID"].ToString());
+                }
+            };
+
+            options.EnrichWithHttpResponse = (activity, response) =>
+            {
+                activity.SetTag("http.response.status_code", response.StatusCode);
+                activity.SetTag("http.response.content_length", response.ContentLength);
+            };
+        });
+
+        // HTTP 클라이언트 자동 계측
+        tracing.AddHttpClientInstrumentation(options =>
+        {
+            // 외부 API 호출 필터링
+            options.FilterHttpRequestMessage = request =>
+            {
+                var uri = request.RequestUri?.ToString().ToLowerInvariant();
+                return !string.IsNullOrEmpty(uri) &&
+                       !uri.Contains("/health") &&
+                       !uri.Contains("/metrics");
+            };
+
+            options.RecordException = true;
+            options.EnrichWithHttpRequestMessage = (activity, request) =>
+            {
+                activity.SetTag("http.client.method", request.Method.Method);
+                activity.SetTag("http.client.url", request.RequestUri?.ToString());
+            };
+
+            options.EnrichWithHttpResponseMessage = (activity, response) =>
+            {
+                activity.SetTag("http.client.status_code", (int)response.StatusCode);
+                activity.SetTag("http.client.response_size", response.Content.Headers.ContentLength);
+            };
+        });
+
+        // 데이터베이스 자동 계측
+        tracing.AddNpgsql(); // PostgreSQL (Npgsql) 계측
+        tracing.AddSqlClientInstrumentation(options =>
+        {
+            // SQL 명령문 텍스트 기록 (개발 환경에서만)
+            options.SetDbStatementForText = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
+            options.RecordException = true;
+        });
     }
 }
