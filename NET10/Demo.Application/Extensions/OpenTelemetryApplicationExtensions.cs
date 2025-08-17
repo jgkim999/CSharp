@@ -9,6 +9,8 @@ using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 
 namespace Demo.Application.Extensions;
@@ -47,12 +49,13 @@ public static class OpenTelemetryApplicationExtensions
         var deploymentEnvironment = Environment.GetEnvironmentVariable("OTEL_DEPLOYMENT_ENVIRONMENT") ?? openTelemetryConfig.DeploymentEnvironment;
 
         // 전체 OpenTelemetry 리소스 설정 - 더 많은 메타데이터 추가
-        openTelemetryBuilder.ConfigureResource(resource => resource
-            .AddService(
-                serviceName: serviceName, 
-                serviceVersion: serviceVersion,
-                serviceInstanceId: openTelemetryConfig.ServiceInstanceId)
-            .AddAttributes(new Dictionary<string, object>
+        openTelemetryBuilder.ConfigureResource(resource =>
+        {
+            resource.AddService(
+                    serviceName: serviceName,
+                    serviceVersion: serviceVersion,
+                    serviceInstanceId: openTelemetryConfig.ServiceInstanceId);
+            resource.AddAttributes(new Dictionary<string, object>
             {
                 ["service.namespace"] = serviceNamespace,
                 ["deployment.environment"] = deploymentEnvironment,
@@ -63,19 +66,22 @@ public static class OpenTelemetryApplicationExtensions
                 ["process.executable.name"] = Assembly.GetExecutingAssembly().GetName().Name ?? "GamePulse",
                 ["telemetry.sdk.name"] = "opentelemetry",
                 ["telemetry.sdk.language"] = "dotnet",
-                ["telemetry.sdk.version"] = typeof(OpenTelemetryBuilder).Assembly.GetName().Version?.ToString() ?? "unknown"
-            }));
+                ["telemetry.sdk.version"] = typeof(OpenTelemetryBuilder).Assembly.GetName().Version?.ToString() ??
+                                            "unknown"
+            });
+        });
 
         // 추적 설정
         openTelemetryBuilder.WithTracing(tracing =>
         {
-            ConfigureTrace(tracing, serviceName, probability);
+            ConfigureTrace(tracing, serviceName, probability, otlpEndpoint);
         });
 
         // 메트릭 설정
-        openTelemetryBuilder.WithMetrics(metrics => { ConfigureMetric(metrics, serviceName); });
-
-        // 로깅 설정은 Infrastructure 레이어에서 처리
+        openTelemetryBuilder.WithMetrics(metrics =>
+        {
+            ConfigureMetric(metrics, serviceName, otlpEndpoint);
+        });
 
         // TelemetryService 등록
         builder.Services.AddSingleton<ITelemetryService>(provider =>
@@ -90,7 +96,7 @@ public static class OpenTelemetryApplicationExtensions
         return (builder, openTelemetryBuilder, openTelemetryConfig);
     }
 
-    private static void ConfigureMetric(MeterProviderBuilder metrics, string serviceName)
+    private static void ConfigureMetric(MeterProviderBuilder metrics, string serviceName, string openTelemetryEndpoint)
     {
         // TelemetryService의 MeterName을 OpenTelemetry에 등록
         metrics.AddMeter(serviceName);
@@ -120,13 +126,19 @@ public static class OpenTelemetryApplicationExtensions
         {
             Boundaries = [0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]
         });
+
+        metrics.AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri(openTelemetryEndpoint);
+            options.Protocol = OtlpExportProtocol.Grpc;
+        });
     }
 
-    private static void ConfigureTrace(TracerProviderBuilder tracing, string serviceName, double probability)
+    private static void ConfigureTrace(TracerProviderBuilder tracing, string serviceName, double probability, string openTelemetryEndpoint)
     {
         tracing.AddSource(serviceName);
         // TODO: 사용자 정의 ActivitySource 등록
-        tracing.AddSource(serviceName);
+        
         //tracing.AddSource("Demo.Application");
         //tracing.AddSource("Demo.Infra");
         tracing.SetSampler(new TraceIdRatioBasedSampler(probability));
@@ -199,6 +211,12 @@ public static class OpenTelemetryApplicationExtensions
             // SQL 명령문 텍스트 기록 (개발 환경에서만)
             options.SetDbStatementForText = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
             options.RecordException = true;
+        });
+
+        tracing.AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri(openTelemetryEndpoint);
+            options.Protocol = OtlpExportProtocol.Grpc;
         });
     }
 }
