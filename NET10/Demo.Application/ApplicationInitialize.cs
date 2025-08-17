@@ -68,7 +68,12 @@ public static class ApplicationInitialize
     {
         // RateLimit 설정을 DI 컨테이너에 등록
         builder.Services.Configure<RateLimitConfig>(builder.Configuration.GetSection("RateLimit"));
-
+        
+        var redisConfig = builder.Configuration.GetSection("RedisConfig").Get<RedisConfig>();
+        if (redisConfig is null)
+            throw new NullReferenceException();
+        builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("RedisConfig"));
+        
         return builder;
     }
     

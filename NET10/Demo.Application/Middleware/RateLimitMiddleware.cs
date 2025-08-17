@@ -4,6 +4,7 @@ using Demo.Application.Configs;
 using Demo.Application.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Demo.Application.Middleware;
 
@@ -46,11 +47,11 @@ public class RateLimitMiddleware
   /// <param name="next">다음 미들웨어 델리게이트</param>
   /// <param name="logger">로거 인스턴스</param>
   /// <param name="rateLimitConfig">Rate Limit 설정</param>
-  public RateLimitMiddleware(RequestDelegate next, ILogger<RateLimitMiddleware> logger, RateLimitConfig rateLimitConfig)
+  public RateLimitMiddleware(RequestDelegate next, ILogger<RateLimitMiddleware> logger, IOptions<RateLimitConfig> rateLimitConfig)
   {
     _next = next;
     _logger = logger;
-    _rateLimitConfig = rateLimitConfig;
+    _rateLimitConfig = rateLimitConfig.Value;
   }
 
   /// <summary>

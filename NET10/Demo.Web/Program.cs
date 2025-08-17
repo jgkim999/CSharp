@@ -1,6 +1,7 @@
 using Demo.Application;
 using Demo.Application.Extensions;
 using Demo.Infra;
+using Demo.Infra.Extensions;
 using Demo.Web.Endpoints.User;
 using FastEndpoints;
 
@@ -31,7 +32,9 @@ try
     Log.Information("Starting application");
 
     // OpenTelemetry 서비스 등록
-    builder.AddOpenTelemetryApplication();
+    var openTelemetry = builder.AddOpenTelemetryApplication();
+    openTelemetry.openTelemetryBuilder.AddOpenTelemetryInfrastructure(openTelemetry.otelConfig);
+    
     builder.AddDemoWebApplication();
     
     builder.Services.AddFastEndpoints();

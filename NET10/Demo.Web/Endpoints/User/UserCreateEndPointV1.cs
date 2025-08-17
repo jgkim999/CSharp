@@ -1,10 +1,10 @@
 using Demo.Application.Commands;
 using Demo.Application.Configs;
 using Demo.Application.Services;
-using Demo.Application.DTO;
 using FastEndpoints;
 using LiteBus.Commands.Abstractions;
 using Demo.Application.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Demo.Web.Endpoints.User;
 
@@ -22,12 +22,12 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
         ICommandMediator commandMediator,
         ITelemetryService telemetryService,
         ILogger<UserCreateEndpointV1> logger,
-        RateLimitConfig rateLimitConfig)
+        IOptions<RateLimitConfig> rateLimitConfig)
     {
         _commandMediator = commandMediator;
         _telemetryService = telemetryService;
         _logger = logger;
-        _rateLimitConfig = rateLimitConfig;
+        _rateLimitConfig = rateLimitConfig.Value;
     }
 
     /// <summary>
