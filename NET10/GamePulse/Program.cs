@@ -35,7 +35,7 @@ try
 
     builder.Services.AddOpenApiServices();
 
-    var builderResult = builder.AddOpenTelemetryApplication();
+    var builderResult = builder.AddOpenTelemetryApplication(Log.Logger);
     builderResult.openTelemetryBuilder.AddOpenTelemetryInfrastructure(builderResult.otelConfig);
 
     var app = builder.Build();

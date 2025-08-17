@@ -24,14 +24,16 @@ public static class OpenTelemetryApplicationExtensions
     /// OpenTelemetry의 기본 설정 및 Application 레이어 관련 서비스를 구성합니다
     /// </summary>
     /// <param name="builder"></param>
+    /// <param name="logger"></param>
     /// <returns>구성된 OpenTelemetryBuilder</returns>
     public static (WebApplicationBuilder builder, OpenTelemetryBuilder openTelemetryBuilder, OtelConfig otelConfig) 
-        AddOpenTelemetryApplication(this WebApplicationBuilder builder)
+        AddOpenTelemetryApplication(this WebApplicationBuilder builder, Serilog.ILogger logger)
     {
         var openTelemetryConfig = builder.Configuration.GetSection("OpenTelemetry").Get<OtelConfig>();
         if (openTelemetryConfig is null)
             throw new NullReferenceException();
         builder.Services.Configure<OtelConfig>(builder.Configuration.GetSection("OpenTelemetry"));
+        logger.Information("OpenTelemetryEndpoint {OpenTelemetryEndpoint}", openTelemetryConfig.Endpoint);
         
         var openTelemetryBuilder = builder.Services.AddOpenTelemetry();
         
@@ -43,6 +45,8 @@ public static class OpenTelemetryApplicationExtensions
 
         // 환경 변수에서 OTLP 엔드포인트 오버라이드 지원
         var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ?? openTelemetryConfig.Endpoint;
+        logger.Information("OpenTelemetryEndpoint {OpenTelemetryEndpoint}", otlpEndpoint);
+        
         var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME") ?? openTelemetryConfig.ServiceName;
         var serviceVersion = Environment.GetEnvironmentVariable("OTEL_SERVICE_VERSION") ?? openTelemetryConfig.ServiceVersion;
         var serviceNamespace = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAMESPACE") ?? openTelemetryConfig.ServiceNamespace;
@@ -81,6 +85,16 @@ public static class OpenTelemetryApplicationExtensions
         openTelemetryBuilder.WithMetrics(metrics =>
         {
             ConfigureMetric(metrics, serviceName, otlpEndpoint);
+        });
+
+        // 로깅 설정
+        openTelemetryBuilder.WithLogging(logging =>
+        {
+            logging.AddOtlpExporter(options =>
+            {
+                options.Endpoint = new Uri(otlpEndpoint);
+                options.Protocol = OtlpExportProtocol.Grpc;
+            });
         });
 
         // TelemetryService 등록
