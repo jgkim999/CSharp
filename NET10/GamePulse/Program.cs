@@ -27,13 +27,13 @@ try
 
     builder.AddGamePulseApplication();
 
-    builder.Services.AddFastEndpoints();
-
-    builder.Services.AddOpenApiServices();
+    builder.Services.AddGamePulseInfra();
 
     builder.Services.AddLiteBusApplication();
 
-    builder.Services.AddGamePulseInfra();
+    builder.Services.AddFastEndpoints();
+
+    builder.Services.AddOpenApiServices();
 
     var builderResult = builder.AddOpenTelemetryApplication();
     builderResult.openTelemetryBuilder.AddOpenTelemetryInfrastructure(builderResult.otelConfig);
@@ -48,15 +48,6 @@ try
     if (builderResult.otelConfig.EnablePrometheusExporter)
     {
         app.MapPrometheusScrapingEndpoint();
-    }
-
-    // Configure the HTTP request pipeline.
-    //if (app.Environment.IsDevelopment())
-    {
-        app.MapOpenApi();
-        app.UseOpenApi(c => c.Path = "/openapi/{documentName}.json");
-        string[] versions = ["v1", "v2"];
-        app.MapScalarApiReference(options => options.AddDocuments(versions));
     }
 
     app.Run();

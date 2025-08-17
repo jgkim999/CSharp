@@ -24,6 +24,7 @@ public static class InfraInitialize
         services.AddSingleton<IIpToNationCache, IpToNationRedisCache>();
         services.AddSingleton<IIpToNationService, IpToNationService>();
         services.AddTransient<IJwtRepository, RedisJwtRepository>();
+        services.AddTransient<IUserRepository, UserRepositoryPostgre>();
         
         // ITelemetryService 및 TelemetryService를 Singleton으로 등록
         services.AddSingleton<ITelemetryService>(serviceProvider =>

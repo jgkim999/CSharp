@@ -36,23 +36,20 @@ public static class ApplicationInitialize
     {
         service.AddLiteBus(liteBus =>
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies)
+            var applicationAssembly = typeof(ApplicationInitialize).Assembly;
+            
+            liteBus.AddCommandModule(module =>
             {
-                liteBus.AddCommandModule(module =>
-                {
-                    module.RegisterFromAssembly(assembly);
-                    //module.RegisterFromAssembly(typeof(AppDomain).Assembly);
-                });
-                liteBus.AddQueryModule(module =>
-                {
-                    module.RegisterFromAssembly(assembly);
-                });
-                liteBus.AddEventModule(module =>
-                {
-                    module.RegisterFromAssembly(assembly);
-                });
-            }
+                module.RegisterFromAssembly(applicationAssembly);
+            });
+            liteBus.AddQueryModule(module =>
+            {
+                module.RegisterFromAssembly(applicationAssembly);
+            });
+            liteBus.AddEventModule(module =>
+            {
+                module.RegisterFromAssembly(applicationAssembly);
+            });
         });
 
         // LiteBus 텔레메트리 데코레이터 추가
