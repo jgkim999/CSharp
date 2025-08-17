@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Demo.Application.Configs;
 using Demo.Web.Endpoints.User;
 
 namespace Demo.Web.PerformanceTests.Benchmarks;
@@ -48,15 +49,15 @@ public class RateLimitingPerformanceBenchmark
                 builder.ConfigureServices(services =>
                 {
                     // Rate Limiting 비활성화 설정
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(Demo.Web.Configs.RateLimitConfig));
+                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(RateLimitConfig));
                     if (descriptor != null)
                     {
                         services.Remove(descriptor);
                     }
 
-                    var disabledConfig = new Demo.Web.Configs.RateLimitConfig
+                    var disabledConfig = new RateLimitConfig
                     {
-                        UserCreateEndpoint = new Demo.Web.Configs.UserCreateEndpointConfig
+                        UserCreateEndpoint = new UserCreateEndpointConfig
                         {
                             Enabled = false,
                             HitLimit = 10,

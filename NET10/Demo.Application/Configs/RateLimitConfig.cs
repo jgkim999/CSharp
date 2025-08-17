@@ -1,4 +1,4 @@
-namespace Demo.Web.Configs;
+namespace Demo.Application.Configs;
 
 /// <summary>
 /// Rate Limiting 구성 설정 클래스

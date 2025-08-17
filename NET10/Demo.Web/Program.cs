@@ -1,8 +1,8 @@
 using Demo.Application;
+using Demo.Application.Configs;
+using Demo.Application.Extensions;
 using Demo.Infra;
-using Demo.Web.Configs;
 using Demo.Web.Endpoints.User;
-using Demo.Web.Extensions;
 using Demo.Web.Middleware;
 
 using FastEndpoints;

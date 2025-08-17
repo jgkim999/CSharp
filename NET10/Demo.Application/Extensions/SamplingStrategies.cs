@@ -1,7 +1,7 @@
-using OpenTelemetry.Trace;
 using System.Diagnostics;
+using OpenTelemetry.Trace;
 
-namespace Demo.Web.Extensions;
+namespace Demo.Application.Extensions;
 
 /// <summary>
 /// OpenTelemetry 샘플링 전략을 구현하는 클래스

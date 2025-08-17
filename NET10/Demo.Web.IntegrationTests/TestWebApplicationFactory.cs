@@ -5,6 +5,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 using System.Diagnostics;
+using Demo.Application.Configs;
 
 namespace Demo.Web.IntegrationTests;
 
@@ -32,12 +33,12 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
             }
 
             // 테스트용 Rate Limiting 설정 추가
-            var rateLimitDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(Demo.Web.Configs.RateLimitConfig));
+            var rateLimitDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(RateLimitConfig));
             if (rateLimitDescriptor == null)
             {
-                var testRateLimitConfig = new Demo.Web.Configs.RateLimitConfig
+                var testRateLimitConfig = new RateLimitConfig
                 {
-                    UserCreateEndpoint = new Demo.Web.Configs.UserCreateEndpointConfig
+                    UserCreateEndpoint = new UserCreateEndpointConfig
                     {
                         Enabled = true,
                         HitLimit = 10,
@@ -46,7 +47,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
                         ErrorMessage = "Too many requests. Please try again later.",
                         RetryAfterSeconds = 60
                     },
-                    Global = new Demo.Web.Configs.GlobalRateLimitConfig
+                    Global = new GlobalRateLimitConfig
                     {
                         EnableLogging = true,
                         LogRateLimitApplied = true,

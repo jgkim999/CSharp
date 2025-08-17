@@ -1,10 +1,9 @@
+using Demo.Application.Configs;
 using OpenTelemetry;
-using OpenTelemetry.Metrics;
 using OpenTelemetry.Exporter;
-using Demo.Web.Configs;
-using System.Diagnostics.Metrics;
+using OpenTelemetry.Metrics;
 
-namespace Demo.Web.Extensions;
+namespace Demo.Application.Extensions;
 
 /// <summary>
 /// 메트릭 처리 전략을 구현하는 클래스

@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Demo.Web.Extensions;
+namespace Demo.Application.Extensions;
 
 /// <summary>
 /// OpenTelemetry 트레이스 정보를 Serilog 로그에 추가하는 Enricher

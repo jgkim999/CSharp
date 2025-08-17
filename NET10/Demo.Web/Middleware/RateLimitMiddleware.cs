@@ -1,7 +1,7 @@
 using Demo.Application.DTO;
-using Demo.Web.Configs;
 using System.Collections.Concurrent;
 using System.Text.Json;
+using Demo.Application.Configs;
 
 namespace Demo.Web.Middleware;
 

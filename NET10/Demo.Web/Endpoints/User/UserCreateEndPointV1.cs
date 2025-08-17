@@ -1,7 +1,7 @@
 using Demo.Application.Commands;
+using Demo.Application.Configs;
 using Demo.Application.Services;
 using Demo.Application.DTO;
-using Demo.Web.Configs;
 using FastEndpoints;
 using LiteBus.Commands.Abstractions;
 using Demo.Application.Extensions;

@@ -1,15 +1,16 @@
 using System.Diagnostics;
-
+using Demo.Application.Configs;
 using Demo.Application.Services;
-using Demo.Web.Configs;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Npgsql;
-
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace Demo.Web.Extensions;
+namespace Demo.Application.Extensions;
 
 /// <summary>
 /// OpenTelemetry 서비스 등록을 위한 확장 메서드 클래스
