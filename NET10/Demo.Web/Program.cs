@@ -102,19 +102,18 @@ try
 
     // OpenTelemetry 서비스 등록
     builder.Services.AddOpenTelemetryServices(builder.Configuration, openTelemetryConfig.ServiceInstanceId, environment);
-
+    
     builder.Services.AddFastEndpoints();
     builder.Services.AddOpenApi();
 
     builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
-    builder.Services.AddApplication();
-    builder.Services.AddInfra(builder.Configuration);
+    builder.Services.AddLiteBusApplication();
+    builder.Services.AddDemoWebInfra(builder.Configuration);
 
     // RateLimit 설정을 DI 컨테이너에 등록
     builder.Services.Configure<RateLimitConfig>(builder.Configuration.GetSection(RateLimitConfig.SectionName));
     builder.Services.AddSingleton(rateLimitConfig);
-
 
     var app = builder.Build();
     
@@ -141,7 +140,6 @@ try
     }
 
     app.Run();
-
 }
 catch (Exception ex)
 {

@@ -33,7 +33,6 @@ public static class OpenTelemetryExtensions
         // OpenTelemetry 구성 바인딩
         var otelConfig = new OpenTelemetryConfig();
         configuration.GetSection(OpenTelemetryConfig.SectionName).Bind(otelConfig);
-
         // 구성 객체를 DI 컨테이너에 등록
         services.Configure<OpenTelemetryConfig>(configuration.GetSection(OpenTelemetryConfig.SectionName));
 

@@ -1,11 +1,8 @@
-using System.Text.Json.Serialization;
-
 namespace Demo.Application.DTO;
 
 /// <summary>
 /// 응답 예제 DTO
 /// </summary>
-[JsonSerializable(typeof(MyResponse))]
 public class MyResponse
 {
     /// <summary>

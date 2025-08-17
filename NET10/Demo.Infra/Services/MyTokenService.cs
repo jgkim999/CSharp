@@ -2,8 +2,7 @@ using FastEndpoints;
 using FastEndpoints.Security;
 using Demo.Application.Configs;
 using Demo.Application.Repositories;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Demo.Infra.Services;
 
@@ -12,32 +11,25 @@ namespace Demo.Infra.Services;
 /// </summary>
 public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
 {
-    private readonly ILogger<MyTokenService> _logger;
     private readonly IJwtRepository _jwtRepository;
 
     /// <summary>
     /// JWT 토큰 매개변수와 리프레시 토큰 엔드포인트 설정을 구성하여 MyTokenService 클래스의 새 인스턴스를 초기화합니다
     /// </summary>
     /// <param name="config">구성 정보</param>
-    /// <param name="logger">로거</param>
     /// <param name="jwtRepository">JWT 저장소</param>
     /// <exception cref="NullReferenceException">
     /// config, logger, jwtRepository 또는 "Jwt" 구성 섹션이 null인 경우 발생
     /// </exception>
-    public MyTokenService(IConfiguration config, ILogger<MyTokenService> logger, IJwtRepository jwtRepository)
+    public MyTokenService(IOptions<JwtConfig> config, IJwtRepository jwtRepository)
     {
-        if (config is null || logger is null || jwtRepository is null)
+        if (config is null || jwtRepository is null)
             throw new NullReferenceException();
-        _logger = logger;
         _jwtRepository = jwtRepository;
-
-        var jwtConfig = config.GetSection("Jwt").Get<JwtConfig>();
-        if (jwtConfig == null)
-            throw new NullReferenceException();
-
+        
         Setup(o =>
         {
-            o.TokenSigningKey = jwtConfig.PrivateKey;
+            o.TokenSigningKey = config.Value.PrivateKey;
             o.AccessTokenValidity = TimeSpan.FromMinutes(60);
             o.RefreshTokenValidity = TimeSpan.FromMinutes(50);
 

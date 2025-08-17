@@ -6,6 +6,8 @@ using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using System.Reflection;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 
 namespace Demo.Application.Extensions;
 
@@ -17,32 +19,36 @@ public static class OpenTelemetryApplicationExtensions
     /// <summary>
     /// OpenTelemetry의 기본 설정 및 Application 레이어 관련 서비스를 구성합니다
     /// </summary>
-    /// <param name="services">서비스 컬렉션</param>
-    /// <param name="config">OpenTelemetry 구성 설정</param>
+    /// <param name="builder"></param>
     /// <returns>구성된 OpenTelemetryBuilder</returns>
-    public static OpenTelemetryBuilder AddOpenTelemetryApplication(this IServiceCollection services, OtelConfig config)
+    public static (WebApplicationBuilder builder, OpenTelemetryBuilder openTelemetryBuilder, OtelConfig otelConfig) AddOpenTelemetryApplication(this WebApplicationBuilder builder)
     {
-        var openTelemetryBuilder = services.AddOpenTelemetry();
+        var openTelemetryConfig = builder.Configuration.GetSection("OpenTelemetry").Get<OtelConfig>();
+        if (openTelemetryConfig is null)
+            throw new NullReferenceException();
+        builder.Services.Configure<OtelConfig>(builder.Configuration.GetSection("OpenTelemetry"));
+        
+        var openTelemetryBuilder = builder.Services.AddOpenTelemetry();
         
         // 샘플링 확률 설정
-        if (!double.TryParse(config.TracesSamplerArg, out var probability))
+        if (!double.TryParse(openTelemetryConfig.TracesSamplerArg, out var probability))
         {
             probability = 1.0;
         }
 
         // 환경 변수에서 OTLP 엔드포인트 오버라이드 지원
-        var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ?? config.Endpoint;
-        var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME") ?? config.ServiceName;
-        var serviceVersion = Environment.GetEnvironmentVariable("OTEL_SERVICE_VERSION") ?? config.ServiceVersion;
-        var serviceNamespace = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAMESPACE") ?? config.ServiceNamespace;
-        var deploymentEnvironment = Environment.GetEnvironmentVariable("OTEL_DEPLOYMENT_ENVIRONMENT") ?? config.DeploymentEnvironment;
+        var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ?? openTelemetryConfig.Endpoint;
+        var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME") ?? openTelemetryConfig.ServiceName;
+        var serviceVersion = Environment.GetEnvironmentVariable("OTEL_SERVICE_VERSION") ?? openTelemetryConfig.ServiceVersion;
+        var serviceNamespace = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAMESPACE") ?? openTelemetryConfig.ServiceNamespace;
+        var deploymentEnvironment = Environment.GetEnvironmentVariable("OTEL_DEPLOYMENT_ENVIRONMENT") ?? openTelemetryConfig.DeploymentEnvironment;
 
         // 전체 OpenTelemetry 리소스 설정 - 더 많은 메타데이터 추가
         openTelemetryBuilder.ConfigureResource(resource => resource
             .AddService(
                 serviceName: serviceName, 
                 serviceVersion: serviceVersion,
-                serviceInstanceId: config.ServiceInstanceId)
+                serviceInstanceId: openTelemetryConfig.ServiceInstanceId)
             .AddAttributes(new Dictionary<string, object>
             {
                 ["service.namespace"] = serviceNamespace,
@@ -77,7 +83,7 @@ public static class OpenTelemetryApplicationExtensions
         // 로깅 설정은 Infrastructure 레이어에서 처리
 
         // TelemetryService 등록
-        services.AddSingleton<ITelemetryService>(provider =>
+        builder.Services.AddSingleton<ITelemetryService>(provider =>
         {
             var logger = provider.GetRequiredService<ILogger<TelemetryService>>();
             return new TelemetryService(serviceName, serviceVersion, logger);
@@ -86,6 +92,6 @@ public static class OpenTelemetryApplicationExtensions
         // Tracer 서비스 등록
         openTelemetryBuilder.Services.AddSingleton(TracerProvider.Default.GetTracer(serviceName));
 
-        return openTelemetryBuilder;
+        return (builder, openTelemetryBuilder, openTelemetryConfig);
     }
 }

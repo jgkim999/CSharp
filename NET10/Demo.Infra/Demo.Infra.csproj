@@ -16,13 +16,13 @@
       <PackageReference Include="FluentResults" Version="4.0.0" />
       <PackageReference Include="IP2Location.IPGeolocation" Version="9.0.3" />
       <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.0" />
-      <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.2" />
+      <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.3" />
       <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.12.0-beta.2" />
       <PackageReference Include="StackExchange.Redis" Version="2.8.58" />
       <PackageReference Include="FastEndpoints.Security" Version="7.0.1" />
       <PackageReference Include="Bogus" Version="35.6.3" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.7" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
       <PackageReference Include="OpenTelemetry" Version="1.12.0" />
       <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
       <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />

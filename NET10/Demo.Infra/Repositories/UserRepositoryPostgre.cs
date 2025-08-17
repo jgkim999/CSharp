@@ -6,6 +6,7 @@ using Demo.Infra.Configs;
 using FluentResults;
 using MapsterMapper;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 namespace Demo.Infra.Repositories;
@@ -21,12 +22,12 @@ public class UserRepositoryPostgre : IUserRepository
     /// Initializes a new instance of the UserRepositoryPostgre class with the specified configuration, mapper, logger, and telemetry service.
     /// </summary>
     public UserRepositoryPostgre(
-    PostgresConfig config,
+    IOptions<PostgresConfig> config,
     IMapper mapper,
     ILogger<UserRepositoryPostgre> logger,
     ITelemetryService telemetryService)
     {
-        _config = config;
+        _config = config.Value;
         _mapper = mapper;
         _logger = logger;
         _telemetryService = telemetryService;
