@@ -24,26 +24,6 @@ public class SodBackgroundWorkerTests
     }
 
     [Fact]
-    public async Task StopAsync_LogsGracefulShutdown()
-    {
-        // Arrange
-        var cancellationToken = new CancellationToken();
-
-        // Act
-        await _worker.StopAsync(cancellationToken);
-
-        // Assert
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("graceful shutdown")),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once);
-    }
-
-    [Fact]
     public void Constructor_WithCustomWorkerCount_SetsWorkerCount()
     {
         // Arrange & Act

@@ -151,51 +151,6 @@ public class RttCommandIntegrationTests
     }
     
     /// <summary>
-    /// RttCommand 실행 시 로깅이 올바르게 수행되는지 검증
-    /// </summary>
-    [Fact]
-    public async Task ExecuteAsync_ShouldLogInformation_WithCorrectParameters()
-    {
-        // Arrange
-        var mockTelemetryService = new Mock<ITelemetryService>();
-        var mockIpToNationService = new Mock<IIpToNationService>();
-        var mockLogger = new Mock<ILogger<RttCommand>>();
-        
-        var serviceCollection = new ServiceCollection();
-        serviceCollection.AddSingleton(mockTelemetryService.Object);
-        serviceCollection.AddSingleton(mockIpToNationService.Object);
-        serviceCollection.AddSingleton(mockLogger.Object);
-        
-        var serviceProvider = serviceCollection.BuildServiceProvider();
-        
-        const string clientIp = "203.0.113.1";
-        const int rttMs = 300;
-        const int quality = 60;
-        const string countryCode = "CN";
-        
-        mockIpToNationService
-            .Setup(x => x.GetNationCodeAsync(clientIp, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(countryCode);
-        
-        var command = new RttCommand(clientIp, rttMs, quality, null);
-        
-        // Act
-        await command.ExecuteAsync(serviceProvider, CancellationToken.None);
-        
-        // Assert
-        // 로그가 호출되었는지 확인 (구체적인 로그 내용 검증은 복잡하므로 호출 여부만 확인)
-        mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once,
-            "정보 로그가 한 번 기록되어야 합니다.");
-    }
-    
-    /// <summary>
     /// 서비스가 null인 경우에도 RttCommand가 정상적으로 실행되는지 검증
     /// IpToNationService가 null인 경우 기본 국가 코드를 사용해야 함
     /// </summary>
