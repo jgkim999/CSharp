@@ -38,20 +38,6 @@ public static class FastEndpointsExtensions
             };
             */
         });
-        
-        // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-            app.MapScalarApiReference(options =>
-            {
-                options
-                    .WithTitle(app.Environment.ApplicationName)
-                    .WithTheme(ScalarTheme.None)
-                    .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
-                    .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
-            });
-        }
         return app;
     }
 }

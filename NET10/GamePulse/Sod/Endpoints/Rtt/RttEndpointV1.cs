@@ -5,8 +5,28 @@ using Demo.Infra.Services;
 using Demo.Application.Services.Sod;
 using Demo.Application.Services;
 using System.Diagnostics;
+using Microsoft.OpenApi.MicrosoftExtensions;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
+
+// Endpoint Summary (optional but recommended)
+public class RttEndpointV1Summary : Summary<RttEndpointV1>
+{
+    public RttEndpointV1Summary()
+    {
+        Summary = "Summary Summary";
+        Description = "Description Description";
+        Response(400, "The request is invalid (e.g., missing fields).");
+        Response(409, "A user with this email already exists.");
+
+        ExampleRequest = new RttRequest()
+        {
+            Type = "client",
+            Rtt = Random.Shared.Next(8, 200),
+            Quality = Random.Shared.Next(0, 4)
+        };
+    }
+}
 
 public class RttEndpointV1 : Endpoint<RttRequest>
 {
@@ -35,7 +55,19 @@ public class RttEndpointV1 : Endpoint<RttRequest>
         Version(1);
         Post("/api/sod/rtt");
         AllowAnonymous();
+
         PreProcessor<ValidationErrorLogger<RttRequest>>();
+
+        Description(b => b
+            .WithTags("sod")
+        );
+        /*
+        Description(b => b
+            .Accepts<RttRequest>("application/json+custom")
+            .ProducesProblemFE(400) //shortcut for .Produces<ErrorResponse>(400)
+            .ProducesProblemFE<InternalErrorResponse>(500)
+            .WithDescription("Some Description"),
+            clearDefaults: true);
         //Throttle(hitLimit: 60, durationSeconds: 60);
         Summary(s =>
         {
@@ -48,6 +80,7 @@ public class RttEndpointV1 : Endpoint<RttRequest>
                 Rtt = Random.Shared.Next(8, 200)
             };
         });
+        */
     }
 
     /// <summary>
