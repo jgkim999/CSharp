@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Demo.Application.Repositories;
+using Demo.Domain.Repositories;
 using FastEndpoints.Security;
 
 namespace Demo.Infra.Repositories;
@@ -14,15 +14,26 @@ public class MemoryJwtRepository : IJwtRepository
     /// <summary>
     /// Stores a JWT token response in memory
     /// </summary>
+    /// <param name="userId">User identifier</param>
+    /// <param name="refreshToken">Refresh token to store</param>
+    /// <returns>Task representing the asynchronous operation</returns>
+    public async Task StoreTokenAsync(string userId, string refreshToken)
+    {
+        await Task.CompletedTask;
+        Tokens.AddOrUpdate(
+            userId,
+            refreshToken,
+            (key, oldValue) => refreshToken);
+    }
+
+    /// <summary>
+    /// Stores a JWT token response in memory (backward compatibility)
+    /// </summary>
     /// <param name="response">Token response containing user ID and refresh token</param>
     /// <returns>Task representing the asynchronous operation</returns>
     public async Task StoreTokenAsync(TokenResponse response)
     {
-        await Task.CompletedTask;
-        Tokens.AddOrUpdate(
-            response.UserId,
-            response.RefreshToken,
-            (key, oldValue) => response.RefreshToken);
+        await StoreTokenAsync(response.UserId, response.RefreshToken);
     }
 
     /// <summary>

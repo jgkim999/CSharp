@@ -1,7 +1,7 @@
 using FastEndpoints;
 using FastEndpoints.Security;
 using Demo.Application.Configs;
-using Demo.Application.Repositories;
+using Demo.Domain.Repositories;
 using Microsoft.Extensions.Options;
 
 namespace Demo.Infra.Services;
@@ -49,7 +49,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     public override async Task PersistTokenAsync(TokenResponse response)
     {
         using var span = GamePulseActivitySource.StartActivity("PersistTokenAsync");
-        await _jwtRepository.StoreTokenAsync(response);
+        await _jwtRepository.StoreTokenAsync(response.UserId, response.RefreshToken);
     }
 
     /// <summary>

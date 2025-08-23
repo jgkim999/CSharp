@@ -1,4 +1,4 @@
-﻿using Demo.Application.Repositories;
+﻿using Demo.Domain.Repositories;
 
 namespace Demo.Application.Services;
 

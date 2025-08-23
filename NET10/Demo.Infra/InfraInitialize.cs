@@ -1,9 +1,9 @@
 using Demo.Application.Configs;
 using Demo.Application.Middleware;
-using Demo.Application.Repositories;
 using Demo.Application.Services;
 using Demo.Application.Services.Auth;
 using Demo.Application.Services.Sod;
+using Demo.Domain.Repositories;
 using Demo.Infra.Configs;
 using Demo.Infra.Repositories;
 using Demo.Infra.Services.Sod;

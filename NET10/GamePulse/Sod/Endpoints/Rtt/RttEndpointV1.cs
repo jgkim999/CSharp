@@ -5,8 +5,29 @@ using Demo.Infra.Services;
 using Demo.Application.Services.Sod;
 using Demo.Application.Services;
 using System.Diagnostics;
+using Demo.Application.Extensions;
+using Microsoft.OpenApi.MicrosoftExtensions;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
+
+// Endpoint Summary (optional but recommended)
+public class RttEndpointV1Summary : Summary<RttEndpointV1>
+{
+    public RttEndpointV1Summary()
+    {
+        Summary = "Summary Summary";
+        Description = "Description Description";
+        Response(400, "The request is invalid (e.g., missing fields).");
+        Response(409, "A user with this email already exists.");
+
+        ExampleRequest = new RttRequest()
+        {
+            Type = "client",
+            Rtt = Random.Shared.Next(8, 200),
+            Quality = Random.Shared.Next(0, 4)
+        };
+    }
+}
 
 public class RttEndpointV1 : Endpoint<RttRequest>
 {
@@ -35,7 +56,27 @@ public class RttEndpointV1 : Endpoint<RttRequest>
         Version(1);
         Post("/api/sod/rtt");
         AllowAnonymous();
+
         PreProcessor<ValidationErrorLogger<RttRequest>>();
+
+        //Summary(new RttEndpointV1Summary());
+        //Summary<RttEndpointV1Summary>();
+
+        Description(b => b.WithTags("sod")
+            .Accepts<RttRequest>("application/json")
+            .Produces<string>(200)
+            .ProducesProblemFE(400) // shortcut for .Produces<ErrorResponse>(400)
+            .ProducesProblemFE<InternalErrorResponse>(500)
+            .WithDescription("RTT 데이터 제출 엔드포인트"));
+
+
+        /*
+        Description(b => b
+            .Accepts<RttRequest>("application/json+custom")
+            .ProducesProblemFE(400) //shortcut for .Produces<ErrorResponse>(400)
+            .ProducesProblemFE<InternalErrorResponse>(500)
+            .WithDescription("Some Description"),
+            clearDefaults: true);
         //Throttle(hitLimit: 60, durationSeconds: 60);
         Summary(s =>
         {
@@ -48,6 +89,7 @@ public class RttEndpointV1 : Endpoint<RttRequest>
                 Rtt = Random.Shared.Next(8, 200)
             };
         });
+        */
     }
 
     /// <summary>
@@ -77,6 +119,8 @@ public class RttEndpointV1 : Endpoint<RttRequest>
             _telemetryService.LogInformationWithTrace(_logger,
                 "RTT 데이터 수신: Type={Type}, Rtt={Rtt}, Quality={Quality}",
                 req.Type, req.Rtt, req.Quality);
+
+            _logger.LogInformation("{Type} {Rtt} {Quality}", req.Type, req.Rtt, req.Quality);
 
             // 클라이언트 IP 주소 확인 (실제 환경에서는 HttpContext.Connection.RemoteIpAddress 사용)
             string? clientIp = FakeIpGenerator.Get();

@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Demo.Application.Repositories;
+using Demo.Domain.Repositories;
 using FluentResults;
 using LiteBus.Commands.Abstractions;
 

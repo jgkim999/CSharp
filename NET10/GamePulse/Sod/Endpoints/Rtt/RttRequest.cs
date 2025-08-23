@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using FastEndpoints;
 
 using FluentValidation;
@@ -12,10 +13,12 @@ public class RttRequest
     /// <summary>
     /// client or server
     /// </summary>
+    [DefaultValue("client")]
     public string Type { get; set; } = string.Empty;
     /// <summary>
     /// mirror에서 측정된 rtt (단위 msec)
     /// </summary>
+    [DefaultValue(10)]
     public int Rtt { get; set; }
     /// <summary>
     /// 접속 품질
@@ -25,6 +28,7 @@ public class RttRequest
     /// 3 = POOR,       unplayable
     /// 4 = ESTIMATING, still estimating
     /// </summary>
+    [DefaultValue(1)]
     public int Quality { get; set; }
 }
 
