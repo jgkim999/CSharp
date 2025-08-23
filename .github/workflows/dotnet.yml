@@ -11,8 +11,10 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./NET10
 
     steps:
     - uses: actions/checkout@v4
@@ -21,8 +23,8 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: ./NET10/dotnet restore
+      run: dotnet restore
     - name: Build
-      run: ./NET10/dotnet build --no-restore
+      run: dotnet build --no-restore
     - name: Test
-      run: ./NET10/dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --verbosity normal
