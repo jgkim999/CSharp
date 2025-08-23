@@ -5,6 +5,7 @@ using Demo.Infra.Services;
 using Demo.Application.Services.Sod;
 using Demo.Application.Services;
 using System.Diagnostics;
+using Demo.Application.Extensions;
 using Microsoft.OpenApi.MicrosoftExtensions;
 
 namespace GamePulse.Sod.Endpoints.Rtt;
@@ -58,9 +59,17 @@ public class RttEndpointV1 : Endpoint<RttRequest>
 
         PreProcessor<ValidationErrorLogger<RttRequest>>();
 
-        Description(b => b
-            .WithTags("sod")
-        );
+        //Summary(new RttEndpointV1Summary());
+        //Summary<RttEndpointV1Summary>();
+
+        Description(b => b.WithTags("sod")
+            .Accepts<RttRequest>("application/json")
+            .Produces<string>(200)
+            .ProducesProblemFE(400) // shortcut for .Produces<ErrorResponse>(400)
+            .ProducesProblemFE<InternalErrorResponse>(500)
+            .WithDescription("RTT 데이터 제출 엔드포인트"));
+
+
         /*
         Description(b => b
             .Accepts<RttRequest>("application/json+custom")
@@ -110,6 +119,8 @@ public class RttEndpointV1 : Endpoint<RttRequest>
             _telemetryService.LogInformationWithTrace(_logger,
                 "RTT 데이터 수신: Type={Type}, Rtt={Rtt}, Quality={Quality}",
                 req.Type, req.Rtt, req.Quality);
+
+            _logger.LogInformation("{Type} {Rtt} {Quality}", req.Type, req.Rtt, req.Quality);
 
             // 클라이언트 IP 주소 확인 (실제 환경에서는 HttpContext.Connection.RemoteIpAddress 사용)
             string? clientIp = FakeIpGenerator.Get();

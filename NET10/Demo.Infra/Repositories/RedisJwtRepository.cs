@@ -1,5 +1,5 @@
-using Demo.Application.Repositories;
 using Demo.Application.Configs;
+using Demo.Domain.Repositories;
 using FastEndpoints.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -77,22 +77,33 @@ public class RedisJwtRepository : IJwtRepository
     /// <summary>
     /// Stores a refresh token in Redis for the specified user
     /// </summary>
-    /// <param name="response">Token response containing user ID and refresh token</param>
+    /// <param name="userId">User identifier</param>
+    /// <param name="refreshToken">Refresh token to store</param>
     /// <returns>Task representing the asynchronous operation</returns>
-    public async Task StoreTokenAsync(TokenResponse response)
+    public async Task StoreTokenAsync(string userId, string refreshToken)
     {
         try
         {
             using var activity = Activity.Current?.Source.StartActivity("StoreTokenAsync");
             if (_database is null)
                 throw new NullReferenceException();
-            await _database.StringSetAsync(MakeKey(response.UserId), response.RefreshToken, TimeSpan.FromDays(1));
+            await _database.StringSetAsync(MakeKey(userId), refreshToken, TimeSpan.FromDays(1));
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Redis");
             throw;
         }
+    }
+
+    /// <summary>
+    /// Stores a refresh token in Redis for the specified user (backward compatibility)
+    /// </summary>
+    /// <param name="response">Token response containing user ID and refresh token</param>
+    /// <returns>Task representing the asynchronous operation</returns>
+    public async Task StoreTokenAsync(TokenResponse response)
+    {
+        await StoreTokenAsync(response.UserId, response.RefreshToken);
     }
 
     /// <summary>

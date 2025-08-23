@@ -50,4 +50,8 @@
       <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Demo.Domain\Demo.Domain.csproj" />
+    </ItemGroup>
+
 </Project>

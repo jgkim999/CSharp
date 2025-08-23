@@ -6,6 +6,7 @@
   </Configurations>
   <Project Path="Demo.Application/Demo.Application.csproj" />
   <Project Path="Demo.Application.Tests/Demo.Application.Tests.csproj" />
+  <Project Path="Demo.Domain/Demo.Domain.csproj" />
   <Project Path="Demo.Infra/Demo.Infra.csproj" />
   <Project Path="Demo.Web.IntegrationTests/Demo.Web.IntegrationTests.csproj" />
   <Project Path="Demo.Web.PerformanceTests/Demo.Web.PerformanceTests.csproj" />

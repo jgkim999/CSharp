@@ -3,10 +3,10 @@ using Demo.Application.Configs;
 using Demo.Application.DTO.User;
 using FastEndpoints;
 using Demo.Application.Extensions;
-using Demo.Application.Repositories;
 using Demo.Application.Services;
 using Demo.Application.Services.Auth;
 using Demo.Application.Services.Sod;
+using Demo.Domain.Repositories;
 
 using Demo.Infra.Extensions;
 using Demo.Infra.Repositories;

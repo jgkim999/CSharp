@@ -1,7 +1,6 @@
-using Demo.Application.DTO.User;
 using FluentResults;
 
-namespace Demo.Application.Repositories;
+namespace Demo.Domain.Repositories;
 
 public interface IUserRepository
 {
@@ -15,8 +14,8 @@ public interface IUserRepository
     Task<Result> CreateAsync(string name, string email, string passwordSha256, CancellationToken ct = default);
     
     /// <summary>
-    /// Asynchronously retrieves all users as data transfer objects.
+    /// Asynchronously retrieves all users as domain entities.
     /// </summary>
-    /// <returns>A task that resolves to a result containing a collection of user DTOs.</returns>
-    Task<Result<IEnumerable<UserDto>>> GetAllAsync(int limit = 10, CancellationToken ct = default);
+    /// <returns>A task that resolves to a result containing a collection of user entities.</returns>
+    Task<Result<IEnumerable<Entities.User>>> GetAllAsync(int limit = 10, CancellationToken ct = default);
 }

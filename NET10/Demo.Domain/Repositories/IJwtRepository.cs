@@ -1,6 +1,4 @@
-using FastEndpoints.Security;
-
-namespace Demo.Application.Repositories;
+namespace Demo.Domain.Repositories;
 
 /// <summary>
 /// Interface for JWT token repository operations
@@ -10,9 +8,10 @@ public interface IJwtRepository
     /// <summary>
     /// Stores a JWT token response for future validation
     /// </summary>
-    /// <param name="response">Token response containing user ID and refresh token</param>
+    /// <param name="userId">User identifier</param>
+    /// <param name="refreshToken">Refresh token to store</param>
     /// <returns>Task representing the asynchronous operation</returns>
-    Task StoreTokenAsync(TokenResponse response);
+    Task StoreTokenAsync(string userId, string refreshToken);
 
     /// <summary>
     /// Validates if the provided refresh token is valid for the specified user

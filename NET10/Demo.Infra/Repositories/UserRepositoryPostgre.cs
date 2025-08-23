@@ -1,7 +1,8 @@
 using Dapper;
 using Demo.Application.DTO.User;
-using Demo.Application.Repositories;
 using Demo.Application.Services;
+using Demo.Domain.Entities;
+using Demo.Domain.Repositories;
 using Demo.Infra.Configs;
 using FluentResults;
 using MapsterMapper;
@@ -76,8 +77,8 @@ public class UserRepositoryPostgre : IUserRepository
     /// Asynchronously retrieves a list of users from the database, limited by the specified count.
     /// </summary>
     /// <param name="limit">The maximum number of users to retrieve (up to 100).</param>
-    /// <returns>A result containing a list of user DTOs if successful; otherwise, a failure result with an error message.</returns>
-    public async Task<Result<IEnumerable<UserDto>>> GetAllAsync(int limit = 10, CancellationToken ct = default)
+    /// <returns>A result containing a list of user entities if successful; otherwise, a failure result with an error message.</returns>
+    public async Task<Result<IEnumerable<Demo.Domain.Entities.User>>> GetAllAsync(int limit = 10, CancellationToken ct = default)
     {
         using var activity = _telemetryService.StartActivity(nameof(GetAllAsync));
 
@@ -97,9 +98,15 @@ public class UserRepositoryPostgre : IUserRepository
             var users = await connection.QueryAsync<UserDb>(sqlQuery, dp);
 
             var usersList = users.ToList();
-            var userDtos = _mapper.Map<List<UserDto>>(usersList);
+            var domainUsers = usersList.Select(u => new Demo.Domain.Entities.User
+            {
+                Id = u.id,
+                Name = u.name,
+                Email = u.email,
+                CreatedAt = u.created_at
+            }).ToList();
 
-            return Result.Ok<IEnumerable<UserDto>>(userDtos);
+            return Result.Ok<IEnumerable<Demo.Domain.Entities.User>>(domainUsers);
         }
         catch (Exception ex)
         {

@@ -1,4 +1,4 @@
-using Demo.Application.Repositories;
+using Demo.Domain.Repositories;
 using IP2Location;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;

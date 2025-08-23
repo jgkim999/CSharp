@@ -1,4 +1,4 @@
-namespace Demo.Application.Repositories;
+namespace Demo.Domain.Repositories;
 
 public interface IIpToNationRepository
 {

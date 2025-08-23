@@ -1,21 +1,18 @@
 using FluentResults;
 
-namespace Demo.Application.Repositories;
+namespace Demo.Domain.Repositories;
 
-/// <summary>
-///
-/// </summary>
 public interface IIpToNationCache
 {
     /// <summary>
-    ///
+    /// Gets the country code for the specified client IP from cache
     /// </summary>
     /// <param name="clientIp"></param>
     /// <returns></returns>
     Task<Result<string>> GetAsync(string clientIp);
 
     /// <summary>
-    ///
+    /// Sets the country code for the specified client IP in cache
     /// </summary>
     /// <param name="clientIp"></param>
     /// <param name="countryCode"></param>
