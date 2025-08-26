@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+가능하면 응답과 주석은 한국어로 작성한다.
+
 ## Solution Structure
 
 This is a .NET 9 solution with Clean Architecture containing two main applications:
