@@ -34,6 +34,8 @@ public static class OpenTelemetryInfraExtensions
             // Redis 계측
             tracing.AddRedisInstrumentation()
                 .ConfigureRedisInstrumentation(instrumentation => redisInstrumentation = instrumentation);
+            // RabbitMQ
+            tracing.AddRabbitMQInstrumentation();
         });
 
         // Redis 계측 서비스 등록

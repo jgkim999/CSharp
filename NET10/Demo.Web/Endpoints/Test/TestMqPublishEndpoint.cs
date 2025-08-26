@@ -48,6 +48,7 @@ public class TestMqPublishEndpoint : Endpoint<MqPublishRequest>
         // 에러 시뮬레이션
         try
         {
+            _telemetryService.StartActivity(nameof(TestMqPublishEndpoint));
             await _mqPublishService.PublishMessageAsync(msg.Message);
         }
         catch (Exception ex)

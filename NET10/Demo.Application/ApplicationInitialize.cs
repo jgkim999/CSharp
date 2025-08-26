@@ -51,10 +51,7 @@ public static class ApplicationInitialize
                 module.RegisterFromAssembly(applicationAssembly);
             });
         });
-
-        // LiteBus 텔레메트리 데코레이터 추가
-        service.AddLiteBusTelemetry();
-
+        
         service.AddMapster();
         var config = TypeAdapterConfig.GlobalSettings;
         config.Scan(typeof(MapsterConfig).Assembly);

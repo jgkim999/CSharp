@@ -35,7 +35,7 @@
       <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
       <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.12.0-beta.2" />
       <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.12.0-beta.2" />
-      <PackageReference Include="Scalar.AspNetCore" Version="2.7.0" />
+      <PackageReference Include="Scalar.AspNetCore" Version="2.7.2" />
       <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
       <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
       <PackageReference Include="StackExchange.Redis" Version="2.9.11" />
@@ -52,6 +52,10 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Demo.Domain\Demo.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Decorators\" />
     </ItemGroup>
 
 </Project>

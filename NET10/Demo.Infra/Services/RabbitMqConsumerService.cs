@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using Demo.Domain;
 using Demo.Infra.Configs;
 using System.Text;
+using Demo.Application.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,10 +19,13 @@ public class RabbitMqConsumerService : BackgroundService
     private readonly IConnection _connection;
     private readonly IChannel _channel;
     private readonly ILogger<RabbitMqConsumerService> _logger;
+    private readonly ITelemetryService _telemetryService;
 
-    public RabbitMqConsumerService(IOptions<RabbitMqConfig> config, ILogger<RabbitMqConsumerService> logger)
+    public RabbitMqConsumerService(IOptions<RabbitMqConfig> config, ILogger<RabbitMqConsumerService> logger, ITelemetryService telemetryService)
     {
+        ArgumentNullException.ThrowIfNull(telemetryService);
         ArgumentNullException.ThrowIfNull(config);
+        _telemetryService = telemetryService;
         _logger = logger;
         _config = config.Value;
         _hostName = _config.HostName;
@@ -70,6 +75,9 @@ public class RabbitMqConsumerService : BackgroundService
         
         consumer.ReceivedAsync += async (model, ea) =>
         {
+            // RabbitMQ instrumentation이 자동으로 trace context를 처리
+            using var activity = _telemetryService.StartActivity(nameof(ConsumeMessagesAsync), kind: ActivityKind.Consumer);
+            
             ReadOnlySpan<byte> bodySpan = ea.Body.Span;
             var message = Encoding.UTF8.GetString(bodySpan);
             _logger.LogInformation(message);

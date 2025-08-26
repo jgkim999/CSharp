@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Demo.Domain;
 using Demo.Infra.Configs;
@@ -48,7 +49,10 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     public async ValueTask PublishMessageAsync(string message)
     {
         var body = Encoding.UTF8.GetBytes(message);
-        await _channel.BasicPublishAsync(exchange: "",
+        
+        // RabbitMQ instrumentation이 자동으로 trace context를 처리하도록 함
+        await _channel.BasicPublishAsync(
+            exchange: "",
             routingKey: _queueName,
             body: body);
     }

@@ -102,7 +102,7 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// <param name="operationName">작업 이름</param>
     /// <param name="tags">추가할 태그</param>
     /// <returns>시작된 Activity</returns>
-    Activity? ITelemetryService.StartActivity(string operationName, Dictionary<string, object?>? tags)
+    public Activity? StartActivity(string operationName, Dictionary<string, object?>? tags)
     {
         var activity = _activitySource.StartActivity(operationName);
 
@@ -115,6 +115,38 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
         }
 
         return activity;
+    }
+
+    public Activity? StartActivity(string operationName, ActivityKind kind, Dictionary<string, object?>? tags = null)
+    {
+        var activity = _activitySource.StartActivity(operationName, kind);
+
+        if (activity != null && tags != null)
+        {
+            foreach (var tag in tags)
+            {
+                activity.SetTag(tag.Key, tag.Value);
+            }
+        }
+
+        return activity;
+    }
+
+    public Activity? StartActivity(string operationName, ActivityKind kind, ActivityContext? parentContext, Dictionary<string, object?>? tags)
+    {
+        if (parentContext is null)
+            return null;
+        var span = _activitySource.StartActivity(operationName, kind, parentContext.Value);
+        if (span is null)
+            return null;
+        if (tags != null)
+        {
+            foreach (var tag in tags)
+            {
+                span.SetTag(tag.Key, tag.Value);
+            }
+        }
+        return span;
     }
 
     /// <summary>
