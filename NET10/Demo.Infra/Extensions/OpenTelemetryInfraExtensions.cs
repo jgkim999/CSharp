@@ -25,9 +25,6 @@ public static class OpenTelemetryInfraExtensions
     {
         StackExchangeRedisInstrumentation? redisInstrumentation = null;
         
-        // TODO: GamePulseActivitySource 초기화
-        GamePulseActivitySource.Initialize(config.ServiceName, config.ServiceVersion);
-
         // 추적 인프라 설정
         builder.WithTracing(tracing =>
         {

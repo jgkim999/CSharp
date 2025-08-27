@@ -147,8 +147,7 @@ public class RttEndpointV1 : Endpoint<RttRequest>
             activity?.SetTag("client.ip", clientIp);
 
             // RTT 명령을 백그라운드 큐에 추가
-            using var queueActivity = GamePulseActivitySource.StartActivity("rtt.queue_command");
-            await _taskQueue.EnqueueAsync(new RttCommand(clientIp, req.Rtt, req.Quality, queueActivity));
+            await _taskQueue.EnqueueAsync(new RttCommand(clientIp, req.Rtt, req.Quality, activity));
 
             // 성공 메트릭 기록
             stopwatch.Stop();
