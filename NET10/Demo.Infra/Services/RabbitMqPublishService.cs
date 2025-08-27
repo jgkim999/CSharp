@@ -19,6 +19,14 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     private readonly IChannel _channel;
     private readonly ITelemetryService _telemetryService;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="RabbitMqPublishService"/> using the provided RabbitMQ configuration and telemetry service.
+    /// </summary>
+    /// <remarks>
+    /// Validates inputs and stores configuration values for the host and queue. Creates a RabbitMQ connection and channel synchronously (blocking) and declares the configured queue with durable=false, exclusive=false and autoDelete=true.
+    /// Note: the queue declaration is initiated via <c>QueueDeclareAsync</c> but is not awaited here; any exceptions from connection/channel creation or queue declaration will propagate to the caller.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">Thrown if <c>config</c> or <c>telemetryService</c> is null.</exception>
     public RabbitMqPublishService(IOptions<RabbitMqConfig> config, ITelemetryService telemetryService)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -46,12 +54,27 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             arguments: null);
     }
     
+    /// <summary>
+    /// Releases RabbitMQ resources used by this service by disposing the channel and connection.
+    /// </summary>
+    /// <remarks>
+    /// After calling this method the instance should not be used to publish messages.
+    /// </remarks>
     public void Dispose()
     {
         _channel.Dispose();
         _connection.Dispose();
     }
 
+    /// <summary>
+    /// Publishes the provided text message to the configured RabbitMQ queue and records a producer telemetry activity.
+    /// </summary>
+    /// <param name="message">The UTF-8 text payload to publish to the configured queue. The payload is encoded as UTF-8 and sent as the message body.</param>
+    /// <remarks>
+    /// - Injects the current OpenTelemetry trace context into the message headers (header values stored as UTF-8 byte arrays) so downstream consumers can continue the trace.
+    /// - Records a producer activity named "rabbitmq.publish" with messaging attributes and marks the activity successful on completion.
+    /// - Exceptions from RabbitMQ client operations are not handled here and will propagate to the caller.
+    /// </remarks>
     public async ValueTask PublishMessageAsync(string message)
     {
         // Producer Activity 생성

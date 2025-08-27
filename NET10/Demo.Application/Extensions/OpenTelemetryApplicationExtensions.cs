@@ -26,7 +26,21 @@ public static class OpenTelemetryApplicationExtensions
     /// </summary>
     /// <param name="builder"></param>
     /// <param name="logger"></param>
-    /// <returns>구성된 OpenTelemetryBuilder</returns>
+    /// <summary>
+    /// Configures OpenTelemetry for the application layer: sets resource attributes and propagators,
+    /// enables tracing and metrics, registers exporters, and adds telemetry services to DI.
+    /// </summary>
+    /// <remarks>
+    /// Loads OtelConfig from configuration ("OpenTelemetry"), sets a composite text-map propagator
+    /// (TraceContext + Baggage), configures resource metadata (service name/version/instance, host, OS,
+    /// process and telemetry SDK info), and wires tracing and metrics via ConfigureTrace/ConfigureMetric,
+    /// using an OTLP endpoint that may be overridden by the OTEL_EXPORTER_OTLP_ENDPOINT environment variable.
+    /// Also registers ITelemetryService and a Tracer instance in the DI container.
+    /// </remarks>
+    /// <returns>
+    /// A tuple containing the original WebApplicationBuilder, the configured OpenTelemetryBuilder, and the resolved OtelConfig.
+    /// </returns>
+    /// <exception cref="NullReferenceException">Thrown when the OpenTelemetry configuration section is missing.</exception>
     public static (WebApplicationBuilder builder, OpenTelemetryBuilder openTelemetryBuilder, OtelConfig otelConfig) 
         AddOpenTelemetryApplication(this WebApplicationBuilder builder, Serilog.ILogger logger)
     {

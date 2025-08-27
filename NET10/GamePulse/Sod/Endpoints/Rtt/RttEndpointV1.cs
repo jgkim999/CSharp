@@ -99,7 +99,16 @@ public class RttEndpointV1 : Endpoint<RttRequest>
     /// <param name="ct">비동기 작업을 위한 취소 토큰</param>
     /// <remarks>
     /// 클라이언트 IP 주소를 확인할 수 없는 경우 HTTP 400으로 응답하고, 그렇지 않으면 RTT 명령을 큐에 추가하고 HTTP 200으로 응답합니다.
+    /// <summary>
+    /// Handles incoming RTT submission requests: validates client IP, enqueues a background RTT processing command, emits telemetry, and returns an HTTP response.
+    /// </summary>
+    /// <remarks>
+    /// - Starts an OpenTelemetry activity for the submission and records HTTP, business, and RTT metrics.
+    /// - If the client IP cannot be determined, records an error metric and responds with HTTP 400 ("Unknown ip address").
+    /// - On success, enqueues an RttCommand for background processing and responds with HTTP 200 ("Success").
+    /// - Exceptions are caught, recorded to telemetry, and cause an error response to be returned.
     /// </remarks>
+    /// <param name="req">The RTT submission payload (Type, Rtt in milliseconds, Quality).</param>
     public override async Task HandleAsync(RttRequest req, CancellationToken ct)
     {
         var stopwatch = Stopwatch.StartNew();

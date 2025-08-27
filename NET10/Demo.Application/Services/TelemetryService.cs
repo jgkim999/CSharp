@@ -101,7 +101,12 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     /// </summary>
     /// <param name="operationName">작업 이름</param>
     /// <param name="tags">추가할 태그</param>
-    /// <returns>시작된 Activity</returns>
+    /// <summary>
+    /// Starts and returns a new Activity with the given operation name, applying any provided tags.
+    /// </summary>
+    /// <param name="operationName">The name of the operation to use for the Activity.</param>
+    /// <param name="tags">Optional key/value pairs to attach as tags on the Activity; values may be null. If null, no tags are applied.</param>
+    /// <returns>The started <see cref="System.Diagnostics.Activity"/> instance, or null if an Activity was not created.</returns>
     public Activity? StartActivity(string operationName, Dictionary<string, object?>? tags)
     {
         var activity = _activitySource.StartActivity(operationName);
@@ -117,6 +122,13 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
         return activity;
     }
 
+    /// <summary>
+    /// Starts a new <see cref="Activity"/> with the given operation name and kind, and attaches optional tags.
+    /// </summary>
+    /// <param name="operationName">The operation name for the created activity.</param>
+    /// <param name="kind">The <see cref="ActivityKind"/> for the activity.</param>
+    /// <param name="tags">Optional key/value tags to set on the activity; values may be null. Keys should be stable, low-cardinality identifiers.</param>
+    /// <returns>The started <see cref="Activity"/>, or <c>null</c> if an activity could not be created (for example, if instrumentation is disabled).</returns>
     public Activity? StartActivity(string operationName, ActivityKind kind, Dictionary<string, object?>? tags = null)
     {
         var activity = _activitySource.StartActivity(operationName, kind);
@@ -132,6 +144,18 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
         return activity;
     }
 
+    /// <summary>
+    /// Starts an Activity with the given operation name, kind and parent context, and applies optional tags to it.
+    /// </summary>
+    /// <param name="operationName">The name of the operation for the activity.</param>
+    /// <param name="kind">The ActivityKind for the created activity.</param>
+    /// <param name="parentContext">
+    /// The parent ActivityContext to link this activity to. If null, the method returns null and no activity is started.
+    /// </param>
+    /// <param name="tags">Optional key/value pairs to set as tags on the created activity; values may be null.</param>
+    /// <returns>
+    /// The started <see cref="Activity"/> instance, or null if <paramref name="parentContext"/> is null or the activity could not be started.
+    /// </returns>
     public Activity? StartActivity(string operationName, ActivityKind kind, ActivityContext? parentContext, Dictionary<string, object?>? tags)
     {
         if (parentContext is null)

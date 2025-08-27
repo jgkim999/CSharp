@@ -26,7 +26,14 @@ public class SodBackgroundWorker : BackgroundService
     /// <param name="taskQueue">백그라운드 작업 항목이 큐에서 제거되고 실행되는 큐</param>
     /// <param name="logger">로거 인스턴스</param>
     /// <param name="telemetryService">Telemetry Service</param>
-    /// <param name="workerCount">동시 작업자 수 (기본값: 8)</param>
+    /// <summary>
+    /// Creates a SodBackgroundWorker that processes queued background tasks with a pool of worker loops.
+    /// </summary>
+    /// <remarks>
+    /// Dependencies (service provider, task queue, logger, telemetry service) are supplied via DI and used internally;
+    /// they are not documented here. Each worker run uses a new DI scope and starts telemetry activities for each dequeued task.
+    /// </remarks>
+    /// <param name="workerCount">Number of concurrent worker loops to run (default: 8).</param>
     public SodBackgroundWorker(
         IServiceProvider serviceProvider,
         ISodBackgroundTaskQueue taskQueue,
@@ -64,7 +71,16 @@ public class SodBackgroundWorker : BackgroundService
     /// </summary>
     /// <param name="workerId">작업자 식별자</param>
     /// <param name="stoppingToken">취소 토큰</param>
-    /// <returns>비동기 작업</returns>
+    /// <summary>
+    /// Runs a single worker loop that dequeues and executes background work items until cancellation.
+    /// </summary>
+    /// <remarks>
+    /// Each dequeued work item is executed in a new DI scope and wrapped in a telemetry activity named "SodBackgroundWorker-{workerId}" with ActivityKind.Consumer.
+    /// OperationCanceledException causes the loop to exit; other exceptions are logged and the loop continues.
+    /// </remarks>
+    /// <param name="workerId">Identifier for this worker used in logging and telemetry activity names.</param>
+    /// <param name="stoppingToken">Cancellation token that, when signaled, stops the processing loop.</param>
+    /// <returns>A task that represents the asynchronous worker loop.</returns>
     private async Task ProcessTasksAsync(int workerId, CancellationToken stoppingToken)
     {
         _logger.LogInformation("작업자 {WorkerId}가 시작되었습니다", workerId);

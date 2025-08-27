@@ -13,10 +13,30 @@ public interface ITelemetryService
     /// </summary>
     /// <param name="operationName">작업 이름</param>
     /// <param name="tags">추가할 태그</param>
-    /// <returns>The started <see cref="Activity"/> instance, or null if the activity could not be started.</returns>
+    /// <summary>
+/// Starts a new activity with the specified operation name and optional tags.
+/// </summary>
+/// <param name="operationName">The operation name for the activity (used as the activity's DisplayName).</param>
+/// <param name="tags">Optional key/value pairs to attach as tags to the started activity.</param>
+/// <returns>The started <see cref="Activity"/> instance, or <c>null</c> if the activity could not be started.</returns>
     Activity? StartActivity(string operationName, Dictionary<string, object?>? tags = null);
-    Activity? StartActivity(string operationName, ActivityKind kind, Dictionary<string, object?>? tags = null);
-    Activity? StartActivity(string operationName, ActivityKind kind, ActivityContext? parentContext,
+    /// <summary>
+/// Starts and returns a new Activity with the given operation name, kind, and optional tags for telemetry.
+/// </summary>
+/// <param name="operationName">The operation name to assign to the started Activity (used as the activity/trace name in telemetry).</param>
+/// <param name="kind">The ActivityKind to use for the started Activity (e.g., Internal, Server, Client, Producer, Consumer).</param>
+/// <param name="tags">Optional set of tag key/value pairs to attach to the Activity as attributes; values may be null.</param>
+/// <returns>The started <see cref="Activity"/> instance, or null if an Activity could not be started (for example due to sampling or disabled telemetry).</returns>
+Activity? StartActivity(string operationName, ActivityKind kind, Dictionary<string, object?>? tags = null);
+    /// <summary>
+        /// Starts and returns a new Activity with the specified operation name, kind, optional parent context, and tags.
+        /// </summary>
+        /// <param name="operationName">Logical name of the operation for the Activity.</param>
+        /// <param name="kind">The ActivityKind describing the activity's role (for example, Internal, Server, or Client).</param>
+        /// <param name="parentContext">Optional parent ActivityContext to link as the activity's parent; when null the ambient/current context is used.</param>
+        /// <param name="tags">Optional key/value pairs to attach as tags on the started Activity.</param>
+        /// <returns>The started <see cref="Activity"/> instance, or <c>null</c> if the activity could not be started.</returns>
+        Activity? StartActivity(string operationName, ActivityKind kind, ActivityContext? parentContext,
         Dictionary<string, object?>? tags = null);
     
     /// <summary>

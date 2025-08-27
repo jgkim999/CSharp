@@ -21,6 +21,14 @@ public class RabbitMqConsumerService : BackgroundService
     private readonly ILogger<RabbitMqConsumerService> _logger;
     private readonly ITelemetryService _telemetryService;
 
+    /// <summary>
+    /// Initializes a new <see cref="RabbitMqConsumerService"/> instance, reading RabbitMQ settings from <paramref name="config"/>,
+    /// establishing a connection and channel to the broker, and declaring the configured queue.
+    /// </summary>
+    /// <param name="config">Options wrapper containing <see cref="RabbitMqConfig"/>; HostName and QueueName from this value are used to connect and declare the queue.</param>
+    /// <param name="logger">Logger used by the service.</param>
+    /// <param name="telemetryService">Telemetry service used to create activities for incoming messages.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="config"/> or <paramref name="telemetryService"/> is null.</exception>
     public RabbitMqConsumerService(IOptions<RabbitMqConfig> config, ILogger<RabbitMqConsumerService> logger, ITelemetryService telemetryService)
     {
         ArgumentNullException.ThrowIfNull(telemetryService);
@@ -50,6 +58,11 @@ public class RabbitMqConsumerService : BackgroundService
             arguments: null);
     }
     
+    /// <summary>
+    /// Runs the background consumer loop: repeatedly calls <see cref="ConsumeMessagesAsync(CancellationToken)"/> to process messages until the provided cancellation token is signaled.
+    /// </summary>
+    /// <param name="stoppingToken">Token that requests graceful shutdown; when signaled the method exits the loop and completes.</param>
+    /// <returns>A task that completes when the service stops (when <paramref name="stoppingToken"/> is canceled or an unrecoverable error occurs).</returns>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -69,6 +82,18 @@ public class RabbitMqConsumerService : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Registers an asynchronous RabbitMQ consumer for the configured queue and begins processing incoming messages.
+    /// </summary>
+    /// <remarks>
+    /// For each received message this method:
+    /// - extracts OpenTelemetry trace context from message headers and starts a consumer Activity with that context,
+    /// - logs the message body (UTF-8),
+    /// - uses automatic acknowledgement (autoAck = true).
+    /// Message processing runs on the consumer's event handler until the provided <paramref name="stoppingToken"/> is cancelled.
+    /// </remarks>
+    /// <param name="stoppingToken">Token used to stop registering/consuming messages; when cancelled the method will stop awaiting consumption setup or exit if cancelled during the setup call.</param>
+    /// <returns>A <see cref="ValueTask"/> that completes after the consumer is started (the method registers the handler and awaits the underlying BasicConsumeAsync call).</returns>
     private async ValueTask ConsumeMessagesAsync(CancellationToken stoppingToken)
     {
         var consumer = new AsyncEventingBasicConsumer(_channel);

@@ -31,6 +31,13 @@ public static class ApplicationInitialize
     /// <summary>
     /// Configures application-level services, including LiteBus command handling and Mapster object mapping, and registers them with the dependency injection container.
     /// </summary>
+    /// <summary>
+    /// Configures LiteBus and Mapster application services on the provided <see cref="IServiceCollection"/>.
+    /// </summary>
+    /// <remarks>
+    /// - Registers LiteBus command, query, and event modules by scanning the assembly that contains <see cref="ApplicationInitialize"/>.
+    /// - Adds Mapster and scans the assembly that contains <see cref="MapsterConfig"/> to register mappings into the global <see cref="TypeAdapterConfig"/>.
+    /// </remarks>
     /// <returns>The updated <see cref="IServiceCollection"/> with application services registered.</returns>
     public static IServiceCollection AddLiteBusApplication(this IServiceCollection service)
     {

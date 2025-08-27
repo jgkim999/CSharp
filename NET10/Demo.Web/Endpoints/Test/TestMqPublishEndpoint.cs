@@ -20,6 +20,8 @@ public class TestMqPublishEndpoint : Endpoint<MqPublishRequest>
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TestLoggingEndpoint"/> class with the specified logger and telemetry service.
+    /// <summary>
+    /// Initializes a new instance of <see cref="TestMqPublishEndpoint"/> with the required services.
     /// </summary>
     public TestMqPublishEndpoint(ILogger<TestMqPublishEndpoint> logger, ITelemetryService telemetryService, IMqPublishService mqPublishService)
     {
@@ -28,6 +30,13 @@ public class TestMqPublishEndpoint : Endpoint<MqPublishRequest>
         _mqPublishService = mqPublishService;
     }
 
+    /// <summary>
+    /// Configures the endpoint's route, authorization, and OpenAPI metadata.
+    /// </summary>
+    /// <remarks>
+    /// Maps this endpoint to POST /api/test/mq, allows anonymous access, and sets the OpenAPI summary ("MQ publish")
+    /// and description ("Serilog와 OpenTelemetry 통합 테스트를 위한 엔드포인트") shown in API documentation.
+    /// </remarks>
     public override void Configure()
     {
         Post("/api/test/mq");
@@ -42,7 +51,12 @@ public class TestMqPublishEndpoint : Endpoint<MqPublishRequest>
     /// <summary>
     /// Handles the HTTP GET request for the logging test endpoint, performing logging and telemetry operations, simulating nested activities and error handling, and returning trace information in the response.
     /// </summary>
+    /// <summary>
+    /// Handles an incoming MQ publish request: starts a telemetry activity, attempts to publish the provided message, and prepares the HTTP response containing a confirmation message, current trace/span identifiers (if any), and a UTC timestamp.
+    /// </summary>
+    /// <param name="msg">DTO containing the message to publish.</param>
     /// <param name="ct">Cancellation token for the request.</param>
+    /// <returns>A task that represents the asynchronous handling operation.</returns>
     public override async Task HandleAsync(MqPublishRequest msg, CancellationToken ct)
     {
         // 에러 시뮬레이션

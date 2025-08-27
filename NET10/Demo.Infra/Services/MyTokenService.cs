@@ -23,7 +23,11 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <param name="telemetryService">Telemetry service</param>
     /// <exception cref="NullReferenceException">
     /// config, logger, jwtRepository 또는 "Jwt" 구성 섹션이 null인 경우 발생
-    /// </exception>
+    /// <summary>
+    /// Initializes a new instance of <see cref="MyTokenService"/> and configures token settings (signing key, access/refresh validity)
+    /// and the refresh-token endpoint.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">Thrown when <c>telemetryService</c>, <c>config</c>, or <c>jwtRepository</c> is null.</exception>
     public MyTokenService(IOptions<JwtConfig> config, IJwtRepository jwtRepository, ITelemetryService telemetryService)
     {
         ArgumentNullException.ThrowIfNull(telemetryService);
@@ -51,7 +55,11 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// 토큰과 만료일을 원하는 방식으로 저장하여 향후 리프레시 요청을 검증하는 데 사용하십시오.
     /// </summary>
     /// <param name="response">토큰 응답</param>
-    /// <returns>비동기 작업</returns>
+    /// <summary>
+    /// Persists the given token response's refresh token for the user asynchronously and starts a telemetry activity for the operation.
+    /// </summary>
+    /// <param name="response">Token response containing the user ID and refresh token to store.</param>
+    /// <returns>A task that completes when the refresh token has been persisted.</returns>
     public override async Task PersistTokenAsync(TokenResponse response)
     {
         using var span = _telemetryService.StartActivity("PersistTokenAsync");
@@ -66,7 +74,11 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// 검증이 통과되며 새로운 토큰 쌍이 생성되어 클라이언트에게 전송됩니다.
     /// </summary>
     /// <param name="req">토큰 요청</param>
-    /// <returns>비동기 작업</returns>
+    /// <summary>
+    /// Asynchronously validates the provided refresh token and records a validation error if it is invalid.
+    /// </summary>
+    /// <param name="req">The token renewal request containing the user identifier and refresh token to validate.</param>
+    /// <returns>A task that completes when validation has finished.</returns>
     public override async Task RefreshRequestValidationAsync(TokenRequest req)
     {
         using var span = _telemetryService.StartActivity("RefreshRequestValidationAsync");
@@ -82,7 +94,12 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// </summary>
     /// <param name="request">토큰 요청</param>
     /// <param name="privileges">사용자 권한</param>
-    /// <returns>비동기 작업</returns>
+    /// <summary>
+    /// Populates renewal privileges for a token renewal request by adding the Manager role, a UserId claim, and the Manager_Permission.
+    /// </summary>
+    /// <param name="request">The token renewal request; the user's identifier (Request.UserId) is added as a claim.</param>
+    /// <param name="privileges">Mutable privileges object that will receive additional roles, claims, and permissions required for renewal.</param>
+    /// <returns>A task that completes when the privileges have been set.</returns>
     public override async Task SetRenewalPrivilegesAsync(TokenRequest request, UserPrivileges privileges)
     {
         using var span = _telemetryService.StartActivity("SetRenewalPrivilegesAsync");
