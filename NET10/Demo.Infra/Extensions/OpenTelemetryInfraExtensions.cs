@@ -16,7 +16,17 @@ public static class OpenTelemetryInfraExtensions
   /// </summary>
   /// <param name="builder">OpenTelemetryBuilder 인스턴스</param>
   /// <param name="config">OpenTelemetry 구성 설정</param>
-  /// <returns>구성된 OpenTelemetryBuilder</returns>
+  /// <summary>
+  /// Configures OpenTelemetry tracing for infrastructure components (Redis and RabbitMQ) on the provided builder.
+  /// </summary>
+  /// <remarks>
+  /// Adds Redis and RabbitMQ instrumentation to the builder's tracing pipeline. If the Redis instrumentation instance
+  /// is created, it will be registered as a singleton in the builder's service collection.
+  /// The second parameter is accepted for API compatibility and is not used by this method.
+  /// </remarks>
+  /// <param name="builder">The OpenTelemetryBuilder to configure.</param>
+  /// <param name="_">An unused OtelConfig parameter kept for API compatibility.</param>
+  /// <returns>The same <see cref="OpenTelemetryBuilder"/> instance after instrumentation is configured.</returns>
   public static OpenTelemetryBuilder AddOpenTelemetryInfrastructure(this OpenTelemetryBuilder builder, OtelConfig _)
   {
     StackExchangeRedisInstrumentation? redisInstrumentation = null;
