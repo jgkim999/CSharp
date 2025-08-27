@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using Demo.Domain;
 using Demo.Infra.Configs;
 using System.Text;
 using Demo.Application.Services;
@@ -8,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using OpenTelemetry.Context.Propagation;
 
 namespace Demo.Infra.Services;
 
@@ -75,12 +75,33 @@ public class RabbitMqConsumerService : BackgroundService
         
         consumer.ReceivedAsync += async (model, ea) =>
         {
-            // RabbitMQ instrumentation이 자동으로 trace context를 처리
-            using var activity = _telemetryService.StartActivity(nameof(ConsumeMessagesAsync), kind: ActivityKind.Consumer);
+            // 메시지 헤더에서 trace context 추출
+            var propagator = Propagators.DefaultTextMapPropagator;
+            var parentContext = propagator.Extract(default, ea.BasicProperties?.Headers, 
+                (headers, key) =>
+                {
+                    if (headers != null && headers.TryGetValue(key, out var value) && value is byte[] bytes)
+                    {
+                        return [Encoding.UTF8.GetString(bytes)];
+                    }
+                    return [];
+                });
+            
+            // 추출된 parent context를 사용하여 Consumer Activity 생성
+            using var activity = _telemetryService.StartActivity(
+                nameof(ConsumeMessagesAsync), 
+                ActivityKind.Consumer, 
+                parentContext.ActivityContext,
+                new Dictionary<string, object?>
+                {
+                    ["messaging.system"] = "rabbitmq",
+                    ["messaging.destination"] = _queueName,
+                    ["messaging.operation"] = "receive"
+                });
             
             ReadOnlySpan<byte> bodySpan = ea.Body.Span;
             var message = Encoding.UTF8.GetString(bodySpan);
-            _logger.LogInformation(message);
+            _logger.LogInformation("Received message: {Message}", message);
             await Task.CompletedTask;
         };
         await _channel.BasicConsumeAsync(queue: _queueName, autoAck: true, consumer: consumer, stoppingToken);
