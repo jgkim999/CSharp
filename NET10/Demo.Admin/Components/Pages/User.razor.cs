@@ -17,26 +17,21 @@ public partial class User : ComponentBase
     
     protected override async Task OnInitializedAsync()
     {
-        _pageSize = await LocalStorage.GetItemAsync<int>("PageSizeKey");
-        if (_pageSize == 0)
+        var storedPageSize = await LocalStorage.GetItemAsync<int>("PageSize");
+        if (storedPageSize != 0)
         {
-            _pageSize = 10;
+            _pageSize = storedPageSize;
+            if (_dataGrid != null)
+                await _dataGrid.SetRowsPerPageAsync(_pageSize);
         }
-        await _dataGrid.SetRowsPerPageAsync(_pageSize);
-    }
-    
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        _dataGrid.PagerStateHasChangedEvent += async () =>
-        {
+        _dataGrid.PagerStateHasChangedEvent += async () => 
             await OnPageSizeChangedAsync(_dataGrid.RowsPerPage);
-        };
     }
     
     private async Task OnPageSizeChangedAsync(int newPageSize)
     {
         _pageSize = newPageSize;
-        await LocalStorage.SetItemAsync("PageSizeKey", newPageSize);
+        await LocalStorage.SetItemAsync("PageSize", newPageSize);
     }
     
     private async Task<GridData<Domain.Entities.User>> LoadGridData(GridState<Domain.Entities.User> state)
