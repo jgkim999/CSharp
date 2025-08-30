@@ -131,11 +131,11 @@ public class UserDbTests
         var userDb = new UserDb();
 
         // Assert
-        userDb.id.Should().Be(0);
-        userDb.name.Should().Be(string.Empty);
-        userDb.email.Should().Be(string.Empty);
-        userDb.password.Should().Be(string.Empty);
-        userDb.created_at.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        userDb.Id.Should().Be(0);
+        userDb.Name.Should().Be(string.Empty);
+        userDb.Email.Should().Be(string.Empty);
+        userDb.Password.Should().Be(string.Empty);
+        userDb.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]
@@ -151,19 +151,19 @@ public class UserDbTests
         // Act
         var userDb = new UserDb
         {
-            id = id,
-            name = name,
-            email = email,
-            password = password,
-            created_at = createdAt
+            Id = id,
+            Name = name,
+            Email = email,
+            Password = password,
+            CreatedAt = createdAt
         };
 
         // Assert
-        userDb.id.Should().Be(id);
-        userDb.name.Should().Be(name);
-        userDb.email.Should().Be(email);
-        userDb.password.Should().Be(password);
-        userDb.created_at.Should().Be(createdAt);
+        userDb.Id.Should().Be(id);
+        userDb.Name.Should().Be(name);
+        userDb.Email.Should().Be(email);
+        userDb.Password.Should().Be(password);
+        userDb.CreatedAt.Should().Be(createdAt);
     }
 
     [Fact]
@@ -179,19 +179,19 @@ public class UserDbTests
         // Act
         var userDb = new UserDb
         {
-            id = id,
-            name = name,
-            email = email,
-            password = password,
-            created_at = createdAt
+            Id = id,
+            Name = name,
+            Email = email,
+            Password = password,
+            CreatedAt = createdAt
         };
 
         // Assert
-        userDb.id.Should().Be(id);
-        userDb.name.Should().Be(name);
-        userDb.email.Should().Be(email);
-        userDb.password.Should().Be(password);
-        userDb.created_at.Should().Be(createdAt);
+        userDb.Id.Should().Be(id);
+        userDb.Name.Should().Be(name);
+        userDb.Email.Should().Be(email);
+        userDb.Password.Should().Be(password);
+        userDb.CreatedAt.Should().Be(createdAt);
 
         // Properties should be init-only, so these won't compile:
         // userDb.id = 999; // This should cause compilation error

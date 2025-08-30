@@ -172,7 +172,9 @@ public class IpToNationRedisCacheTests : IAsyncLifetime
         var redisConfig = new RedisConfig
         {
             IpToNationConnectionString = _redisContainer!.GetConnectionString(),
-            KeyPrefix = keyPrefix
+#pragma warning disable CS8601 // 가능한 null 참조 할당입니다.
+            KeyPrefix = keyPrefix // Test purpose
+#pragma warning restore CS8601 // 가능한 null 참조 할당입니다.
         };
 
         var mockOptions = new Mock<IOptions<RedisConfig>>();

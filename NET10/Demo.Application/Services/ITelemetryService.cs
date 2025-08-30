@@ -15,7 +15,10 @@ public interface ITelemetryService
     /// <param name="tags">추가할 태그</param>
     /// <returns>The started <see cref="Activity"/> instance, or null if the activity could not be started.</returns>
     Activity? StartActivity(string operationName, Dictionary<string, object?>? tags = null);
-
+    Activity? StartActivity(string operationName, ActivityKind kind, Dictionary<string, object?>? tags = null);
+    Activity? StartActivity(string operationName, ActivityKind kind, ActivityContext? parentContext,
+        Dictionary<string, object?>? tags = null);
+    
     /// <summary>
     /// HTTP 요청 메트릭을 기록합니다.
     /// </summary>

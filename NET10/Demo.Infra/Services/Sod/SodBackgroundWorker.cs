@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Demo.Application.Services;
 using Demo.Application.Services.Sod;
 using Demo.Infra.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,7 @@ public class SodBackgroundWorker : BackgroundService
     private readonly ISodBackgroundTaskQueue _taskQueue;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SodBackgroundWorker> _logger;
+    private readonly ITelemetryService _telemetryService;
     private readonly int _workerCount;
 
     /// <summary>
@@ -23,13 +25,16 @@ public class SodBackgroundWorker : BackgroundService
     /// <param name="serviceProvider">백그라운드 작업에 대한 범위 지정 서비스를 해결하는 데 사용되는 서비스 공급자</param>
     /// <param name="taskQueue">백그라운드 작업 항목이 큐에서 제거되고 실행되는 큐</param>
     /// <param name="logger">로거 인스턴스</param>
+    /// <param name="telemetryService">Telemetry Service</param>
     /// <param name="workerCount">동시 작업자 수 (기본값: 8)</param>
     public SodBackgroundWorker(
         IServiceProvider serviceProvider,
         ISodBackgroundTaskQueue taskQueue,
         ILogger<SodBackgroundWorker> logger,
+        ITelemetryService telemetryService,
         int workerCount = 8)
     {
+        _telemetryService = telemetryService;
         _logger = logger;
         _serviceProvider = serviceProvider;
         _taskQueue = taskQueue;
@@ -69,7 +74,7 @@ public class SodBackgroundWorker : BackgroundService
             try
             {
                 var workItem = await _taskQueue.DequeueAsync(stoppingToken);
-                using var span = GamePulseActivitySource.StartActivity($"{nameof(SodBackgroundWorker)}-{workerId}", ActivityKind.Consumer, workItem.ParentActivity);
+                using var span = _telemetryService.StartActivity($"{nameof(SodBackgroundWorker)}-{workerId}", ActivityKind.Consumer, workItem.ParentActivity?.Context, null);
                 using var scope = _serviceProvider.CreateScope();
                 await workItem.ExecuteAsync(scope.ServiceProvider, stoppingToken);
             }

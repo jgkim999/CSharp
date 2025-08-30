@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Demo.Application.Commands.Sod;
+using Demo.Application.Services;
 using Demo.Application.Services.Sod;
 using Demo.Infra.Services.Sod;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +14,7 @@ public class SodBackgroundWorkerTests
     private readonly Mock<ISodBackgroundTaskQueue> _mockQueue;
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<ILogger<SodBackgroundWorker>> _mockLogger;
+    private readonly Mock<ITelemetryService> _mockTelemetryService;
     private readonly SodBackgroundWorker _worker;
 
     public SodBackgroundWorkerTests()
@@ -20,14 +22,15 @@ public class SodBackgroundWorkerTests
         _mockQueue = new Mock<ISodBackgroundTaskQueue>();
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockLogger = new Mock<ILogger<SodBackgroundWorker>>();
-        _worker = new SodBackgroundWorker(_mockServiceProvider.Object, _mockQueue.Object, _mockLogger.Object, 2);
+        _mockTelemetryService = new Mock<ITelemetryService>();
+        _worker = new SodBackgroundWorker(_mockServiceProvider.Object, _mockQueue.Object, _mockLogger.Object, _mockTelemetryService.Object, 2);
     }
 
     [Fact]
     public void Constructor_WithCustomWorkerCount_SetsWorkerCount()
     {
         // Arrange & Act
-        var worker = new SodBackgroundWorker(_mockServiceProvider.Object, _mockQueue.Object, _mockLogger.Object, 5);
+        var worker = new SodBackgroundWorker(_mockServiceProvider.Object, _mockQueue.Object, _mockLogger.Object, _mockTelemetryService.Object, 5);
 
         // Assert
         worker.Should().NotBeNull();

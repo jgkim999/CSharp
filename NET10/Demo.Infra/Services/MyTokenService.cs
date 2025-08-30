@@ -1,6 +1,7 @@
 using FastEndpoints;
 using FastEndpoints.Security;
 using Demo.Application.Configs;
+using Demo.Application.Services;
 using Demo.Domain.Repositories;
 using Microsoft.Extensions.Options;
 
@@ -12,19 +13,24 @@ namespace Demo.Infra.Services;
 public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
 {
     private readonly IJwtRepository _jwtRepository;
+    private readonly ITelemetryService _telemetryService;
 
     /// <summary>
     /// JWT 토큰 매개변수와 리프레시 토큰 엔드포인트 설정을 구성하여 MyTokenService 클래스의 새 인스턴스를 초기화합니다
     /// </summary>
     /// <param name="config">구성 정보</param>
     /// <param name="jwtRepository">JWT 저장소</param>
+    /// <param name="telemetryService">Telemetry service</param>
     /// <exception cref="NullReferenceException">
     /// config, logger, jwtRepository 또는 "Jwt" 구성 섹션이 null인 경우 발생
     /// </exception>
-    public MyTokenService(IOptions<JwtConfig> config, IJwtRepository jwtRepository)
+    public MyTokenService(IOptions<JwtConfig> config, IJwtRepository jwtRepository, ITelemetryService telemetryService)
     {
-        if (config is null || jwtRepository is null)
-            throw new NullReferenceException();
+        ArgumentNullException.ThrowIfNull(telemetryService);
+        ArgumentNullException.ThrowIfNull(config);
+        ArgumentNullException.ThrowIfNull(jwtRepository);
+
+        _telemetryService = telemetryService;
         _jwtRepository = jwtRepository;
         
         Setup(o =>
@@ -48,7 +54,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <returns>비동기 작업</returns>
     public override async Task PersistTokenAsync(TokenResponse response)
     {
-        using var span = GamePulseActivitySource.StartActivity("PersistTokenAsync");
+        using var span = _telemetryService.StartActivity("PersistTokenAsync");
         await _jwtRepository.StoreTokenAsync(response.UserId, response.RefreshToken);
     }
 
@@ -63,7 +69,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <returns>비동기 작업</returns>
     public override async Task RefreshRequestValidationAsync(TokenRequest req)
     {
-        using var span = GamePulseActivitySource.StartActivity("RefreshRequestValidationAsync");
+        using var span = _telemetryService.StartActivity("RefreshRequestValidationAsync");
         if (await _jwtRepository.TokenIsValidAsync(req.UserId, req.RefreshToken) == false)
             AddError(r => r.RefreshToken, "Refresh token is invalid");
     }
@@ -79,7 +85,7 @@ public class MyTokenService : RefreshTokenService<TokenRequest, TokenResponse>
     /// <returns>비동기 작업</returns>
     public override async Task SetRenewalPrivilegesAsync(TokenRequest request, UserPrivileges privileges)
     {
-        using var span = GamePulseActivitySource.StartActivity("SetRenewalPrivilegesAsync");
+        using var span = _telemetryService.StartActivity("SetRenewalPrivilegesAsync");
         privileges.Roles.Add("Manager");
         privileges.Claims.Add(new("UserId", request.UserId));
         privileges.Permissions.Add("Manager_Permission");

@@ -106,7 +106,7 @@ public class IpToNationRepositoryTests : IDisposable
         // Arrange - 실제 IP2LOCATION-LITE-DB3.BIN 파일 사용
         if (!File.Exists(_testDbPath))
         {
-            Assert.True(false, $"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
+            Assert.Fail($"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
         }
         
         var repository = new IpToNationRepository(_mockLogger.Object, _mockHostingEnvironment.Object);
@@ -132,7 +132,7 @@ public class IpToNationRepositoryTests : IDisposable
         // Arrange - 실제 IP2LOCATION-LITE-DB3.BIN 파일 사용
         if (!File.Exists(_testDbPath))
         {
-            Assert.True(false, $"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
+            Assert.Fail($"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
         }
         
         var repository = new IpToNationRepository(_mockLogger.Object, _mockHostingEnvironment.Object);
@@ -152,7 +152,7 @@ public class IpToNationRepositoryTests : IDisposable
         // Arrange - 실제 IP2LOCATION-LITE-DB3.BIN 파일 사용
         if (!File.Exists(_testDbPath))
         {
-            Assert.True(false, $"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
+            Assert.Fail($"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
         }
         
         var repository = new IpToNationRepository(_mockLogger.Object, _mockHostingEnvironment.Object);
@@ -184,7 +184,7 @@ public class IpToNationRepositoryTests : IDisposable
         // Arrange - 실제 IP2LOCATION-LITE-DB3.BIN 파일 사용
         if (!File.Exists(_testDbPath))
         {
-            Assert.True(false, $"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
+            Assert.Fail($"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
         }
         
         var repository = new IpToNationRepository(_mockLogger.Object, _mockHostingEnvironment.Object);
@@ -207,7 +207,7 @@ public class IpToNationRepositoryTests : IDisposable
         // Arrange - 실제 IP2LOCATION-LITE-DB3.BIN 파일 사용
         if (!File.Exists(_testDbPath))
         {
-            Assert.True(false, $"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
+            Assert.Fail($"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
         }
         
         var repository = new IpToNationRepository(_mockLogger.Object, _mockHostingEnvironment.Object);
@@ -227,7 +227,7 @@ public class IpToNationRepositoryTests : IDisposable
         // Arrange - 실제 IP2LOCATION-LITE-DB3.BIN 파일 사용
         if (!File.Exists(_testDbPath))
         {
-            Assert.True(false, $"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
+            Assert.Fail($"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
         }
         
         var repository = new IpToNationRepository(_mockLogger.Object, _mockHostingEnvironment.Object);
@@ -307,7 +307,7 @@ public class IpToNationRepositoryIntegrationTests
         // Arrange - 실제 파일 존재 확인
         if (!File.Exists(_testDbPath))
         {
-            Assert.True(false, $"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
+            Assert.Fail($"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
         }
 
         // Act & Assert
@@ -321,7 +321,7 @@ public class IpToNationRepositoryIntegrationTests
         // Arrange - 실제 파일 존재 확인
         if (!File.Exists(_testDbPath))
         {
-            Assert.True(false, $"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
+            Assert.Fail($"IP2LOCATION-LITE-DB3.BIN 파일을 찾을 수 없습니다: {_testDbPath}");
         }
 
         var repository = new IpToNationRepository(_mockLogger.Object, _mockHostingEnvironment.Object);
