@@ -4,29 +4,18 @@
 
 <MudGrid Class="mb-4">
     <MudItem xs="10">
-        <MudTextField @bind-Value="_searchTerm" 
-                      Label="Search by Name" 
-                      Variant="Variant.Outlined" />
+        <MudTextField @bind-Value="_searchTerm" Label="Search by Name" Variant="Variant.Outlined" />
     </MudItem>
     <MudItem xs="2">
-        <MudButton Variant="Variant.Filled" 
-                   Color="Color.Primary" 
-                   OnClick="OnSearchAsync" 
-                   StartIcon="Icons.Material.Filled.Search">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnSearchAsync"
+            StartIcon="Icons.Material.Filled.Search">
             Search
         </MudButton>
     </MudItem>
 </MudGrid>
 
-<MudDataGrid ServerData="LoadGridData"
-             T="Domain.Entities.User"
-             @ref="_dataGrid"
-             Dense="true"
-             Hover="true"
-             Bordered="true"
-             Striped="false"
-             Elevation="0"
-             SortLabel="Sort by" FilterLabel="Filter by">
+<MudDataGrid ServerData="LoadGridData" T="Domain.Entities.User" @ref="_dataGrid" Dense="true" Hover="true"
+    Bordered="true" Striped="false" Elevation="0" SortLabel="Sort by" FilterLabel="Filter by">
     <Columns>
         <PropertyColumn Property="x => x.Id" Title="Id" />
         <PropertyColumn Property="x => x.Name" />
@@ -37,3 +26,4 @@
         <MudDataGridPager T="Domain.Entities.User" Disabled="false" />
     </PagerContent>
 </MudDataGrid>
+
