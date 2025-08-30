@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using Blazored.LocalStorage;
 using MudBlazor.Services;
@@ -58,10 +59,15 @@ try
     
     var openTelemetryBuilder = builder.Services.AddOpenTelemetry();
     
-    // 샘플링 확률 설정
-    if (!double.TryParse(openTelemetryConfig.TracesSamplerArg, out var probability))
+    // 샘플링 확률 설정 - InvariantCulture 사용 및 0~1 범위로 제한
+    if (!double.TryParse(openTelemetryConfig.TracesSamplerArg, NumberStyles.Float, CultureInfo.InvariantCulture, out var probability))
     {
         probability = 1.0;
+    }
+    else
+    {
+        // 0~1 범위로 제한
+        probability = Math.Clamp(probability, 0.0, 1.0);
     }
 
     // 환경 변수에서 OTLP 엔드포인트 오버라이드 지원
@@ -114,9 +120,6 @@ try
         var logger = provider.GetRequiredService<ILogger<TelemetryService>>();
         return new TelemetryService(serviceName, serviceVersion, logger);
     });
-    
-    // Tracer 서비스 등록
-    openTelemetryBuilder.Services.AddSingleton(TracerProvider.Default.GetTracer(serviceName));
     #endregion
 
     #region RabbitMQ
@@ -140,7 +143,10 @@ try
         throw new NullReferenceException();
     builder.Services.Configure<PostgresConfig>(builder.Configuration.GetSection("Postgres"));
     builder.Services.AddDbContextFactory<DemoDbContext>(options =>
-        options.UseNpgsql(postgresConfig.ConnectionString));
+        options.UseNpgsql(postgresConfig.ConnectionString, npgsqlOptions =>
+        {
+            npgsqlOptions.CommandTimeout(10); // 명령 타임아웃 10초로 제한
+        }));
     #endregion
     
     builder.Services.AddBlazoredLocalStorage();
@@ -150,6 +156,12 @@ try
     // Add services to the container.
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
+    
+    // Graceful shutdown 설정
+    builder.Services.Configure<HostOptions>(options =>
+    {
+        options.ShutdownTimeout = TimeSpan.FromSeconds(10); // 기본 30초에서 10초로 단축
+    });
     
     var app = builder.Build();
 
@@ -280,6 +292,7 @@ void ConfigureTrace(TracerProviderBuilder tracing, string serviceName, double pr
     {
         options.Endpoint = new Uri(openTelemetryEndpoint);
         options.Protocol = OtlpExportProtocol.Grpc;
+        options.TimeoutMilliseconds = 5000; // 5초로 제한
     });
 }
 
@@ -318,5 +331,6 @@ void ConfigureMetric(MeterProviderBuilder metrics, string serviceName, string op
     {
         options.Endpoint = new Uri(openTelemetryEndpoint);
         options.Protocol = OtlpExportProtocol.Grpc;
+        options.TimeoutMilliseconds = 5000; // 5초로 제한
     });
 }
