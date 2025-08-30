@@ -1,13 +1,17 @@
 using Demo.Application;
 using Demo.Application.Extensions;
+using Demo.Domain;
 using Demo.Infra;
+using Demo.Infra.Configs;
 using Demo.Infra.Extensions;
+using Demo.Infra.Services;
 using Demo.Web.Endpoints.User;
 using FastEndpoints;
 
 using FluentValidation;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
+using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Sinks.OpenTelemetry;
 
@@ -43,17 +47,30 @@ try
     // OpenTelemetry 서비스 등록
     var openTelemetry = builder.AddOpenTelemetryApplication(Log.Logger);
     openTelemetry.openTelemetryBuilder.AddOpenTelemetryInfrastructure(openTelemetry.otelConfig);
+
+    #region RabbitMQ
+
+    var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
+    if (rabbitMqConfig is null)
+        throw new NullReferenceException();
+    builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
+    builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
+
+    #endregion
     
     builder.AddDemoWebApplication();
     
     builder.Services.AddFastEndpoints();
     
-    builder.Services.AddOpenApiServices();
+    //builder.Services.AddOpenApiServices();
+    builder.Services.AddOpenApi();
 
     builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
     builder.Services.AddLiteBusApplication();
     builder.Services.AddDemoWebInfra(builder.Configuration);
+
+    builder.Services.AddHostedService<RabbitMqConsumerService>();
     
     var app = builder.Build();
     
@@ -61,6 +78,20 @@ try
     
     app.UseFastEndpointsInitialize();
 
+    app.UseOpenApi(options =>
+    {
+        options.Path = "/openapi/{documentName}.json";
+    });
+    app.MapOpenApi(); //.CacheOutput();
+    app.MapScalarApiReference(options =>
+    {
+        options
+            .WithTitle(app.Environment.ApplicationName)
+            .WithTheme(ScalarTheme.None)
+            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
+            .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
+    });
+    
     app.Run();
 }
 catch (Exception ex)

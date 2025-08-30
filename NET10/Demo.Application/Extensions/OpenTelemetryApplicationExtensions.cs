@@ -9,6 +9,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -34,6 +35,14 @@ public static class OpenTelemetryApplicationExtensions
             throw new NullReferenceException();
         builder.Services.Configure<OtelConfig>(builder.Configuration.GetSection("OpenTelemetry"));
         logger.Information("OpenTelemetryEndpoint {OpenTelemetryEndpoint}", openTelemetryConfig.Endpoint);
+        
+        var compositeTextMapPropagator = new CompositeTextMapPropagator(new TextMapPropagator[]
+        {
+            new TraceContextPropagator(),
+            new BaggagePropagator()
+        });
+
+        Sdk.SetDefaultTextMapPropagator(compositeTextMapPropagator);
         
         var openTelemetryBuilder = builder.Services.AddOpenTelemetry();
         

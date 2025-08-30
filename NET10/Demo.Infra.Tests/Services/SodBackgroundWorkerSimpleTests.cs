@@ -1,3 +1,4 @@
+using Demo.Application.Services;
 using Demo.Application.Services.Sod;
 using Demo.Infra.Services.Sod;
 using Demo.Infra.Tests.TestHelpers;
@@ -15,6 +16,7 @@ public class SodBackgroundWorkerSimpleTests : IAsyncLifetime
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<IServiceScope> _mockServiceScope;
     private readonly Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+    private readonly Mock<ITelemetryService> _telemetryService;
     private readonly SodBackgroundWorker _worker;
 
     public SodBackgroundWorkerSimpleTests()
@@ -24,6 +26,7 @@ public class SodBackgroundWorkerSimpleTests : IAsyncLifetime
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockServiceScope = new Mock<IServiceScope>();
         _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+        _telemetryService = new Mock<ITelemetryService>();
 
         // ServiceScope 설정
         _mockServiceScope.Setup(s => s.ServiceProvider).Returns(_mockServiceProvider.Object);
@@ -37,6 +40,7 @@ public class SodBackgroundWorkerSimpleTests : IAsyncLifetime
             _mockServiceProvider.Object,
             _mockTaskQueue.Object,
             _mockLogger.Object,
+            _telemetryService.Object,
             1); // 단일 워커로 테스트
     }
 
@@ -211,6 +215,7 @@ public class SodBackgroundWorkerIntegrationSimpleTests : IAsyncLifetime
             provider,
             provider.GetRequiredService<ISodBackgroundTaskQueue>(),
             provider.GetRequiredService<ILogger<SodBackgroundWorker>>(),
+            provider.GetRequiredService<ITelemetryService>(),
             1)); // 단일 워커
 
         _serviceProvider = services.BuildServiceProvider();

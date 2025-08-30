@@ -70,12 +70,12 @@ try
     // ITelemetryService 및 TelemetryService를 Singleton으로 등록
     builder.Services.AddSingleton<ITelemetryService>(serviceProvider =>
     {
-        var otelConfig = serviceProvider.GetRequiredService<IOptions<OtelConfig>>().Value;
+        var openTelemetryConfig = serviceProvider.GetRequiredService<IOptions<OtelConfig>>().Value;
         var logger = serviceProvider.GetRequiredService<ILogger<TelemetryService>>();
 
         return new TelemetryService(
-            serviceName: otelConfig.ServiceName,
-            serviceVersion: otelConfig.ServiceVersion,
+            serviceName: openTelemetryConfig.ServiceName,
+            serviceVersion: openTelemetryConfig.ServiceVersion,
             logger: logger
         );
     });
@@ -104,12 +104,11 @@ try
         });
     });
 
-    // LiteBus 텔레메트리 데코레이터 추가
-    builder.Services.AddLiteBusTelemetry();
-
+    #region Mapster
     builder.Services.AddMapster();
     var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
     typeAdapterConfig.Scan(typeof(MapsterConfig).Assembly);
+    #endregion
 
     #endregion
 
