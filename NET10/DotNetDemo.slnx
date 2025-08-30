@@ -4,12 +4,18 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Demo.Application/Demo.Application.csproj" />
+  <Project Path="Demo.Admin\Demo.Admin.csproj" Type="Classic C#">
+    <Configuration Solution="Debug|x64" Project="Debug|Any CPU" />
+    <Configuration Solution="Debug|x86" Project="Debug|Any CPU" />
+    <Configuration Solution="Release|x64" Project="Release|Any CPU" />
+    <Configuration Solution="Release|x86" Project="Release|Any CPU" />
+  </Project>
   <Project Path="Demo.Application.Tests/Demo.Application.Tests.csproj" />
-  <Project Path="Demo.Domain/Demo.Domain.csproj" />
+  <Project Path="Demo.Application/Demo.Application.csproj" />
   <Project Path="Demo.Domain.Tests/Demo.Domain.Tests.csproj" />
-  <Project Path="Demo.Infra/Demo.Infra.csproj" />
+  <Project Path="Demo.Domain/Demo.Domain.csproj" />
   <Project Path="Demo.Infra.Tests/Demo.Infra.Tests.csproj" />
+  <Project Path="Demo.Infra/Demo.Infra.csproj" />
   <Project Path="Demo.Web.IntegrationTests/Demo.Web.IntegrationTests.csproj" />
   <Project Path="Demo.Web.PerformanceTests/Demo.Web.PerformanceTests.csproj" />
   <Project Path="Demo.Web/Demo.Web.csproj" />

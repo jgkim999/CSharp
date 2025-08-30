@@ -48,13 +48,15 @@ try
     var openTelemetry = builder.AddOpenTelemetryApplication(Log.Logger);
     openTelemetry.openTelemetryBuilder.AddOpenTelemetryInfrastructure(openTelemetry.otelConfig);
 
-    {
-        var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
-        if (rabbitMqConfig is null)
-            throw new NullReferenceException();
-        builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
-        builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
-    }
+    #region RabbitMQ
+
+    var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
+    if (rabbitMqConfig is null)
+        throw new NullReferenceException();
+    builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
+    builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
+
+    #endregion
     
     builder.AddDemoWebApplication();
     
