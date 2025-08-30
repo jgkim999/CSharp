@@ -48,7 +48,7 @@ public class UserRepositoryPostgre : IUserRepository
       {
           await using var connection = new NpgsqlConnection(_config.ConnectionString);
 
-          const string sqlQuery = "INSERT INTO users (name, email, password) VALUES (@name, @email, @password);";
+          const string sqlQuery = "INSERT INTO users (Name, Email, Password) VALUES (@name, @email, @password);";
 
           DynamicParameters dp = new();
           dp.Add("@name", name);
@@ -100,10 +100,10 @@ public class UserRepositoryPostgre : IUserRepository
             var usersList = users.ToList();
             var domainUsers = usersList.Select(u => new Demo.Domain.Entities.User
             {
-                Id = u.id,
-                Name = u.name,
-                Email = u.email,
-                CreatedAt = u.created_at
+                Id = u.Id,
+                Name = u.Name,
+                Email = u.Email,
+                CreatedAt = u.CreatedAt
             }).ToList();
 
             return Result.Ok<IEnumerable<Demo.Domain.Entities.User>>(domainUsers);
