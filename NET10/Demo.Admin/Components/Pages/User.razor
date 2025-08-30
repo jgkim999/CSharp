@@ -2,6 +2,22 @@
 
 <h3>User</h3>
 
+<MudGrid Class="mb-4">
+    <MudItem xs="10">
+        <MudTextField @bind-Value="_searchTerm" 
+                      Label="Search by Name" 
+                      Variant="Variant.Outlined" />
+    </MudItem>
+    <MudItem xs="2">
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Primary" 
+                   OnClick="OnSearchAsync" 
+                   StartIcon="Icons.Material.Filled.Search">
+            Search
+        </MudButton>
+    </MudItem>
+</MudGrid>
+
 <MudDataGrid ServerData="LoadGridData"
              T="Domain.Entities.User"
              @ref="_dataGrid"
