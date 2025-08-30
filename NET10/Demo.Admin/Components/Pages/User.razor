@@ -2,11 +2,16 @@
 
 <h3>User</h3>
 
-<MudDataGrid Items="@Users" Dense="true" Hover="true" Bordered="true" Striped="true" Elevation="0" SortLabel="Sort by" FilterLabel="Filter by">
+<MudDataGrid ServerData="LoadGridData" T="Domain.Entities.User"
+             Dense="true" Hover="true" Bordered="true" Striped="true" Elevation="0"
+             SortLabel="Sort by" FilterLabel="Filter by">
     <Columns>
         <PropertyColumn Property="x => x.Id" Title="Id" />
         <PropertyColumn Property="x => x.Name" />
         <PropertyColumn Property="x => x.Email" Title="Email" />
         <PropertyColumn Property="x => x.CreatedAt" Title="Create" />
     </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Domain.Entities.User" Disabled="false" />
+    </PagerContent>
 </MudDataGrid>
