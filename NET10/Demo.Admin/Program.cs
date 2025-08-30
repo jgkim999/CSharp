@@ -5,7 +5,9 @@ using Demo.Application.Configs;
 using Demo.Application.Services;
 using Demo.Domain;
 using Demo.Infra.Configs;
+using Demo.Infra.Repositories;
 using Demo.Infra.Services;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
 using OpenTelemetry.Exporter;
@@ -131,13 +133,22 @@ try
     builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("RedisConfig"));
     #endregion
     
+    #region PgSql
+    var postgresConfig = builder.Configuration.GetSection("Postgres").Get<PostgresConfig>();
+    if (postgresConfig is null)
+        throw new NullReferenceException();
+    builder.Services.Configure<PostgresConfig>(builder.Configuration.GetSection("Postgres"));
+    builder.Services.AddDbContext<DemoDbContext>(options =>
+        options.UseNpgsql(postgresConfig.ConnectionString));
+    #endregion
+    
     // Add MudBlazor services
     builder.Services.AddMudServices();
 
     // Add services to the container.
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();
-
+    
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.

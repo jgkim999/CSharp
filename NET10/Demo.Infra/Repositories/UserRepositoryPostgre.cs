@@ -90,7 +90,7 @@ public class UserRepositoryPostgre : IUserRepository
         {
             await using var connection = new NpgsqlConnection(_config.ConnectionString);
             
-            const string sqlQuery = "SELECT id, name, email, created_at FROM users ORDER BY id LIMIT @count;";
+            const string sqlQuery = "SELECT Id, Name, Email, CreatedAt FROM users ORDER BY Id LIMIT @count;";
 
             DynamicParameters dp = new();
             dp.Add("@count", limit);

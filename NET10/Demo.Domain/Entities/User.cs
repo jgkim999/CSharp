@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Demo.Domain.Entities;
 
 public class User
@@ -11,6 +13,7 @@ public class User
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 }
 
+[Table("users")]
 public class UserDb
 {
     public UserDb() { }
