@@ -1,4 +1,5 @@
 using System.Reflection;
+using Blazored.LocalStorage;
 using MudBlazor.Services;
 using Demo.Admin.Components;
 using Demo.Application.Configs;
@@ -142,6 +143,7 @@ try
         options.UseNpgsql(postgresConfig.ConnectionString));
     #endregion
     
+    builder.Services.AddBlazoredLocalStorage();
     // Add MudBlazor services
     builder.Services.AddMudServices();
 

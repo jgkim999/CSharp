@@ -8,21 +8,50 @@ namespace Demo.Admin.Components.Pages;
 public partial class User : ComponentBase
 {
     private List<Domain.Entities.User> Users = new List<Demo.Domain.Entities.User>();
-   
-    [Inject]
-    private IDbContextFactory<DemoDbContext> DbFactory { get; set; } = default!;
+    private MudDataGrid<Domain.Entities.User> _dataGrid;
+    private int _pageSize = 10;
+
+    [Inject] private IDbContextFactory<DemoDbContext> DbFactory { get; set; } = default!;
+    
+    [Inject] private Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } 
     
     protected override async Task OnInitializedAsync()
     {
-        await using var db = await DbFactory.CreateDbContextAsync();
-        Users = await db.Users.AsNoTracking().Take(5).ToListAsync();
+        _pageSize = await LocalStorage.GetItemAsync<int>("PageSizeKey");
+        if (_pageSize == 0)
+        {
+            _pageSize = 10;
+        }
+        await _dataGrid.SetRowsPerPageAsync(_pageSize);
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        _dataGrid.PagerStateHasChangedEvent += async () =>
+        {
+            await OnPageSizeChangedAsync(_dataGrid.RowsPerPage);
+        };
+    }
+    
+    private async Task OnPageSizeChangedAsync(int newPageSize)
+    {
+        _pageSize = newPageSize;
+        await LocalStorage.SetItemAsync("PageSizeKey", newPageSize);
     }
     
     private async Task<GridData<Domain.Entities.User>> LoadGridData(GridState<Domain.Entities.User> state)
     {
         await using var db = await DbFactory.CreateDbContextAsync();
-        var result = await db.Users.AsNoTracking().Skip(state.Page * state.PageSize).Take(state.PageSize).ToListAsync();
+        
+        var result = await db.Users
+            .AsNoTracking()
+            .OrderBy(x => x.Id)
+            .Skip(state.Page * state.PageSize)
+            .Take(state.PageSize)
+            .ToListAsync();
+        
         var totalCount = await db.Users.CountAsync();
+        
         GridData<Domain.Entities.User> data = new()
         {
             Items = result,
