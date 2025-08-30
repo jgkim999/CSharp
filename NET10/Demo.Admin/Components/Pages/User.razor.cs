@@ -9,10 +9,11 @@ public partial class User : ComponentBase
     private List<Demo.Domain.Entities.User> Users = new List<Demo.Domain.Entities.User>();
    
     [Inject]
-    private DemoDbContext DbContext { get; set; } = default!;
+    private IDbContextFactory<DemoDbContext> DbFactory { get; set; } = default!;
     
     protected override async Task OnInitializedAsync()
     {
-        Users = await DbContext.Users.AsNoTracking().Take(5).ToListAsync();
+        await using var db = await DbFactory.CreateDbContextAsync();
+        Users = await db.Users.AsNoTracking().Take(5).ToListAsync();
     }
 }

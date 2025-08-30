@@ -138,7 +138,7 @@ try
     if (postgresConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<PostgresConfig>(builder.Configuration.GetSection("Postgres"));
-    builder.Services.AddDbContext<DemoDbContext>(options =>
+    builder.Services.AddDbContextFactory<DemoDbContext>(options =>
         options.UseNpgsql(postgresConfig.ConnectionString));
     #endregion
     
