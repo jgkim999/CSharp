@@ -9,4 +9,9 @@ public class DemoDbContext : DbContext
     public DbSet<Company> Companies { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
+    
+    public DemoDbContext(DbContextOptions<DemoDbContext> options)
+        : base(options)
+    {
+    }
 }

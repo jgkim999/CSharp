@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Demo.Domain.Entities;
 
+[Table("users")]
 public class User
 {
     public User() { }
