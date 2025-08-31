@@ -1,9 +1,8 @@
 using System.ComponentModel;
 using FastEndpoints;
-
 using FluentValidation;
 
-namespace GamePulse.Sod.Endpoints.Rtt;
+namespace GamePulse.EndPoints.Rtt;
 
 /// <summary>
 /// Rtt 저장 요청

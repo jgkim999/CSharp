@@ -23,6 +23,9 @@ using OpenTelemetryBuilder = OpenTelemetry.OpenTelemetryBuilder;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Aspire ServiceDefaults 추가
+builder.AddServiceDefaults();
+
 // 환경별 설정 파일 추가
 var environment = builder.Environment.EnvironmentName;
 var environmentFromEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -182,6 +185,8 @@ try
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
+    app.MapDefaultEndpoints();
+
     app.Run();
 }
 catch (Exception ex)
@@ -288,12 +293,7 @@ void ConfigureTrace(TracerProviderBuilder tracing, string serviceName, double pr
         builder.Services.AddSingleton(redisInstrumentation);
     }
 
-    tracing.AddOtlpExporter(options =>
-    {
-        options.Endpoint = new Uri(openTelemetryEndpoint);
-        options.Protocol = OtlpExportProtocol.Grpc;
-        options.TimeoutMilliseconds = 5000; // 5초로 제한
-    });
+    // OTLP exporter는 ServiceDefaults에서 UseOtlpExporter()로 자동 구성됨
 }
 
 void ConfigureMetric(MeterProviderBuilder metrics, string serviceName, string openTelemetryEndpoint)
@@ -327,10 +327,5 @@ void ConfigureMetric(MeterProviderBuilder metrics, string serviceName, string op
         Boundaries = [0, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75, 1, 2.5, 5, 7.5, 10]
     });
 
-    metrics.AddOtlpExporter(options =>
-    {
-        options.Endpoint = new Uri(openTelemetryEndpoint);
-        options.Protocol = OtlpExportProtocol.Grpc;
-        options.TimeoutMilliseconds = 5000; // 5초로 제한
-    });
+    // OTLP exporter는 ServiceDefaults에서 UseOtlpExporter()로 자동 구성됨
 }

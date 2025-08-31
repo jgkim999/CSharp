@@ -1,6 +1,7 @@
 using Demo.Application.DTO;
 using FastEndpoints;
 using Demo.Application.Processors;
+using Demo.Application.Services;
 
 namespace GamePulse.EndPoints.User.Create;
 
@@ -33,6 +34,9 @@ public class CreateEndpointV2 : Endpoint<MyRequest, MyResponse>
     /// <returns>A task representing the asynchronous operation.</returns>
     public override async Task HandleAsync(MyRequest req, CancellationToken ct)
     {
+        var telemetryService = TryResolve<ITelemetryService>();
+        telemetryService?.StartActivity(nameof(CreateEndpointV2));
+
         await Send.OkAsync(new()
         {
             FullName = req.FirstName + " " + req.LastName + " v2",

@@ -1,22 +1,22 @@
-using FluentAssertions;
-using OpenTelemetry.Trace;
-using OpenTelemetry;
-using Demo.Application.Services.Auth;
 using System.Diagnostics;
+using FluentAssertions;
+using Demo.Application.Services.Auth;
+using Demo.Application.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 
 namespace GamePulse.Test.Services;
 
-public class AuthServiceTests : IDisposable
+public class AuthServiceTests
 {
     private readonly AuthService _authService;
-    private readonly TracerProvider _tracerProvider;
-    private readonly Tracer _tracer;
 
     public AuthServiceTests()
     {
-        _tracerProvider = Sdk.CreateTracerProviderBuilder().Build();
-        _tracer = _tracerProvider.GetTracer("test");
-        _authService = new AuthService(_tracer);
+        var mockTelemetryService = new Mock<ITelemetryService>();
+        _authService = new AuthService(mockTelemetryService.Object);
     }
 
     [Fact]
@@ -276,23 +276,21 @@ public class AuthServiceTests : IDisposable
     }
 
     [Fact]
-    public void Constructor_WithValidTracer_CreatesInstance()
+    public void Constructor_WithValidTelemetryService_CreatesInstance()
     {
         // Arrange
-        var tracerProvider = Sdk.CreateTracerProviderBuilder().Build();
-        var tracer = tracerProvider.GetTracer("test");
+        var mockTelemetryService = new Mock<ITelemetryService>();
 
         // Act
-        var authService = new AuthService(tracer);
+        var authService = new AuthService(mockTelemetryService.Object);
 
         // Assert
         authService.Should().NotBeNull();
         authService.Should().BeOfType<AuthService>();
-        tracerProvider.Dispose();
     }
 
     [Fact]
-    public void Constructor_WithNullTracer_CreatesInstanceSuccessfully()
+    public void Constructor_WithNullTelemetryService_CreatesInstanceSuccessfully()
     {
         // Act
         var authService = new AuthService(null);
@@ -303,15 +301,15 @@ public class AuthServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CredentialsAreValidAsync_WithNullTracer_WorksCorrectly()
+    public async Task CredentialsAreValidAsync_WithNullTelemetryService_WorksCorrectly()
     {
         // Arrange
-        var authServiceWithNullTracer = new AuthService(null);
+        var authServiceWithNullTelemetryService = new AuthService(null);
         var username = "testuser";
         var password = "admin";
 
         // Act
-        var result = await authServiceWithNullTracer.CredentialsAreValidAsync(username, password, CancellationToken.None);
+        var result = await authServiceWithNullTelemetryService.CredentialsAreValidAsync(username, password, CancellationToken.None);
 
         // Assert
         result.Should().BeTrue();
@@ -396,8 +394,4 @@ public class AuthServiceTests : IDisposable
         resultWithNullPassword.Should().BeFalse();
     }
 
-    public void Dispose()
-    {
-        _tracerProvider?.Dispose();
-    }
 }

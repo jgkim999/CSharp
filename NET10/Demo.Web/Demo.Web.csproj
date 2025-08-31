@@ -46,6 +46,7 @@
       <ProjectReference Include="..\Demo.Application\Demo.Application.csproj" />
       <ProjectReference Include="..\Demo.Domain\Demo.Domain.csproj" />
       <ProjectReference Include="..\Demo.Infra\Demo.Infra.csproj" />
+      <ProjectReference Include="..\Demo.ServiceDefaults\Demo.ServiceDefaults.csproj" />
     </ItemGroup>
 
     <ItemGroup>
