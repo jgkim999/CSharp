@@ -1,9 +1,8 @@
 using System.Diagnostics;
-using Demo.Application.Services;
-using Demo.Infra.Services;
 using Demo.Application.Commands.Sod;
+using Demo.Application.Services;
 
-namespace GamePulse.Sod.Endpoints.Rtt;
+namespace GamePulse.EndPoints.Rtt;
 
 public class RttCommand : SodCommand
 {

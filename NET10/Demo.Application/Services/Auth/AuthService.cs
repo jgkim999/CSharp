@@ -7,13 +7,13 @@ namespace Demo.Application.Services.Auth;
 /// </summary>
 public class AuthService : IAuthService
 {
-    private readonly Tracer? _tracer;
+    private readonly ITelemetryService? _tracer;
 
     /// <summary>
     /// 텔레메트리를 위한 선택적 추적기와 함께 AuthService 클래스의 새 인스턴스를 초기화합니다
     /// </summary>
     /// <param name="tracer">텔레메트리를 위한 추적기 (선택사항)</param>
-    public AuthService(Tracer? tracer)
+    public AuthService(ITelemetryService? tracer)
     {
         _tracer = tracer;
     }
@@ -27,7 +27,7 @@ public class AuthService : IAuthService
     /// <returns>비밀번호가 "admin"이면 true, 그렇지 않으면 false</returns>
     public Task<bool> CredentialsAreValidAsync(string? username, string? password, CancellationToken ct)
     {
-        using var span = _tracer?.StartActiveSpan(nameof(AuthService));
+        using var span = _tracer?.StartActivity(nameof(AuthService));
         return Task.FromResult(password == "admin");
     }
 }

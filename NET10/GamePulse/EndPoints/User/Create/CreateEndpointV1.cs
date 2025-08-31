@@ -1,7 +1,7 @@
 using Demo.Application.DTO;
 using FastEndpoints;
 using Demo.Application.Processors;
-using OpenTelemetry.Trace;
+using Demo.Application.Services;
 
 namespace GamePulse.EndPoints.User.Create;
 
@@ -10,12 +10,12 @@ namespace GamePulse.EndPoints.User.Create;
 /// </summary>
 public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
 {
-    private readonly Tracer _tracer;
+    private readonly ITelemetryService _tracer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateEndpointV1"/> class with the specified OpenTelemetry tracer.
     /// </summary>
-    public CreateEndpointV1(Tracer tracer)
+    public CreateEndpointV1(ITelemetryService tracer)
     {
         _tracer = tracer;
     }
@@ -43,7 +43,7 @@ public class CreateEndpointV1 : Endpoint<MyRequest, MyResponse>
     /// <param name="ct">A token to monitor for cancellation requests.</param>
     public override async Task HandleAsync(MyRequest req, CancellationToken ct)
     {
-        using var span = _tracer.StartActiveSpan(nameof(CreateEndpointV1));
+        using var span = _tracer.StartActivity(nameof(CreateEndpointV1));
 
         await Send.OkAsync(new()
         {

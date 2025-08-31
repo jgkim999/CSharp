@@ -1,18 +1,15 @@
-using Demo.Application;
 using Demo.Application.Configs;
 using Demo.Application.DTO.User;
 using FastEndpoints;
-using Demo.Application.Extensions;
 using Demo.Application.Services;
 using Demo.Application.Services.Auth;
 using Demo.Application.Services.Sod;
 using Demo.Domain.Repositories;
 
-using Demo.Infra.Extensions;
 using Demo.Infra.Repositories;
 using Demo.Infra.Services.Sod;
 using FastEndpoints.Security;
-using FastEndpoints.Swagger;
+using GamePulse;
 using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
 using LiteBus.Events.Extensions.MicrosoftDependencyInjection;
 using LiteBus.Messaging.Extensions.MicrosoftDependencyInjection;
@@ -23,6 +20,9 @@ using Scalar.AspNetCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Aspire ServiceDefaults 추가
+builder.AddServiceDefaults();
 
 // 환경별 설정 파일 추가
 var environment = builder.Environment.EnvironmentName;
@@ -36,30 +36,39 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 try
 {
-    builder.AddSerilogApplication();
+    #region SeriLog
+    builder.Host.UseSerilog();
+
+    builder.Services.AddSerilog((services, lc) =>
+    {
+        lc.ReadFrom.Configuration(builder.Configuration);
+        lc.ReadFrom.Services(services);
+        lc.Enrich.FromLogContext();
+    });
+    #endregion
 
     Log.Information("Starting application");
 
-    #region  AddGamePulseApplication
-    //builder.AddGamePulseApplication();
-    var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtConfig>();
-    if (jwtConfig == null)
-        throw new NullReferenceException();
-    builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("Jwt"));
-
+    #region Redis
     var redisConfig = builder.Configuration.GetSection("RedisConfig").Get<RedisConfig>();
     if (redisConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("RedisConfig"));
+    #endregion
 
+    #region  Jwt
+    //appBuilder.AddGamePulseApplication();
+    var jwtConfig = builder.Configuration.GetSection("Jwt").Get<JwtConfig>();
+    if (jwtConfig == null)
+        throw new NullReferenceException();
+    builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("Jwt"));
     builder.Services.AddAuthenticationJwtBearer(s => s.SigningKey = jwtConfig.PublicKey);
     builder.Services.AddAuthorization();
-
     builder.Services.Configure<JwtCreationOptions>(o => o.SigningKey = jwtConfig.PrivateKey);
     #endregion
 
     #region AddGamePulseInfra
-    //builder.Services.AddGamePulseInfra();
+    //appBuilder.Services.AddGamePulseInfra();
     builder.Services.AddSingleton<IAuthService, AuthService>();
     builder.Services.AddSingleton<IIpToNationRepository, IpToNationRepository>();
     builder.Services.AddSingleton<IIpToNationCache, IpToNationRedisCache>();
@@ -84,23 +93,34 @@ try
     builder.Services.AddHostedService<SodBackgroundWorker>();
     #endregion
 
-    #region AddLiteBusApplication
-    builder.Services.AddLiteBusApplication();
+    #region LiteBus
+    // 모든 로드된 Assembly 가져오기
+    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
     builder.Services.AddLiteBus(liteBus =>
     {
-        var applicationAssembly = typeof(ApplicationInitialize).Assembly;
-
         liteBus.AddCommandModule(module =>
         {
-            module.RegisterFromAssembly(applicationAssembly);
+            foreach (var assembly in assemblies)
+            {
+                module.RegisterFromAssembly(assembly);
+            }
         });
+
         liteBus.AddQueryModule(module =>
         {
-            module.RegisterFromAssembly(applicationAssembly);
+            foreach (var assembly in assemblies)
+            {
+                module.RegisterFromAssembly(assembly);
+            }
         });
+
         liteBus.AddEventModule(module =>
         {
-            module.RegisterFromAssembly(applicationAssembly);
+            foreach (var assembly in assemblies)
+            {
+                module.RegisterFromAssembly(assembly);
+            }
         });
     });
 
@@ -117,40 +137,10 @@ try
     #region AddFastEndpoints
     builder.Services.AddFastEndpoints().AddOpenApiDocument();
     #endregion
-    //builder.Services.AddOpenApiServices();
-
-    #region Configure OpenAPI
-
-/*
-    builder.Services.AddOpenApi(options =>
-    {
-        options.AddDocumentTransformer((document, context, _) =>
-        {
-            document.Info = new()
-            {
-                Title = "Product Catalog API",
-                Version = "v1",
-                Description = """
-                              Modern API for managing product catalogs.
-                              Supports JSON and XML responses.
-                              Rate limited to 1000 requests per hour.
-                              """,
-                Contact = new()
-                {
-                    Name = "API Support",
-                    Email = "api@example.com",
-                    Url = new Uri("https://api.example.com/support")
-                }
-            };
-            return Task.CompletedTask;
-        });
-    });
-*/
-    #endregion
+    //appBuilder.Services.AddOpenApiServices();
 
     #region OpenTelemetry
-    var builderResult = builder.AddOpenTelemetryApplication(Log.Logger);
-    builderResult.openTelemetryBuilder.AddOpenTelemetryInfrastructure(builderResult.otelConfig);
+    builder.AddOpenTelemetryApplication(Log.Logger);
     #endregion
 
     var app = builder.Build();
@@ -158,28 +148,12 @@ try
     app.UseAuthorization();
 
     #region UseFastEndpoint
-    //app.UseFastEndpointsInitialize();
     app.UseDefaultExceptionHandler();
     app.UseFastEndpoints(c =>
     {
         c.Endpoints.ShortNames = true;
         c.Versioning.Prefix = "v";
         c.Errors.UseProblemDetails();
-        /*
-        c.Errors.ResponseBuilder = (failures, ctx, statusCode) =>
-        {
-            return new ValidationProblemDetails(failures.GroupBy(f => f.PropertyName)
-                .ToDictionary(keySelector: e => e.Key,
-                    elementSelector: e => e.Select(m => m.ErrorMessage).ToArray()))
-            {
-                Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-                Title = "One or more validation errors occurred.",
-                Status = statusCode,
-                Instance = ctx.Request.Path,
-                Extensions = { { "traceId", ctx.TraceIdentifier } }
-            };
-        };
-        */
     });
 
     //if (app.Environment.IsDevelopment())
@@ -200,13 +174,7 @@ try
     //}
     #endregion
 
-    //app.UseStaticFiles();
-
-    // Prometheus 메트릭 엔드포인트 추가 (프로덕션 환경에서만)
-    if (builderResult.otelConfig.EnablePrometheusExporter)
-    {
-        //app.MapPrometheusScrapingEndpoint();
-    }
+    app.MapDefaultEndpoints();
 
     app.Run();
 }
@@ -218,5 +186,6 @@ finally
 {
     Log.CloseAndFlush();
 }
+
 // 테스트에서 접근할 수 있도록 Program 클래스를 public으로 선언
 public partial class Program { }

@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Demo.Application.Services;
-using GamePulse.Sod.Endpoints.Rtt;
+using GamePulse.EndPoints.Rtt;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
