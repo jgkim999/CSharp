@@ -211,6 +211,7 @@ public class SodBackgroundWorkerIntegrationSimpleTests : IAsyncLifetime
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton<ISodBackgroundTaskQueue, SodBackgroundTaskQueue>();
+        services.AddSingleton<ITelemetryService>(provider => new Mock<ITelemetryService>().Object);
         services.AddTransient(provider => new SodBackgroundWorker(
             provider,
             provider.GetRequiredService<ISodBackgroundTaskQueue>(),
