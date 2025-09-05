@@ -16,6 +16,7 @@
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.4.2" />
     <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="9.4.2" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.4.2" />
+    <PackageReference Include="Polly.Core" Version="8.6.3" />
   </ItemGroup>
 
   <ItemGroup>
