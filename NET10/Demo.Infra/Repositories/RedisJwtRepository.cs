@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using StackExchange.Redis;
 using System.Diagnostics;
+using Polly;
 
 namespace Demo.Infra.Repositories;
 
@@ -18,6 +19,7 @@ public class RedisJwtRepository : IJwtRepository
     private static ConnectionMultiplexer? _multiplexer;
     private static string? _keyPrefix;
     private static IDatabase? _database;
+    private readonly IAsyncPolicy _policyWrap;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RedisJwtRepository"/> class, establishing a Redis connection for JWT token storage and validation.
@@ -54,6 +56,12 @@ public class RedisJwtRepository : IJwtRepository
                 _multiplexer = null;
                 throw new InvalidDataException();
             }
+            var retryPolicy = Policy
+                .Handle<RedisConnectionException>()
+                .RetryAsync(3);
+            
+            _policyWrap = Policy.WrapAsync(retryPolicy);
+            
         }
         catch (Exception ex)
         {
@@ -87,7 +95,8 @@ public class RedisJwtRepository : IJwtRepository
             using var activity = Activity.Current?.Source.StartActivity("StoreTokenAsync");
             if (_database is null)
                 throw new NullReferenceException();
-            await _database.StringSetAsync(MakeKey(userId), refreshToken, TimeSpan.FromDays(1));
+            await _policyWrap.ExecuteAsync(() => 
+                _database.StringSetAsync(MakeKey(userId), refreshToken, TimeSpan.FromDays(1)));
         }
         catch (Exception e)
         {
@@ -119,7 +128,7 @@ public class RedisJwtRepository : IJwtRepository
             using var activity = Activity.Current?.Source.StartActivity("TokenIsValidAsync");
             if (_database is null)
                 throw new NullReferenceException();
-            var token = await _database.StringGetAsync(MakeKey(userId));
+            var token = await _policyWrap.ExecuteAsync(() => _database.StringGetAsync(MakeKey(userId)));
             return token == refreshToken;
         }
         catch (Exception e)

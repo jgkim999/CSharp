@@ -1,14 +1,16 @@
 using Dapper;
-using Demo.Application.DTO.User;
+
 using Demo.Application.Services;
 using Demo.Domain.Entities;
 using Demo.Domain.Repositories;
 using Demo.Infra.Configs;
+
 using FluentResults;
 using MapsterMapper;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using Polly;
 
 namespace Demo.Infra.Repositories;
 
@@ -18,6 +20,7 @@ public class UserRepositoryPostgre : IUserRepository
     private readonly IMapper _mapper;
     private readonly ILogger<UserRepositoryPostgre> _logger;
     private readonly ITelemetryService _telemetryService;
+    private readonly IAsyncPolicy _retryPolicy;
 
     /// <summary>
     /// Initializes a new instance of the UserRepositoryPostgre class with the specified configuration, mapper, logger, and telemetry service.
@@ -32,6 +35,14 @@ public class UserRepositoryPostgre : IUserRepository
         _mapper = mapper;
         _logger = logger;
         _telemetryService = telemetryService;
+        
+        _retryPolicy = Policy
+            .Handle<NpgsqlException>()
+            .Or<TimeoutException>()
+            .RetryAsync(3, (exception, retryCount) =>
+            {
+                _logger.LogWarning("Database operation failed, retry {RetryCount}: {Exception}", retryCount, exception.Message);
+            });
     }
 
     /// <summary>
@@ -55,7 +66,7 @@ public class UserRepositoryPostgre : IUserRepository
           dp.Add("@email", email);
           dp.Add("@password", passwordSha256);
 
-          var rowsAffected = await connection.ExecuteAsync(sqlQuery, dp);
+          var rowsAffected = await _retryPolicy.ExecuteAsync(() => connection.ExecuteAsync(sqlQuery, dp));
 
           if (rowsAffected == 1)
           {
@@ -95,10 +106,10 @@ public class UserRepositoryPostgre : IUserRepository
             DynamicParameters dp = new();
             dp.Add("@count", limit);
 
-            var users = await connection.QueryAsync<UserDb>(sqlQuery, dp);
+            var users = await _retryPolicy.ExecuteAsync(() => connection.QueryAsync<UserDb>(sqlQuery, dp));
 
             var usersList = users.ToList();
-            var domainUsers = usersList.Select(u => new Demo.Domain.Entities.User
+            var domainUsers = usersList.Select(u => new User
             {
                 Id = u.Id,
                 Name = u.Name,
@@ -106,7 +117,7 @@ public class UserRepositoryPostgre : IUserRepository
                 CreatedAt = u.CreatedAt
             }).ToList();
 
-            return Result.Ok<IEnumerable<Demo.Domain.Entities.User>>(domainUsers);
+            return Result.Ok<IEnumerable<User>>(domainUsers);
         }
         catch (Exception ex)
         {
