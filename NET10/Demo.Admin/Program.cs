@@ -55,7 +55,7 @@ try
     
     Log.Information("Starting application");
     
-    builder.AddOpenTelemetry(Log.Logger);
+    builder.AddOpenTelemetryApplication(Log.Logger);
     
     #region RabbitMQ
     var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();

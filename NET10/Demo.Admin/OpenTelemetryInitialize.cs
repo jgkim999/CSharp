@@ -13,7 +13,7 @@ namespace Demo.Admin;
 
 public static class OpenTelemetryInitialize
 {
-    public static void AddOpenTelemetry(this WebApplicationBuilder appBuilder, Serilog.ILogger logger)
+    public static void AddOpenTelemetryApplication(this WebApplicationBuilder appBuilder, Serilog.ILogger logger)
     {
         var openTelemetryConfig = appBuilder.Configuration.GetSection("OpenTelemetry").Get<OtelConfig>();
         if (openTelemetryConfig is null)
