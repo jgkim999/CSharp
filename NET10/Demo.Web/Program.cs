@@ -88,50 +88,7 @@ try
 
     builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
-    #region LiteBus
-    // Handler 등록
-    builder.Services.AddTransient<IQueryErrorHandler, QueryErrorHandler>();
-    builder.Services.AddTransient<IQueryPreHandler, QueryPreHandler>();
-    builder.Services.AddTransient<IQueryPostHandler, QueryPostHandler>();
-    
-    builder.Services.AddTransient<ICommandErrorHandler, CommandErrorHandler>();
-    builder.Services.AddTransient<ICommandPreHandler, CommandPreHandler>();
-    builder.Services.AddTransient<ICommandPostHandler, CommandPostHandler>();
-    
-    builder.Services.AddTransient<IEventErrorHandler, EventErrorHandler>();
-    builder.Services.AddTransient<IEventPreHandler, EventPreHandler>();
-    builder.Services.AddTransient<IEventPostHandler, EventPostHandler>();
-    
-    // 모든 로드된 Assembly 가져오기
-    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-    builder.Services.AddLiteBus(liteBus =>
-    {
-        liteBus.AddCommandModule(module =>
-        {
-            foreach (var assembly in assemblies)
-            {
-                module.RegisterFromAssembly(assembly);
-            }
-        });
-
-        liteBus.AddQueryModule(module =>
-        {
-            foreach (var assembly in assemblies)
-            {
-                module.RegisterFromAssembly(assembly);
-            }
-        });
-
-        liteBus.AddEventModule(module =>
-        {
-            foreach (var assembly in assemblies)
-            {
-                module.RegisterFromAssembly(assembly);
-            }
-        });
-    });
-    #endregion
+    builder.AddLiteBusApplication();
     
     #region Mapster
     builder.Services.AddMapster();
