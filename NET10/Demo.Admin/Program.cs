@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Reflection;
 using Blazored.LocalStorage;
 using MudBlazor.Services;
+using RestSharp;
 using Demo.Admin.Components;
 using Demo.Application.Configs;
 using Demo.Application.Services;
@@ -11,7 +12,7 @@ using Demo.Infra.Repositories;
 using Demo.Infra.Services;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-
+using OpenTelemetry;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Logs;
@@ -116,6 +117,10 @@ try
     {
         ConfigureMetric(metrics, serviceName, otlpEndpoint);
     });
+    
+    openTelemetryBuilder.UseOtlpExporter(
+        OpenTelemetry.Exporter.OtlpExportProtocol.Grpc,
+        new Uri(otlpEndpoint));
 
     // TelemetryService 등록
     builder.Services.AddSingleton<ITelemetryService>(provider =>
@@ -156,8 +161,37 @@ try
     // Add MudBlazor services
     builder.Services.AddMudServices();
 
-    // HttpClient 설정 (Demo.Web API 호출용)
-    builder.Services.AddHttpClient();
+    // HttpClient 설정 (Demo.Web API 호출용) - 연결 풀링 최적화
+    builder.Services.AddHttpClient("DemoWebApi", client =>
+    {
+        client.BaseAddress = new Uri("http://localhost:5266/");
+        client.Timeout = TimeSpan.FromSeconds(30);
+        client.DefaultRequestHeaders.Add("User-Agent", "Demo.Admin/1.0");
+    })
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+    {
+        MaxConnectionsPerServer = 10, // 서버당 최대 연결 수 제한
+        UseCookies = false // 쿠키 비활성화로 성능 향상
+    });
+
+    // RestSharp 클라이언트 설정 - HttpClient 풀링 활용
+    builder.Services.AddSingleton<RestClient>(provider =>
+    {
+        var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+        var httpClient = httpClientFactory.CreateClient("DemoWebApi");
+        
+        var restClientOptions = new RestClientOptions()
+        {
+            BaseUrl = new Uri("http://localhost:5266/"),
+            ConfigureMessageHandler = _ => new HttpClientHandler()
+            {
+                MaxConnectionsPerServer = 10,
+                UseCookies = false
+            }
+        };
+        
+        return new RestClient(httpClient, restClientOptions);
+    });
 
     // Add services to the container.
     builder.Services.AddRazorComponents()

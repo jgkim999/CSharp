@@ -2,7 +2,8 @@
 
 @using System.Text.Json
 @using Demo.Application.Models
-@inject HttpClient HttpClient
+@using RestSharp
+@inject RestClient RestClient
 @inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
@@ -126,12 +127,15 @@
 
         try
         {
-            // Demo.Web의 serverTime API 호출
-            var response = await HttpClient.GetAsync("http://localhost:5266/api/serverTime");
+            // RestSharp을 사용한 Demo.Web serverTime API 호출
+            var request = new RestRequest("api/serverTime", Method.Get);
+            request.AddHeader("Accept", "application/json");
             
-            if (response.IsSuccessStatusCode)
+            var response = await RestClient.ExecuteAsync(request);
+            
+            if (response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
             {
-                _jsonResponse = await response.Content.ReadAsStringAsync();
+                _jsonResponse = response.Content;
                 
                 var options = new JsonSerializerOptions
                 {
@@ -145,7 +149,7 @@
             else
             {
                 _hasError = true;
-                _errorMessage = $"HTTP {response.StatusCode}: {response.ReasonPhrase}";
+                _errorMessage = $"HTTP {(int)response.StatusCode} {response.StatusCode}: {response.ErrorMessage ?? "알 수 없는 오류"}";
                 Snackbar.Add("서버 시간을 불러오는데 실패했습니다.", Severity.Error);
             }
         }
