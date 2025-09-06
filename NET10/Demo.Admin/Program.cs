@@ -156,6 +156,9 @@ try
     // Add MudBlazor services
     builder.Services.AddMudServices();
 
+    // HttpClient 설정 (Demo.Web API 호출용)
+    builder.Services.AddHttpClient();
+
     // Add services to the container.
     builder.Services.AddRazorComponents()
         .AddInteractiveServerComponents();

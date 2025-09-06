@@ -1,17 +1,11 @@
 using System.Diagnostics;
+using Demo.Application.Models;
 using Demo.Application.Queries;
 using Demo.Application.Services;
 using FastEndpoints;
 using LiteBus.Queries.Abstractions;
 
 namespace Demo.Web.Endpoints.ServerTime;
-
-public class ServerTimeResponse
-{
-    public string Utc { get; set; } = string.Empty;
-    public string Korea { get; set; } = string.Empty;
-    public string KoreanCalendar { get; set; } = string.Empty;
-}
 
 public class ServerTimeEndpoint : EndpointWithoutRequest
 {
