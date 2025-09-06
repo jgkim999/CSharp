@@ -1,6 +1,10 @@
 using Demo.Application;
 using Demo.Application.Configs;
 using Demo.Application.DTO.User;
+using LiteBus.Queries.Abstractions;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Events.Abstractions;
+using Demo.Application.ErrorHandlers;
 using Demo.Application.Extensions;
 using Demo.Application.Middleware;
 using Demo.Domain;
@@ -85,6 +89,19 @@ try
     builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
     #region LiteBus
+    // Handler 등록
+    builder.Services.AddTransient<IQueryErrorHandler, QueryErrorHandler>();
+    builder.Services.AddTransient<IQueryPreHandler, QueryPreHandler>();
+    builder.Services.AddTransient<IQueryPostHandler, QueryPostHandler>();
+    
+    builder.Services.AddTransient<ICommandErrorHandler, CommandErrorHandler>();
+    builder.Services.AddTransient<ICommandPreHandler, CommandPreHandler>();
+    builder.Services.AddTransient<ICommandPostHandler, CommandPostHandler>();
+    
+    builder.Services.AddTransient<IEventErrorHandler, EventErrorHandler>();
+    builder.Services.AddTransient<IEventPreHandler, EventPreHandler>();
+    builder.Services.AddTransient<IEventPostHandler, EventPostHandler>();
+    
     // 모든 로드된 Assembly 가져오기
     var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 

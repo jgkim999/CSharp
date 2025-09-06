@@ -35,17 +35,32 @@ public class RedisJwtRepository : IJwtRepository
         StackExchangeRedisInstrumentation? redisInstrumentation)
     {
         _logger = logger;
+        
+        var retryPolicy = Policy
+            .Handle<RedisConnectionException>()
+            .RetryAsync(3);
+        
+        var exponentialBackoffPolicy = Policy
+            .Handle<RedisTimeoutException>()
+            .WaitAndRetryAsync(3, retryAttempt => 
+                TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+        
+        _policyWrap = Policy.WrapAsync(retryPolicy, exponentialBackoffPolicy);
 
         try
         {
             if (_multiplexer != null)
                 return;
+            
             if (redisConfig is null)
                 throw new ArgumentNullException();
+            
             _multiplexer = ConnectionMultiplexer.Connect(redisConfig.Value.JwtConnectionString);
             redisInstrumentation?.AddConnection(_multiplexer);
+            
             _keyPrefix = redisConfig.Value.KeyPrefix;
             _database = _multiplexer.GetDatabase();
+            
             var faker = new Bogus.Faker();
             var key = MakeKey(faker.Random.Uuid().ToString());
 
@@ -56,12 +71,6 @@ public class RedisJwtRepository : IJwtRepository
                 _multiplexer = null;
                 throw new InvalidDataException();
             }
-            var retryPolicy = Policy
-                .Handle<RedisConnectionException>()
-                .RetryAsync(3);
-            
-            _policyWrap = Policy.WrapAsync(retryPolicy);
-            
         }
         catch (Exception ex)
         {
