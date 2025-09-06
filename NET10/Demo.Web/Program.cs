@@ -1,6 +1,10 @@
 using Demo.Application;
 using Demo.Application.Configs;
 using Demo.Application.DTO.User;
+using LiteBus.Queries.Abstractions;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Events.Abstractions;
+using Demo.Application.ErrorHandlers;
 using Demo.Application.Extensions;
 using Demo.Application.Middleware;
 using Demo.Domain;
@@ -84,37 +88,7 @@ try
 
     builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
-    #region LiteBus
-    // 모든 로드된 Assembly 가져오기
-    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-    builder.Services.AddLiteBus(liteBus =>
-    {
-        liteBus.AddCommandModule(module =>
-        {
-            foreach (var assembly in assemblies)
-            {
-                module.RegisterFromAssembly(assembly);
-            }
-        });
-
-        liteBus.AddQueryModule(module =>
-        {
-            foreach (var assembly in assemblies)
-            {
-                module.RegisterFromAssembly(assembly);
-            }
-        });
-
-        liteBus.AddEventModule(module =>
-        {
-            foreach (var assembly in assemblies)
-            {
-                module.RegisterFromAssembly(assembly);
-            }
-        });
-    });
-    #endregion
+    builder.AddLiteBusApplication();
     
     #region Mapster
     builder.Services.AddMapster();

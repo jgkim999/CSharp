@@ -5,6 +5,7 @@ using FluentResults;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.StackExchangeRedis;
+using Polly;
 using StackExchange.Redis;
 
 namespace Demo.Infra.Repositories;
@@ -17,6 +18,7 @@ public class IpToNationRedisCache : IIpToNationCache
     private readonly ConnectionMultiplexer _multiplexer;
     private readonly string? _keyPrefix;
     private readonly IDatabase? _database;
+    private readonly IAsyncPolicy _policyWrap;
 
     /// <summary>
     /// Initializes a new instance of the IpToNationRedisCache class
@@ -40,6 +42,12 @@ public class IpToNationRedisCache : IIpToNationCache
             {
                 throw new NullReferenceException("_database is null");
             }
+            
+            var retryPolicy = Policy
+                .Handle<RedisConnectionException>()
+                .RetryAsync(3);
+            
+            _policyWrap = Policy.WrapAsync(retryPolicy);
         }
         catch (Exception e)
         {
@@ -68,7 +76,9 @@ public class IpToNationRedisCache : IIpToNationCache
     public async Task<Result<string>> GetAsync(string clientIp)
     {
         Debug.Assert(_database != null, nameof(_database) + " != null");
-        var result = await _database.StringGetAsync(MakeKey(clientIp));
+        
+        var result = await _policyWrap.ExecuteAsync(() => _database.StringGetAsync(MakeKey(clientIp)));
+        
         return result.IsNull ? Result.Fail("Not found") : Result.Ok(result.ToString());
     }
 
@@ -81,6 +91,6 @@ public class IpToNationRedisCache : IIpToNationCache
     public async Task SetAsync(string clientIp, string countryCode, TimeSpan ts)
     {
         Debug.Assert(_database != null, nameof(_database) + " != null");
-        await _database.StringSetAsync(MakeKey(clientIp), countryCode, ts);
+        await _policyWrap.ExecuteAsync(() => _database.StringSetAsync(MakeKey(clientIp), countryCode, ts));
     }
 }

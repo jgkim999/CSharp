@@ -67,14 +67,13 @@ public static class AppInitializer
                 ["service.namespace"] = serviceNamespace,
                 ["deployment.environment"] = deploymentEnvironment,
                 ["host.name"] = Environment.MachineName,
-                ["os.type"] = Environment.OSVersion.Platform.ToString(),
-                ["os.description"] = Environment.OSVersion.VersionString,
-                ["process.pid"] = Environment.ProcessId,
-                ["process.executable.name"] = Assembly.GetExecutingAssembly().GetName().Name ?? "GamePulse",
-                ["telemetry.sdk.name"] = "opentelemetry",
-                ["telemetry.sdk.language"] = "dotnet",
-                ["telemetry.sdk.version"] = typeof(OpenTelemetryBuilder).Assembly.GetName().Version?.ToString() ??
-                                            "unknown"
+                //["os.type"] = Environment.OSVersion.Platform.ToString(),
+                //["os.description"] = Environment.OSVersion.VersionString,
+                //["process.pid"] = Environment.ProcessId,
+                //["process.executable.name"] = Assembly.GetExecutingAssembly().GetName().Name ?? "GamePulse",
+                //["telemetry.sdk.name"] = "opentelemetry",
+                //["telemetry.sdk.language"] = "dotnet",
+                //["telemetry.sdk.version"] = typeof(OpenTelemetryBuilder).Assembly.GetName().Version?.ToString() ??"unknown"
             });
         });
 
