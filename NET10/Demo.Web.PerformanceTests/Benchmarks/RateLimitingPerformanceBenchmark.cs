@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Demo.Application.Configs;
+using Demo.Application.Models;
 using Demo.Web.Endpoints.User;
 
 namespace Demo.Web.PerformanceTests.Benchmarks;

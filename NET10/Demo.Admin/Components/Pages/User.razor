@@ -7,7 +7,7 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search" OnClick="OnSearchAsync" Size="Size.Small">Search</MudButton>
 </div>
 
-<MudDataGrid ServerData="LoadGridData" T="Domain.Entities.User" @ref="_dataGrid" Dense="true" Hover="true"
+<MudDataGrid ServerData="LoadGridData" T="Demo.Application.DTO.User.UserDto" @ref="_dataGrid" Dense="true" Hover="true"
     Bordered="true" Striped="false" Elevation="0">
     <Columns>
         <PropertyColumn Property="x => x.Id" Title="Id" />
@@ -16,6 +16,6 @@
         <PropertyColumn Property="x => x.CreatedAt" Title="Create" />
     </Columns>
     <PagerContent>
-        <MudDataGridPager T="Domain.Entities.User" Disabled="false" />
+        <MudDataGridPager T="Demo.Application.DTO.User.UserDto" Disabled="false" />
     </PagerContent>
 </MudDataGrid>

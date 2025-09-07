@@ -14,8 +14,12 @@ public interface IUserRepository
     Task<Result> CreateAsync(string name, string email, string passwordSha256, CancellationToken ct = default);
     
     /// <summary>
-    /// Asynchronously retrieves all users as domain entities.
+    /// Asynchronously retrieves users with pagination and optional search functionality.
     /// </summary>
-    /// <returns>A task that resolves to a result containing a collection of user entities.</returns>
-    Task<Result<IEnumerable<Entities.User>>> GetAllAsync(int limit = 10, CancellationToken ct = default);
+    /// <param name="searchTerm">Optional search term to filter users by name.</param>
+    /// <param name="page">Page number (0-based).</param>
+    /// <param name="pageSize">Number of items per page.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A task that resolves to a result containing a tuple of users and total count.</returns>
+    Task<Result<(IEnumerable<Entities.User> Users, int TotalCount)>> GetPagedAsync(string? searchTerm, int page, int pageSize, CancellationToken ct = default);
 }

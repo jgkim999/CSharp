@@ -21,29 +21,32 @@ public class UserRepositoryPostgre : IUserRepository
     private readonly ILogger<UserRepositoryPostgre> _logger;
     private readonly ITelemetryService _telemetryService;
     private readonly IAsyncPolicy _retryPolicy;
-
+    
     /// <summary>
     /// Initializes a new instance of the UserRepositoryPostgre class with the specified configuration, mapper, logger, and telemetry service.
     /// </summary>
     public UserRepositoryPostgre(
-    IOptions<PostgresConfig> config,
-    IMapper mapper,
-    ILogger<UserRepositoryPostgre> logger,
-    ITelemetryService telemetryService)
+        IOptions<PostgresConfig> config,
+        IMapper mapper,
+        ILogger<UserRepositoryPostgre> logger,
+        ITelemetryService telemetryService)
     {
         _config = config.Value;
         _mapper = mapper;
         _logger = logger;
         _telemetryService = telemetryService;
-        
         _retryPolicy = Policy
             .Handle<NpgsqlException>()
             .Or<TimeoutException>()
-            .RetryAsync(3, (exception, retryCount) =>
-            {
-                _logger.LogWarning("Database operation failed, retry {RetryCount}: {Exception}", retryCount, exception.Message);
-            });
+            .WaitAndRetryAsync(
+                retryCount: 3,
+                sleepDurationProvider: retry => TimeSpan.FromMilliseconds(100 * Math.Pow(2, retry - 1)),
+                onRetry: (exception, sleep, retry, _) =>
+                {
+                    _logger.LogWarning(exception, "Database operation failed. Retry {Retry} in {Delay}.", retry, sleep);
+                });
     }
+
 
     /// <summary>
     /// Asynchronously creates a new user record in the database with the specified name, email, and password hash.
@@ -58,8 +61,9 @@ public class UserRepositoryPostgre : IUserRepository
       try
       {
           await using var connection = new NpgsqlConnection(_config.ConnectionString);
+          await connection.OpenAsync(ct);
 
-          const string sqlQuery = "INSERT INTO users (Name, Email, Password) VALUES (@name, @email, @password);";
+          const string sqlQuery = "INSERT INTO users (name, email, password) VALUES (@name, @email, @password);";
 
           DynamicParameters dp = new();
           dp.Add("@name", name);
@@ -83,45 +87,63 @@ public class UserRepositoryPostgre : IUserRepository
           return Result.Fail(new ExceptionalError(ex));
       }
     }
-
+    
     /// <summary>
-    /// Asynchronously retrieves a list of users from the database, limited by the specified count.
+    /// Asynchronously retrieves users with pagination and optional search functionality.
     /// </summary>
-    /// <param name="limit">The maximum number of users to retrieve (up to 100).</param>
-    /// <returns>A result containing a list of user entities if successful; otherwise, a failure result with an error message.</returns>
-    public async Task<Result<IEnumerable<Demo.Domain.Entities.User>>> GetAllAsync(int limit = 10, CancellationToken ct = default)
+    /// <param name="searchTerm">Optional search term to filter users by name.</param>
+    /// <param name="page">Page number (0-based).</param>
+    /// <param name="pageSize">Number of items per page.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A task that resolves to a result containing a tuple of users and total count.</returns>
+    public async Task<Result<(IEnumerable<User> Users, int TotalCount)>> GetPagedAsync(string? searchTerm, int page, int pageSize, CancellationToken ct = default)
     {
-        using var activity = _telemetryService.StartActivity(nameof(GetAllAsync));
+        using var activity = _telemetryService.StartActivity(nameof(GetPagedAsync));
 
-        if (limit > 100)
-            return Result.Fail($"Too many row request {limit}");
-        if (limit <= 0)
-            return Result.Fail($"Limit must be positive: {limit}");
+        if (pageSize > 100)
+            return Result.Fail($"Page size too large: {pageSize}");
+        if (pageSize <= 0)
+            return Result.Fail($"Page size must be positive: {pageSize}");
+        if (page < 0)
+            return Result.Fail($"Page must be non-negative: {page}");
+
         try
         {
-            await using var connection = new NpgsqlConnection(_config.ConnectionString);
+            // 검색 조건 구성
+            var whereClause = string.IsNullOrWhiteSpace(searchTerm) ? "" : "WHERE name ILIKE @searchTerm";
+            var searchPattern = string.IsNullOrWhiteSpace(searchTerm) ? null : $"%{searchTerm}%";
+
+            // 총 개수 조회
+            var countQuery = $"SELECT COUNT(*) FROM users {whereClause};";
+            var dataQuery = $"SELECT id, name, email, created_at FROM users {whereClause} ORDER BY id OFFSET @offset LIMIT @limit;";
+
+            DynamicParameters countParams = new();
+            DynamicParameters dataParams = new();
             
-            const string sqlQuery = "SELECT Id, Name, Email, CreatedAt FROM users ORDER BY Id LIMIT @count;";
+            if (!string.IsNullOrWhiteSpace(searchPattern))
+            {
+                countParams.Add("@searchTerm", searchPattern);
+                dataParams.Add("@searchTerm", searchPattern);
+            }
+            
+            dataParams.Add("@offset", page * pageSize);
+            dataParams.Add("@limit", pageSize);
 
-            DynamicParameters dp = new();
-            dp.Add("@count", limit);
+            await using var connection = new NpgsqlConnection(_config.ConnectionString);
+            await connection.OpenAsync(ct);
+            
+            var totalCount = await _retryPolicy.ExecuteAsync(() => connection.QuerySingleAsync<int>(countQuery, countParams));
 
-            var users = await _retryPolicy.ExecuteAsync(() => connection.QueryAsync<UserDb>(sqlQuery, dp));
+            var users = await _retryPolicy.ExecuteAsync(() => connection.QueryAsync<User>(dataQuery, dataParams));
 
             var usersList = users.ToList();
-            var domainUsers = usersList.Select(u => new User
-            {
-                Id = u.Id,
-                Name = u.Name,
-                Email = u.Email,
-                CreatedAt = u.CreatedAt
-            }).ToList();
 
-            return Result.Ok<IEnumerable<User>>(domainUsers);
+            return Result.Ok<(IEnumerable<User>, int)>((usersList, totalCount));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, nameof(GetAllAsync));
+            _logger.LogError(ex, "{Method} failed with search term: {SearchTerm}, page: {Page}, pageSize: {PageSize}", 
+                nameof(GetPagedAsync), searchTerm, page, pageSize);
             return Result.Fail(ex.Message);
         }
     }

@@ -2,7 +2,7 @@ using System.ComponentModel;
 using FastEndpoints;
 using FluentValidation;
 
-namespace Demo.Web.Endpoints.User;
+namespace Demo.Application.Models;
 
 public class UserCreateRequest
 {
