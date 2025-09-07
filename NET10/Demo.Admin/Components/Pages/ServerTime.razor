@@ -1,0 +1,194 @@
+@page "/servertime"
+
+@using System.Diagnostics
+@using System.Text.Json
+@using Demo.Application.Models
+@using RestSharp
+@using OpenTelemetry.Trace
+@inject RestClient RestClient
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">서버 시간 조회</MudText>
+    
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="Icons.Material.Filled.AccessTime" Class="mr-3" />
+                    현재 서버 시간
+                </MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudButton Variant="Variant.Filled" 
+                          Color="Color.Primary" 
+                          OnClick="RefreshTime" 
+                          StartIcon="Icons.Material.Filled.Refresh"
+                          Disabled="_isLoading">
+                    새로고침
+                </MudButton>
+            </CardHeaderActions>
+        </MudCardHeader>
+        
+        <MudCardContent>
+            @if (_isLoading)
+            {
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+                <MudText Align="Align.Center">데이터를 불러오는 중...</MudText>
+            }
+            else if (_serverTimeData != null)
+            {
+                <MudGrid>
+                    <MudItem xs="12" md="4">
+                        <MudPaper Class="pa-4" Elevation="3">
+                            <MudText Typo="Typo.subtitle1" Color="Color.Primary">
+                                <MudIcon Icon="Icons.Material.Filled.Public" Class="mr-2" />
+                                UTC 시간
+                            </MudText>
+                            <MudText Typo="Typo.body1" Class="mt-2">
+                                @_serverTimeData.Utc
+                            </MudText>
+                        </MudPaper>
+                    </MudItem>
+                    
+                    <MudItem xs="12" md="4">
+                        <MudPaper Class="pa-4" Elevation="3">
+                            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">
+                                <MudIcon Icon="Icons.Material.Filled.LocationOn" Class="mr-2" />
+                                한국 시간
+                            </MudText>
+                            <MudText Typo="Typo.body1" Class="mt-2">
+                                @_serverTimeData.Korea
+                            </MudText>
+                        </MudPaper>
+                    </MudItem>
+                    
+                    <MudItem xs="12" md="4">
+                        <MudPaper Class="pa-4" Elevation="3">
+                            <MudText Typo="Typo.subtitle1" Color="Color.Tertiary">
+                                <MudIcon Icon="Icons.Material.Filled.CalendarMonth" Class="mr-2" />
+                                음력 시간
+                            </MudText>
+                            <MudText Typo="Typo.body1" Class="mt-2">
+                                @_serverTimeData.KoreanCalendar
+                            </MudText>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+                
+                <MudDivider Class="my-4" />
+                
+                <MudExpansionPanels>
+                    <MudExpansionPanel>
+                        <TitleContent>
+                            <div style="display: flex; align-items: center;">
+                                <MudIcon Icon="Icons.Material.Filled.Code" class="mr-3"></MudIcon>
+                                <MudText>JSON 응답 데이터</MudText>
+                            </div>
+                        </TitleContent>
+                        <ChildContent>
+                            <MudPaper Class="pa-4" Elevation="1">
+                                <pre style="white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 0.875rem;">@_jsonResponse</pre>
+                            </MudPaper>
+                        </ChildContent>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            }
+            else if (_hasError)
+            {
+                <MudAlert Severity="Severity.Error" Class="my-4">
+                    <MudText>서버 시간을 불러오는 중 오류가 발생했습니다.</MudText>
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <MudText Typo="Typo.body2" Class="mt-2">@_errorMessage</MudText>
+                    }
+                </MudAlert>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private static readonly ActivitySource DemoAdminActivitySource = new("Demo.Admin");
+    
+    private ServerTimeResponse? _serverTimeData;
+    private string? _jsonResponse;
+    private bool _isLoading = false;
+    private bool _hasError = false;
+    private string? _errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 컴포넌트 초기화 추적
+        using var activity = DemoAdminActivitySource.StartActivity("ServerTime.OnInitializedAsync");
+        activity?.SetTag("blazor.component", "ServerTime");
+        activity?.SetTag("blazor.route", "/servertime");
+        activity?.SetTag("blazor.lifecycle", "OnInitializedAsync");
+        activity?.SetTag("operation.name", "component_initialization");
+        
+        await RefreshTime();
+    }
+
+    private async Task RefreshTime()
+    {
+        _isLoading = true;
+        _hasError = false;
+        _errorMessage = null;
+        StateHasChanged();
+
+        // OpenTelemetry Activity 생성
+        using var activity = DemoAdminActivitySource.StartActivity("ServerTime API Call");
+        
+        try
+        {
+            // RestSharp을 사용한 Demo.Web serverTime API 호출
+            var request = new RestRequest("api/serverTime", Method.Get);
+            request.AddHeader("Accept", "application/json");
+            
+            var response = await RestClient.ExecuteAsync(request);
+            
+            if (response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
+            {
+                _jsonResponse = response.Content;
+                
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                
+                _serverTimeData = JsonSerializer.Deserialize<ServerTimeResponse>(_jsonResponse, options);
+                
+                Snackbar.Add("서버 시간을 성공적으로 불러왔습니다.", Severity.Success);
+            }
+            else
+            {
+                _hasError = true;
+                _errorMessage = $"HTTP {(int)response.StatusCode} {response.StatusCode}: {response.ErrorMessage ?? "알 수 없는 오류"}";
+                
+                activity?.SetTag("operation.result", "http_error");
+                activity?.SetTag("error.message", _errorMessage);
+                activity?.SetStatus(ActivityStatusCode.Error, _errorMessage);
+                
+                Snackbar.Add("서버 시간을 불러오는데 실패했습니다.", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _hasError = true;
+            _errorMessage = ex.Message;
+            
+            activity?.SetTag("operation.result", "exception");
+            activity?.SetTag("error.type", ex.GetType().Name);
+            activity?.SetTag("error.message", ex.Message);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            activity?.AddException(ex);
+            
+            Snackbar.Add("네트워크 오류가 발생했습니다.", Severity.Error);
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Demo.Application.Models;
 using Demo.Web.Endpoints.User;
 using Demo.Web.PerformanceTests.Models;
 

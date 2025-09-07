@@ -1,8 +1,13 @@
 using Demo.Application;
 using Demo.Application.Configs;
 using Demo.Application.DTO.User;
+using LiteBus.Queries.Abstractions;
+using LiteBus.Commands.Abstractions;
+using LiteBus.Events.Abstractions;
+using Demo.Application.ErrorHandlers;
 using Demo.Application.Extensions;
 using Demo.Application.Middleware;
+using Demo.Application.Models;
 using Demo.Domain;
 using Demo.Domain.Repositories;
 using Demo.Infra;
@@ -12,6 +17,7 @@ using Demo.Infra.Services;
 using Demo.Web;
 using Demo.Web.Endpoints.User;
 using FastEndpoints;
+using Microsoft.EntityFrameworkCore;
 
 using FluentValidation;
 using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
@@ -84,37 +90,7 @@ try
 
     builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
-    #region LiteBus
-    // 모든 로드된 Assembly 가져오기
-    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-    builder.Services.AddLiteBus(liteBus =>
-    {
-        liteBus.AddCommandModule(module =>
-        {
-            foreach (var assembly in assemblies)
-            {
-                module.RegisterFromAssembly(assembly);
-            }
-        });
-
-        liteBus.AddQueryModule(module =>
-        {
-            foreach (var assembly in assemblies)
-            {
-                module.RegisterFromAssembly(assembly);
-            }
-        });
-
-        liteBus.AddEventModule(module =>
-        {
-            foreach (var assembly in assemblies)
-            {
-                module.RegisterFromAssembly(assembly);
-            }
-        });
-    });
-    #endregion
+    builder.AddLiteBusApplication();
     
     #region Mapster
     builder.Services.AddMapster();
@@ -127,6 +103,14 @@ try
     if (postgresConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<PostgresConfig>(builder.Configuration.GetSection("Postgres"));
+    
+    // DbContextFactory 등록
+    builder.Services.AddDbContextFactory<DemoDbContext>(options =>
+        options.UseNpgsql(postgresConfig.ConnectionString, npgsqlOptions =>
+        {
+            npgsqlOptions.CommandTimeout(10); // 명령 타임아웃 10초로 제한
+        }));
+    
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
     builder.Services.AddTransient<IUserRepository, UserRepositoryPostgre>();
     

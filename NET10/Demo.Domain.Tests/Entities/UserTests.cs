@@ -17,14 +17,14 @@ public class UserTests
     public void User_Should_Initialize_With_Default_Values()
     {
         // Arrange & Act
-        var user = new User();
+        var user = new UserEntity();
 
         // Assert
-        user.Id.Should().Be(0);
-        user.Name.Should().Be(string.Empty);
-        user.Email.Should().Be(string.Empty);
-        user.Password.Should().Be(string.Empty);
-        user.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        user.id.Should().Be(0);
+        user.name.Should().Be(string.Empty);
+        user.email.Should().Be(string.Empty);
+        user.password.Should().Be(string.Empty);
+        user.created_at.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]
@@ -38,21 +38,21 @@ public class UserTests
         var createdAt = _faker.Date.Recent();
 
         // Act
-        var user = new User
+        var user = new UserEntity
         {
-            Id = id,
-            Name = name,
-            Email = email,
-            Password = password,
-            CreatedAt = createdAt
+            id = id,
+            name = name,
+            email = email,
+            password = password,
+            created_at = createdAt
         };
 
         // Assert
-        user.Id.Should().Be(id);
-        user.Name.Should().Be(name);
-        user.Email.Should().Be(email);
-        user.Password.Should().Be(password);
-        user.CreatedAt.Should().Be(createdAt);
+        user.id.Should().Be(id);
+        user.name.Should().Be(name);
+        user.email.Should().Be(email);
+        user.password.Should().Be(password);
+        user.created_at.Should().Be(createdAt);
     }
 
     [Theory]
@@ -62,16 +62,16 @@ public class UserTests
     public void User_Should_Handle_Empty_Name_Values(string? name)
     {
         // Arrange & Act
-        var user = new User
+        var user = new UserEntity
         {
-            Id = 1,
-            Name = name ?? string.Empty,
-            Email = "test@example.com",
-            Password = "password123"
+            id = 1,
+            name = name ?? string.Empty,
+            email = "test@example.com",
+            password = "password123"
         };
 
         // Assert
-        user.Name.Should().Be(name ?? string.Empty);
+        user.name.Should().Be(name ?? string.Empty);
     }
 
     [Theory]
@@ -81,16 +81,16 @@ public class UserTests
     public void User_Should_Accept_Valid_Email_Formats(string email)
     {
         // Arrange & Act
-        var user = new User
+        var user = new UserEntity
         {
-            Id = 1,
-            Name = "Test User",
-            Email = email,
-            Password = "password123"
+            id = 1,
+            name = "Test User",
+            email = email,
+            password = "password123"
         };
 
         // Assert
-        user.Email.Should().Be(email);
+        user.email.Should().Be(email);
     }
 
     [Fact]
@@ -98,28 +98,28 @@ public class UserTests
     {
         // Arrange
         var originalDate = DateTime.UtcNow.AddDays(-1);
-        var user = new User
+        var user = new UserEntity
         {
-            Id = 1,
-            Name = "Test User",
-            Email = "test@example.com",
-            Password = "password123",
-            CreatedAt = originalDate
+            id = 1,
+            name = "Test User",
+            email = "test@example.com",
+            password = "password123",
+            created_at = originalDate
         };
 
         // Act & Assert
-        user.CreatedAt.Should().Be(originalDate);
+        user.created_at.Should().Be(originalDate);
         
         // CreatedAt should be init-only property, so this won't compile:
         // user.CreatedAt = DateTime.UtcNow; // This should cause compilation error
     }
 }
 
-public class UserDbTests
+public class UserEntityTests
 {
     private readonly Faker _faker;
 
-    public UserDbTests()
+    public UserEntityTests()
     {
         _faker = new Faker();
     }
@@ -128,14 +128,14 @@ public class UserDbTests
     public void UserDb_Should_Initialize_With_Default_Values()
     {
         // Arrange & Act
-        var userDb = new UserDb();
+        var userEntity = new UserEntity();
 
         // Assert
-        userDb.Id.Should().Be(0);
-        userDb.Name.Should().Be(string.Empty);
-        userDb.Email.Should().Be(string.Empty);
-        userDb.Password.Should().Be(string.Empty);
-        userDb.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        userEntity.id.Should().Be(0);
+        userEntity.name.Should().Be(string.Empty);
+        userEntity.email.Should().Be(string.Empty);
+        userEntity.password.Should().Be(string.Empty);
+        userEntity.created_at.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     [Fact]
@@ -149,21 +149,21 @@ public class UserDbTests
         var createdAt = _faker.Date.Recent();
 
         // Act
-        var userDb = new UserDb
+        var userEntity = new UserEntity
         {
-            Id = id,
-            Name = name,
-            Email = email,
-            Password = password,
-            CreatedAt = createdAt
+            id = id,
+            name = name,
+            email = email,
+            password = password,
+            created_at = createdAt
         };
 
         // Assert
-        userDb.Id.Should().Be(id);
-        userDb.Name.Should().Be(name);
-        userDb.Email.Should().Be(email);
-        userDb.Password.Should().Be(password);
-        userDb.CreatedAt.Should().Be(createdAt);
+        userEntity.id.Should().Be(id);
+        userEntity.name.Should().Be(name);
+        userEntity.email.Should().Be(email);
+        userEntity.password.Should().Be(password);
+        userEntity.created_at.Should().Be(createdAt);
     }
 
     [Fact]
@@ -177,21 +177,21 @@ public class UserDbTests
         var createdAt = _faker.Date.Recent();
 
         // Act
-        var userDb = new UserDb
+        var userEntity = new UserEntity
         {
-            Id = id,
-            Name = name,
-            Email = email,
-            Password = password,
-            CreatedAt = createdAt
+            id = id,
+            name = name,
+            email = email,
+            password = password,
+            created_at = createdAt
         };
 
         // Assert
-        userDb.Id.Should().Be(id);
-        userDb.Name.Should().Be(name);
-        userDb.Email.Should().Be(email);
-        userDb.Password.Should().Be(password);
-        userDb.CreatedAt.Should().Be(createdAt);
+        userEntity.id.Should().Be(id);
+        userEntity.name.Should().Be(name);
+        userEntity.email.Should().Be(email);
+        userEntity.password.Should().Be(password);
+        userEntity.created_at.Should().Be(createdAt);
 
         // Properties should be init-only, so these won't compile:
         // userDb.id = 999; // This should cause compilation error
