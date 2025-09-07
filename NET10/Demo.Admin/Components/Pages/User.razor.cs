@@ -43,11 +43,8 @@ public partial class User : ComponentBase
                 await _dataGrid.SetRowsPerPageAsync(storedPageSize);
             }
 
-            // 페이지 크기 변경 이벤트 등록
-            _dataGrid.PagerStateHasChangedEvent += async () =>
-            {
-                await SavePageSizeAsync(_dataGrid.RowsPerPage);
-            };
+            // 페이지 크기 변경 이벤트 등록 (중복 등록 방지)
+            // LoadGridData에서 이미 페이지 크기를 저장하므로 여기서는 제거
         }
     }
 
@@ -92,16 +89,14 @@ public partial class User : ComponentBase
                 StateHasChanged();
             }
 
-            // 저장된 페이지 크기 확인 및 적용
-            var storedPageSize = await GetStoredPageSizeAsync();
-            var actualPageSize = storedPageSize > 0 ? storedPageSize : state.PageSize;
+            // 현재 상태의 페이지 크기를 우선 사용하고, 변경된 경우 저장
+            var actualPageSize = state.PageSize;
             
-            // 저장된 페이지 크기와 현재 상태가 다르면 그리드 업데이트
-            if (storedPageSize > 0 && state.PageSize != storedPageSize && _dataGrid != null)
+            // 페이지 크기가 변경되었으면 저장
+            var storedPageSize = await GetStoredPageSizeAsync();
+            if (storedPageSize != actualPageSize)
             {
-                await _dataGrid.SetRowsPerPageAsync(storedPageSize);
-                // 페이지 크기가 변경되면 첫 페이지로 이동
-                state.Page = 0;
+                await SavePageSizeAsync(actualPageSize);
             }
 
             // RestSharp를 사용한 Demo.Web user list API 호출
