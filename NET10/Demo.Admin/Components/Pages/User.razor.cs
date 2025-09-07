@@ -4,6 +4,7 @@ using MudBlazor;
 using System.Text.Json;
 using RestSharp;
 using System.Diagnostics;
+using System.Net;
 using Demo.Application.Models;
 
 namespace Demo.Admin.Components.Pages;
@@ -17,19 +18,32 @@ public partial class User : ComponentBase
     
     private MudDataGrid<UserDto> _dataGrid = null!;
     private string _searchTerm = string.Empty;
+    
+    // 중복 trace 방지를 위한 상태 추적
+    private DateTime _lastTraceTime = DateTime.MinValue;
+    private string _lastTraceKey = string.Empty;
 
     [Inject] private RestClient RestClient { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
+    [Inject] private ILogger<User> Logger { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
+        Logger.LogInformation(nameof(User));
+        
         // LocalStorage에서 검색어 복원
         var storedSearchTerm = await GetStoredSearchTermAsync();
         if (!string.IsNullOrEmpty(storedSearchTerm))
         {
             _searchTerm = storedSearchTerm;
         }
+        
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        Snackbar.Configuration.ShowTransitionDuration = 100;
+        Snackbar.Configuration.VisibleStateDuration = 500;
+        Snackbar.Configuration.HideTransitionDuration = 100;
+        Snackbar.Configuration.ShowCloseIcon = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -56,11 +70,11 @@ public partial class User : ComponentBase
         // 검색 실행 알림
         if (!string.IsNullOrWhiteSpace(_searchTerm))
         {
-            Snackbar.Add($"'{_searchTerm}'로 검색 중...", Severity.Info, config => config.VisibleStateDuration = 1000);
+            Snackbar.Add($"'{_searchTerm}'로 검색 중...", Severity.Info);
         }
         else
         {
-            Snackbar.Add("전체 사용자 목록을 불러오는 중...", Severity.Info, config => config.VisibleStateDuration = 1000);
+            Snackbar.Add("전체 사용자 목록을 불러오는 중...", Severity.Info);
         }
         
         // 데이터 그리드 새로고침
@@ -72,8 +86,11 @@ public partial class User : ComponentBase
 
     private async Task<GridData<UserDto>> LoadGridData(GridState<UserDto> state)
     {
-        // OpenTelemetry Activity 생성
-        using var activity = DemoAdminActivitySource.StartActivity("User List API Call");
+        // 마지막 페이지 호출인지 확인 (페이지네이션 중복 호출 방지)
+        var shouldTrace = ShouldCreateTrace(state);
+        
+        // OpenTelemetry Activity 생성 (조건부)
+        using var activity = shouldTrace ? DemoAdminActivitySource.StartActivity("User List API Call") : null;
         activity?.SetTag("blazor.component", "User");
         activity?.SetTag("operation.name", "load_user_list");
         
@@ -140,11 +157,11 @@ public partial class User : ComponentBase
                 // 검색 결과에 따른 적절한 피드백 제공
                 if (!string.IsNullOrEmpty(currentSearchTerm))
                 {
-                    Snackbar.Add($"'{currentSearchTerm}' 검색 완료: {apiResponse.TotalItems}건 발견", Severity.Success, config => config.VisibleStateDuration = 1000);
+                    Snackbar.Add($"'{currentSearchTerm}' 검색 완료: {apiResponse.TotalItems}건 발견", Severity.Success);
                 }
                 else if (state.Page == 0)
                 {
-                    Snackbar.Add($"사용자 목록을 성공적으로 불러왔습니다. (총 {apiResponse.TotalItems}건)", Severity.Success, config => config.VisibleStateDuration = 1000);
+                    Snackbar.Add($"사용자 목록을 성공적으로 불러왔습니다. (총 {apiResponse.TotalItems}건)", Severity.Success);
                 }
 
                 return new GridData<UserDto>
@@ -161,7 +178,7 @@ public partial class User : ComponentBase
                 activity?.SetTag("error.message", errorMessage);
                 activity?.SetStatus(ActivityStatusCode.Error, errorMessage);
                 
-                Snackbar.Add("사용자 목록을 불러오는데 실패했습니다.", Severity.Error, config => config.VisibleStateDuration = 1000);
+                Snackbar.Add("사용자 목록을 불러오는데 실패했습니다.", Severity.Error);
                 
                 return new GridData<UserDto>
                 {
@@ -178,7 +195,7 @@ public partial class User : ComponentBase
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             activity?.AddException(ex);
             
-            Snackbar.Add("네트워크 오류가 발생했습니다.", Severity.Error, config => config.VisibleStateDuration = 1000);
+            Snackbar.Add("네트워크 오류가 발생했습니다.", Severity.Error);
             Console.WriteLine($"데이터 로드 오류: {ex.Message}");
             
             return new GridData<UserDto>
@@ -242,5 +259,39 @@ public partial class User : ComponentBase
         {
             Console.WriteLine($"페이지 크기 저장 오류: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// OpenTelemetry trace 생성 여부를 결정합니다.
+    /// 중복 호출이나 빠른 연속 호출 시 trace 생성을 스킵합니다.
+    /// </summary>
+    /// <param name="state">현재 그리드 상태</param>
+    /// <returns>trace를 생성할지 여부</returns>
+    private bool ShouldCreateTrace(GridState<UserDto> state)
+    {
+        var now = DateTime.UtcNow;
+        var currentTraceKey = $"{state.Page}_{state.PageSize}_{_searchTerm}";
+        
+        // 1초 이내의 동일한 요청은 trace 생성 스킵
+        var timeSinceLastTrace = now - _lastTraceTime;
+        if (timeSinceLastTrace.TotalMilliseconds < 1000 && _lastTraceKey == currentTraceKey)
+        {
+            return false;
+        }
+        
+        // 초기 로드, 검색, 페이지 크기 변경 시에만 trace 생성
+        var isInitialLoad = state.Page == 0 && string.IsNullOrEmpty(_searchTerm);
+        var isSearch = !string.IsNullOrEmpty(_searchTerm);
+        var isPageSizeChange = _lastTraceKey != currentTraceKey && state.Page == 0;
+        
+        var shouldTrace = isInitialLoad || isSearch || isPageSizeChange;
+        
+        if (shouldTrace)
+        {
+            _lastTraceTime = now;
+            _lastTraceKey = currentTraceKey;
+        }
+        
+        return shouldTrace;
     }
 }

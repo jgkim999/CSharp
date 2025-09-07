@@ -110,16 +110,68 @@ public static class OpenTelemetryInitialize
         tracing.AddSource("Demo.Infra");
         tracing.SetSampler(new TraceIdRatioBasedSampler(probability));
         // ASP.NET Core 자동 계측 - Blazor Server 최적화
+        /*
         tracing.AddAspNetCoreInstrumentation(options =>
         {
-            // HTTP 요청 필터링 (헬스체크 등 제외)
+            // HTTP 요청 필터링 (헬스체크, SignalR ComponentHub 등 제외)
             options.Filter = context =>
             {
                 var path = context.Request.Path.Value?.ToLowerInvariant();
-                return !string.IsNullOrEmpty(path) &&
-                       !path.Contains("/health") &&
-                       !path.Contains("/metrics") &&
-                       !path.Contains("/favicon.ico");
+                
+                // 제외할 경로들
+                if (string.IsNullOrEmpty(path) ||
+                    path.Contains("/health") ||
+                    path.Contains("/metrics") ||
+                    path.Contains("/favicon.ico") ||
+                    path.Contains("/_blazor/negotiate") ||
+                    path.Contains("/_blazor/disconnect") ||
+                    path.StartsWith("/_blazor/"))
+                {
+                    return false;
+                }
+                
+                // SignalR ComponentHub 관련 헤더 확인
+                var headers = context.Request.Headers;
+                if (headers.ContainsKey("Connection") && 
+                    headers["Connection"].ToString().Contains("Upgrade"))
+                {
+                    return false; // WebSocket 연결 요청 제외
+                }
+                
+                // User-Agent에서 SignalR 클라이언트 확인
+                if (headers.ContainsKey("User-Agent"))
+                {
+                    var userAgent = headers["User-Agent"].ToString().ToLowerInvariant();
+                    if (userAgent.Contains("signalr") || 
+                        userAgent.Contains("microsoft.aspnetcore.signalr.client"))
+                    {
+                        return false;
+                    }
+                }
+                
+                // ComponentHub 관련 요청 제외
+                if (headers.ContainsKey("X-Requested-With") && 
+                    headers["X-Requested-With"].ToString().Contains("XMLHttpRequest"))
+                {
+                    // Blazor Server ComponentHub의 AJAX 요청들 제외
+                    if (path?.Contains("/_blazor") == true)
+                    {
+                        return false;
+                    }
+                }
+                
+                // Content-Type으로 ComponentHub 호출 감지
+                if (headers.ContainsKey("Content-Type"))
+                {
+                    var contentType = headers["Content-Type"].ToString().ToLowerInvariant();
+                    if (contentType.Contains("application/x-msgpack") || 
+                        contentType.Contains("text/plain; charset=utf-8"))
+                    {
+                        return false; // SignalR ComponentHub 메시지 제외
+                    }
+                }
+                
+                return true;
             };
 
             // 요청 및 응답 세부 정보 수집
@@ -184,7 +236,7 @@ public static class OpenTelemetryInitialize
                 activity.SetTag("http.response.content_length", response.ContentLength);
             };
         });
-
+        */
         // HTTP 클라이언트 자동 계측 - RestSharp 호출 포함
         tracing.AddHttpClientInstrumentation(options =>
         {
