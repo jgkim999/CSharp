@@ -1,3 +1,4 @@
+using Demo.Domain.Entities;
 using FluentResults;
 
 namespace Demo.Domain.Repositories;
@@ -21,5 +22,5 @@ public interface IUserRepository
     /// <param name="pageSize">Number of items per page.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A task that resolves to a result containing a tuple of users and total count.</returns>
-    Task<Result<(IEnumerable<Entities.User> Users, int TotalCount)>> GetPagedAsync(string? searchTerm, int page, int pageSize, CancellationToken ct = default);
+    Task<Result<(IEnumerable<UserEntity> Users, int TotalCount)>> GetPagedAsync(string? searchTerm, int page, int pageSize, CancellationToken ct = default);
 }

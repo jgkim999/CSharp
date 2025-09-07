@@ -138,33 +138,14 @@
 
         // OpenTelemetry Activity 생성
         using var activity = DemoAdminActivitySource.StartActivity("ServerTime API Call");
-        activity?.SetTag("operation.name", "fetch_server_time");
-        activity?.SetTag("blazor.component", "ServerTime");
-        activity?.SetTag("blazor.route", "/servertime");
-        activity?.SetTag("blazor.action", "refresh_time");
-        activity?.SetTag("component", "blazor_client");
-        activity?.SetTag("api.endpoint", "api/serverTime");
-        activity?.SetTag("api.target", "Demo.Web");
-
+        
         try
         {
             // RestSharp을 사용한 Demo.Web serverTime API 호출
             var request = new RestRequest("api/serverTime", Method.Get);
             request.AddHeader("Accept", "application/json");
             
-            // HTTP 요청 세부 정보 추가
-            activity?.SetTag("http.method", "GET");
-            activity?.SetTag("http.url", $"{RestClient.Options.BaseUrl}api/serverTime");
-            activity?.SetTag("http.user_agent", "Demo.Admin/1.0");
-            
-            var stopwatch = Stopwatch.StartNew();
             var response = await RestClient.ExecuteAsync(request);
-            stopwatch.Stop();
-            
-            // 응답 정보 추가
-            activity?.SetTag("http.status_code", (int)response.StatusCode);
-            activity?.SetTag("http.response_time_ms", stopwatch.ElapsedMilliseconds);
-            activity?.SetTag("http.content_length", response.Content?.Length ?? 0);
             
             if (response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
             {
@@ -176,9 +157,6 @@
                 };
                 
                 _serverTimeData = JsonSerializer.Deserialize<ServerTimeResponse>(_jsonResponse, options);
-                
-                activity?.SetTag("operation.result", "success");
-                activity?.SetTag("response.data_size", response.Content.Length);
                 
                 Snackbar.Add("서버 시간을 성공적으로 불러왔습니다.", Severity.Success);
             }

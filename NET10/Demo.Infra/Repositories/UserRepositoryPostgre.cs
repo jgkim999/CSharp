@@ -1,5 +1,4 @@
 using Dapper;
-
 using Demo.Application.Services;
 using Demo.Domain.Entities;
 using Demo.Domain.Repositories;
@@ -17,7 +16,6 @@ namespace Demo.Infra.Repositories;
 public class UserRepositoryPostgre : IUserRepository
 {
     private readonly PostgresConfig _config;
-    private readonly IMapper _mapper;
     private readonly ILogger<UserRepositoryPostgre> _logger;
     private readonly ITelemetryService _telemetryService;
     private readonly IAsyncPolicy _retryPolicy;
@@ -32,7 +30,6 @@ public class UserRepositoryPostgre : IUserRepository
         ITelemetryService telemetryService)
     {
         _config = config.Value;
-        _mapper = mapper;
         _logger = logger;
         _telemetryService = telemetryService;
         _retryPolicy = Policy
@@ -96,7 +93,7 @@ public class UserRepositoryPostgre : IUserRepository
     /// <param name="pageSize">Number of items per page.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A task that resolves to a result containing a tuple of users and total count.</returns>
-    public async Task<Result<(IEnumerable<User> Users, int TotalCount)>> GetPagedAsync(string? searchTerm, int page, int pageSize, CancellationToken ct = default)
+    public async Task<Result<(IEnumerable<UserEntity> Users, int TotalCount)>> GetPagedAsync(string? searchTerm, int page, int pageSize, CancellationToken ct = default)
     {
         using var activity = _telemetryService.StartActivity(nameof(GetPagedAsync));
 
@@ -134,11 +131,9 @@ public class UserRepositoryPostgre : IUserRepository
             
             var totalCount = await _retryPolicy.ExecuteAsync(() => connection.QuerySingleAsync<int>(countQuery, countParams));
 
-            var users = await _retryPolicy.ExecuteAsync(() => connection.QueryAsync<User>(dataQuery, dataParams));
-
-            var usersList = users.ToList();
-
-            return Result.Ok<(IEnumerable<User>, int)>((usersList, totalCount));
+            var users = await _retryPolicy.ExecuteAsync(() => connection.QueryAsync<UserEntity>(dataQuery, dataParams));
+            
+            return (users, totalCount);
         }
         catch (Exception ex)
         {

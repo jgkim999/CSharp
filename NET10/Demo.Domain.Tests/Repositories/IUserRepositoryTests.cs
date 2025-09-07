@@ -96,18 +96,18 @@ public class IUserRepositoryTests
             Times.Once);
     }
 
-    private List<User> GenerateUsers(int count)
+    private List<UserEntity> GenerateUsers(int count)
     {
-        var users = new List<User>();
+        var users = new List<UserEntity>();
         for (int i = 1; i <= count; i++)
         {
-            users.Add(new User
+            users.Add(new UserEntity
             {
-                Id = i,
-                Name = _faker.Person.FullName,
-                Email = _faker.Person.Email,
-                Password = _faker.Internet.Password(),
-                CreatedAt = _faker.Date.Recent()
+                id = i,
+                name = _faker.Person.FullName,
+                email = _faker.Person.Email,
+                password = _faker.Internet.Password(),
+                created_at = _faker.Date.Recent()
             });
         }
         return users;
