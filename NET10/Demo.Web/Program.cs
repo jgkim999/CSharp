@@ -14,6 +14,7 @@ using Demo.Infra;
 using Demo.Infra.Configs;
 using Demo.Infra.Repositories;
 using Demo.Infra.Services;
+using Demo.Infra.Extensions;
 using Demo.Web;
 using Demo.Web.Endpoints.User;
 using FastEndpoints;
@@ -113,6 +114,9 @@ try
     
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
     builder.Services.AddTransient<IUserRepository, UserRepositoryPostgre>();
+    
+    // FusionCache 설정 추가
+    builder.Services.AddIpToNationFusionCache(builder.Configuration);
     
     #endregion
     
