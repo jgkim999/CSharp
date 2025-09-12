@@ -40,7 +40,10 @@ public static class ServiceCollectionExtensions
         services.Configure<RedisConfig>(
             configuration.GetSection("Redis"));
 
-        // FusionCacheConfig 등록 및 RedisConfig와 통합
+        // FusionCacheConfig 등록 및 유효성 검증 활성화
+        services.AddValidatedFusionCacheConfig(configuration);
+
+        // FusionCacheConfig와 RedisConfig 통합 설정
         services.Configure<FusionCacheConfig>(fusionCacheConfig =>
         {
             // FusionCache 전용 설정 바인딩
@@ -172,6 +175,17 @@ public static class ServiceCollectionExtensions
 
         // FusionCache 메트릭 서비스 등록
         services.AddSingleton<FusionCacheMetricsService>();
+
+        // 동적 설정 업데이트 서비스 등록
+        services.AddSingleton<DynamicFusionCacheConfigService>();
+        services.AddHostedService<DynamicFusionCacheConfigService>(provider => 
+            provider.GetRequiredService<DynamicFusionCacheConfigService>());
+
+        // 기존 Redis 캐시 구현체 등록 (전환 메커니즘을 위해 유지)
+        services.AddScoped<IpToNationRedisCache>();
+        
+        // FusionCache 구현체 등록
+        services.AddScoped<IpToNationFusionCache>();
 
         // IIpToNationCache 인터페이스에 FusionCache 구현체 등록
         services.AddScoped<IIpToNationCache, IpToNationFusionCache>();
@@ -519,6 +533,80 @@ public static class ServiceCollectionExtensions
 
         // 백그라운드 서비스로 메트릭 수집기 등록
         services.AddHostedService<FusionCacheMetricsCollectorService>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// 전환 메커니즘을 지원하는 IpToNation 캐시 서비스를 등록합니다
+    /// 기능 플래그와 트래픽 분할을 통한 점진적 마이그레이션을 지원합니다
+    /// </summary>
+    /// <param name="services">서비스 컬렉션</param>
+    /// <param name="configuration">애플리케이션 구성</param>
+    /// <returns>구성된 서비스 컬렉션</returns>
+    public static IServiceCollection AddIpToNationCacheWithMigration(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        // 기존 Redis 캐시 서비스 등록
+        services.AddIpToNationRedisCache(configuration);
+        
+        // FusionCache 서비스 등록
+        services.AddIpToNationFusionCache(configuration);
+
+        // 전환 메커니즘을 위한 래퍼 등록
+        services.AddScoped<IpToNationCacheWrapper>();
+
+        // IIpToNationCache 인터페이스에 래퍼 등록 (기존 등록을 덮어씀)
+        services.AddScoped<IIpToNationCache>(serviceProvider =>
+        {
+            var config = serviceProvider.GetRequiredService<IOptionsMonitor<FusionCacheConfig>>().CurrentValue;
+            
+            // 전환 메커니즘이 활성화된 경우 래퍼 사용
+            if (config.UseFusionCache || config.TrafficSplitRatio > 0.0)
+            {
+                return serviceProvider.GetRequiredService<IpToNationCacheWrapper>();
+            }
+            
+            // 그렇지 않으면 기존 Redis 캐시 사용
+            return serviceProvider.GetRequiredService<IpToNationRedisCache>();
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// 기존 Redis 캐시 서비스만 등록합니다 (호환성 유지)
+    /// </summary>
+    /// <param name="services">서비스 컬렉션</param>
+    /// <param name="configuration">애플리케이션 구성</param>
+    /// <returns>구성된 서비스 컬렉션</returns>
+    public static IServiceCollection AddIpToNationRedisCache(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        // 기존 RedisConfig 등록
+        services.Configure<RedisConfig>(
+            configuration.GetSection("Redis"));
+
+        // Redis 연결 설정
+        services.AddSingleton<IConnectionMultiplexer>(serviceProvider =>
+        {
+            var redisConfig = serviceProvider.GetRequiredService<IOptions<RedisConfig>>().Value;
+            var connectionString = redisConfig.IpToNationConnectionString;
+            
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "Redis IpToNationConnectionString이 설정되지 않았습니다. appsettings.json에서 Redis:IpToNationConnectionString을 확인해주세요.");
+            }
+
+            return ConnectionMultiplexer.Connect(connectionString);
+        });
+
+        // 기존 Redis 캐시 구현체 등록
+        services.AddScoped<IpToNationRedisCache>();
+        services.AddScoped<IIpToNationCache, IpToNationRedisCache>();
 
         return services;
     }
