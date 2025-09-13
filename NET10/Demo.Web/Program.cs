@@ -80,14 +80,26 @@ try
     // RateLimit 설정을 DI 컨테이너에 등록
     builder.Services.Configure<RateLimitConfig>(builder.Configuration.GetSection("RateLimit"));
         
-    var redisConfig = builder.Configuration.GetSection("RedisConfig").Get<RedisConfig>();
+    var redisConfig = builder.Configuration.GetSection("Redis").Get<RedisConfig>();
     if (redisConfig is null)
         throw new NullReferenceException();
-    builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("RedisConfig"));
+    builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("Redis"));
     
     builder.Services.AddFastEndpoints();
     
     builder.Services.AddOpenApi();
+    
+    // CORS 설정 추가
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("ReactApp", policy =>
+        {
+            policy.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000", "http://192.168.0.60:3000")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        });
+    });
 
     builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
@@ -123,6 +135,9 @@ try
     builder.Services.AddHostedService<RabbitMqConsumerService>();
     
     var app = builder.Build();
+    
+    // CORS 미들웨어 등록 (가장 먼저 등록)
+    app.UseCors("ReactApp");
     
     // Rate Limit 미들웨어 등록 (FastEndpoints보다 먼저 등록)
     app.UseMiddleware<RateLimitMiddleware>();
