@@ -126,6 +126,7 @@ try
     
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
     builder.Services.AddTransient<IUserRepository, UserRepositoryPostgre>();
+    builder.Services.AddTransient<ICompanyRepository, CompanyRepositoryPostgre>();
     
     // FusionCache 설정 추가
     builder.Services.AddIpToNationFusionCache(builder.Configuration);
