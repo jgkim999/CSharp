@@ -300,6 +300,13 @@ public partial class User : ComponentBase
 
     private async Task OnCreateUserAsync()
     {
+        IDialogReference? dialogRef = null;
+        
+        var parameters = new DialogParameters
+        {
+            ["OnCancel"] = EventCallback.Factory.Create(this, () => dialogRef?.Close(DialogResult.Cancel()))
+        };
+        
         var options = new DialogOptions 
         { 
             CloseOnEscapeKey = true,
@@ -307,8 +314,8 @@ public partial class User : ComponentBase
             FullWidth = true
         };
 
-        var dialog = await DialogService.ShowAsync<UserCreateDialog>("새 사용자 생성", options);
-        var result = await dialog.Result;
+        dialogRef = await DialogService.ShowAsync<UserCreateDialog>("새 사용자 생성", parameters, options);
+        var result = await dialogRef.Result;
 
         if (result != null && !result.Canceled)
         {

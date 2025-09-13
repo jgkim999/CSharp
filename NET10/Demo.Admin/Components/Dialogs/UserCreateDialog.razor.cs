@@ -84,10 +84,18 @@ public partial class UserCreateDialog : ComponentBase
         }
     }
 
-    private void Cancel()
+    private async Task Cancel()
     {
         Console.WriteLine("Cancel 메서드가 호출되었습니다.");
-        MudDialog?.Close(DialogResult.Cancel());
+        if (MudDialog != null)
+        {
+            MudDialog.Close(DialogResult.Cancel());
+        }
+        else
+        {
+            Console.WriteLine("MudDialog가 null입니다. OnCancel EventCallback을 사용합니다.");
+            await OnCancel.InvokeAsync();
+        }
     }
 }
 
