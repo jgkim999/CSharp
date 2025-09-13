@@ -6,6 +6,14 @@ namespace Demo.Domain.Repositories;
 public interface ICompanyRepository
 {
     /// <summary>
+    /// 지정된 이름으로 새 회사를 비동기적으로 생성합니다.
+    /// </summary>
+    /// <param name="name">회사 이름.</param>
+    /// <param name="ct">취소 토큰.</param>
+    /// <returns>성공을 나타내는 결과 또는 작업이 실패한 경우 오류 메시지가 포함된 실패를 나타내는 작업.</returns>
+    Task<Result> CreateAsync(string name, CancellationToken ct = default);
+    
+    /// <summary>
     /// 회사 목록을 페이징과 선택적 검색 기능으로 비동기적으로 조회합니다.
     /// </summary>
     /// <param name="searchTerm">회사명으로 필터링할 선택적 검색어.</param>

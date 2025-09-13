@@ -44,6 +44,42 @@ public class CompanyRepositoryPostgre : ICompanyRepository
     }
 
     /// <summary>
+    /// 지정된 이름으로 새 회사 레코드를 데이터베이스에 비동기적으로 생성합니다.
+    /// </summary>
+    /// <param name="name">회사 이름.</param>
+    /// <param name="ct">취소 토큰.</param>
+    /// <returns>회사가 생성된 경우 성공을 나타내는 결과 또는 작업이 성공하지 않은 경우 오류 메시지가 포함된 실패를 반환하는 작업.</returns>
+    public async Task<Result> CreateAsync(string name, CancellationToken ct = default)
+    {
+        using var activity = _telemetryService.StartActivity(nameof(CreateAsync));
+        try
+        {
+            await using var connection = new NpgsqlConnection(_config.ConnectionString);
+            await connection.OpenAsync(ct);
+
+            const string sqlQuery = "INSERT INTO companies (name) VALUES (@name);";
+
+            DynamicParameters dp = new();
+            dp.Add("@name", name);
+
+            var rowsAffected = await _retryPolicy.ExecuteAsync(() => connection.ExecuteAsync(sqlQuery, dp));
+
+            if (rowsAffected == 1)
+            {
+                return Result.Ok();
+            }
+
+            var errorMessage = "Insert failed - no rows affected";
+            return Result.Fail(errorMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"{nameof(CreateAsync)} failed");
+            return Result.Fail(new ExceptionalError(ex));
+        }
+    }
+
+    /// <summary>
     /// 회사 목록을 페이징과 선택적 검색 기능으로 비동기적으로 조회합니다.
     /// </summary>
     /// <param name="searchTerm">회사명으로 필터링할 선택적 검색어.</param>
