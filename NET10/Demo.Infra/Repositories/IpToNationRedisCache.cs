@@ -43,11 +43,9 @@ public class IpToNationRedisCache : IIpToNationCache
                 throw new NullReferenceException("_database is null");
             }
             
-            var retryPolicy = Policy
+            _policyWrap = Policy
                 .Handle<RedisConnectionException>()
                 .RetryAsync(3);
-            
-            _policyWrap = Policy.WrapAsync(retryPolicy);
         }
         catch (Exception e)
         {
