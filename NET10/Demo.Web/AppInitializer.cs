@@ -191,6 +191,8 @@ public static class AppInitializer
             metrics.AddMeter("System.Runtime");
             metrics.AddMeter("System.Net.Http");
             metrics.AddMeter("System.Net.NameResolution");
+            // FusionCache 메트릭 추가
+            metrics.AddMeter("Demo.Infra.FusionCache");
         });
 
         // TelemetryService 등록

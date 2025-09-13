@@ -15,6 +15,7 @@
   <Project Path="Demo.Application/Demo.Application.csproj" />
   <Project Path="Demo.Domain.Tests/Demo.Domain.Tests.csproj" />
   <Project Path="Demo.Domain/Demo.Domain.csproj" />
+  <Project Path="Demo.Infra.Benchmarks/Demo.Infra.Benchmarks.csproj" />
   <Project Path="Demo.Infra.Tests/Demo.Infra.Tests.csproj" />
   <Project Path="Demo.Infra/Demo.Infra.csproj" />
   <Project Path="Demo.ServiceDefaults/Demo.ServiceDefaults.csproj" />

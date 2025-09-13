@@ -44,21 +44,33 @@
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
       "disabled": false,
-      "autoApprove": []
+      "autoApprove": [
+        "fetch"
+      ]
     },
     "git": {
       "command": "uvx",
-      "args": ["mcp-server-git"]
+      "args": [
+        "mcp-server-git"
+      ],
+      "disabled": false,
+      "autoApprove": []
     },
     "awslabs.ecs-mcp-server": {
       "command": "uvx",
-      "args": ["--from", "awslabs-ecs-mcp-server", "ecs-mcp-server"],
+      "args": [
+        "--from",
+        "awslabs-ecs-mcp-server",
+        "ecs-mcp-server"
+      ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR",
         "FASTMCP_LOG_FILE": "/path/to/ecs-mcp-server.log",
         "ALLOW_WRITE": "false",
         "ALLOW_SENSITIVE_DATA": "false"
-      }
+      },
+      "disabled": false,
+      "autoApprove": []
     }
   }
 }
