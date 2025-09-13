@@ -26,9 +26,9 @@
       <PackageReference Include="LiteBus.Queries.Extensions.MicrosoftDependencyInjection" Version="3.1.0" />
       <PackageReference Include="Mapster" Version="7.4.0" />
       <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
       <PackageReference Include="NodaTime" Version="3.2.2" />
       <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.3" />
       <PackageReference Include="OpenTelemetry.AutoInstrumentation.Runtime.Native" Version="1.12.0" />
@@ -40,17 +40,17 @@
       <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
       <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.12.0-beta.2" />
       <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.12.0-beta.2" />
-      <PackageReference Include="Scalar.AspNetCore" Version="2.7.2" />
+      <PackageReference Include="Scalar.AspNetCore" Version="2.8.3" />
       <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
       <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-      <PackageReference Include="StackExchange.Redis" Version="2.9.11" />
-      <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.8" />
+      <PackageReference Include="StackExchange.Redis" Version="2.9.17" />
+      <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.9" />
       <PackageReference Include="Serilog" Version="4.3.0" />
       <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
       <PackageReference Include="FastEndpoints.Security" Version="7.0.1" />
       <PackageReference Include="FastEndpoints.Swagger" Version="7.0.1" />
-      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
       <PackageReference Include="OpenTelemetry" Version="1.12.0" />
       <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
     </ItemGroup>

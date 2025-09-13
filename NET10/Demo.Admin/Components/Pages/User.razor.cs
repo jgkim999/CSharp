@@ -6,6 +6,8 @@ using RestSharp;
 using System.Diagnostics;
 using System.Net;
 using Demo.Application.Models;
+using Demo.Admin.Components.Dialogs;
+using Demo.Admin.Services;
 
 namespace Demo.Admin.Components.Pages;
 
@@ -27,6 +29,7 @@ public partial class User : ComponentBase
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
     [Inject] private ILogger<User> Logger { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -293,5 +296,27 @@ public partial class User : ComponentBase
         }
         
         return shouldTrace;
+    }
+
+    private async Task OnCreateUserAsync()
+    {
+        var options = new DialogOptions 
+        { 
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<UserCreateDialog>("새 사용자 생성", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            // 사용자가 성공적으로 생성되면 데이터 그리드 새로고침
+            if (_dataGrid != null)
+            {
+                await _dataGrid.ReloadServerData();
+            }
+        }
     }
 }

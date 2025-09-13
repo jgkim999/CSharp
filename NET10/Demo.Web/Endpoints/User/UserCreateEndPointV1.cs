@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 
 namespace Demo.Web.Endpoints.User;
 
-public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
+public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
 {
     private readonly ICommandMediator _commandMediator;
     private readonly ITelemetryService _telemetryService;
@@ -69,11 +69,21 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
 
             if (ret.Result.IsFailed)
             {
-                // 실패 처리
+                // 실패 처리 - 구체적인 오류 메시지와 상태 코드 결정
                 var errorMessage = ret.Result.GetErrorMessageAll();
                 _logger.LogError("User creation command failed: {ErrorMessage}", errorMessage);
-                AddError(errorMessage);
-                await Send.ErrorsAsync(500, ct);
+                
+                var (statusCode, userFriendlyMessage) = GetErrorDetails(errorMessage);
+                
+                var errorResponse = new Demo.Application.Models.ErrorResponse
+                {
+                    Message = userFriendlyMessage,
+                    ErrorCode = statusCode == 409 ? "DUPLICATE_EMAIL" : "VALIDATION_ERROR",
+                    Details = errorMessage,
+                    Timestamp = DateTime.UtcNow
+                };
+
+                await Send.ResponseAsync(errorResponse, statusCode, ct);
             }
             else
             {
@@ -83,9 +93,52 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest, EmptyResponse>
         catch (Exception ex)
         {
             _logger.LogError(ex, nameof(UserCreateEndpointV1));
-            AddError(ex.Message);
             _telemetryService.SetActivityError(activity, ex);
-            await Send.ErrorsAsync(500, ct);
+            
+            var errorResponse = new Demo.Application.Models.ErrorResponse
+            {
+                Message = "서버 내부 오류가 발생했습니다.",
+                ErrorCode = "INTERNAL_ERROR",
+                Details = ex.Message,
+                Timestamp = DateTime.UtcNow
+            };
+
+            await Send.ResponseAsync(errorResponse, 500, ct);
         }
+    }
+
+    private static (int StatusCode, string UserFriendlyMessage) GetErrorDetails(string errorMessage)
+    {
+        // 데이터베이스 제약 조건 오류 분석
+        if (errorMessage.Contains("duplicate key value violates unique constraint") && 
+            errorMessage.Contains("users_email_key"))
+        {
+            return (409, "이미 사용 중인 이메일 주소입니다.");
+        }
+        
+        if (errorMessage.Contains("duplicate key value violates unique constraint"))
+        {
+            return (409, "중복된 데이터입니다.");
+        }
+        
+        if (errorMessage.Contains("violates not-null constraint"))
+        {
+            return (400, "필수 정보가 누락되었습니다.");
+        }
+        
+        if (errorMessage.Contains("violates check constraint"))
+        {
+            return (400, "입력된 데이터가 유효하지 않습니다.");
+        }
+
+        // 기타 유효성 검사 오류
+        if (errorMessage.Contains("validation", StringComparison.OrdinalIgnoreCase) ||
+            errorMessage.Contains("invalid", StringComparison.OrdinalIgnoreCase))
+        {
+            return (400, "입력된 정보를 확인해주세요.");
+        }
+
+        // 기본 오류
+        return (500, "사용자 생성 중 오류가 발생했습니다.");
     }
 }

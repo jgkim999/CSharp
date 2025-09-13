@@ -5,6 +5,7 @@
 <div class="d-flex align-center gap-3 mb-4">
     <MudTextField @bind-Value="_searchTerm" Label="Search by Name" Variant="Variant.Outlined" Class="flex-grow-1" Margin="Margin.Dense" />
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search" OnClick="OnSearchAsync" Size="Size.Small">Search</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.PersonAdd" OnClick="OnCreateUserAsync" Size="Size.Small">생성</MudButton>
 </div>
 
 <MudDataGrid ServerData="LoadGridData" T="Demo.Application.DTO.User.UserDto" @ref="_dataGrid" Dense="true" Hover="true"

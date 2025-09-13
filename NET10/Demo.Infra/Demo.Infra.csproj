@@ -19,8 +19,8 @@
       <PackageReference Include="FluentResults" Version="4.0.0" />
       <PackageReference Include="IP2Location.IPGeolocation" Version="9.1.0" />
       <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.0" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
       <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.3" />
       <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.12.0-beta.2" />
@@ -28,11 +28,11 @@
       <PackageReference Include="Polly.Core" Version="8.6.3" />
       <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
       <PackageReference Include="RabbitMQ.Client.OpenTelemetry" Version="1.0.0-rc.1" />
-      <PackageReference Include="StackExchange.Redis" Version="2.9.11" />
+      <PackageReference Include="StackExchange.Redis" Version="2.9.17" />
       <PackageReference Include="FastEndpoints.Security" Version="7.0.1" />
       <PackageReference Include="Bogus" Version="35.6.3" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.8" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
       <PackageReference Include="OpenTelemetry" Version="1.12.0" />
       <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
       <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
@@ -42,7 +42,7 @@
       <PackageReference Include="ZiggyCreatures.FusionCache" Version="2.4.0" />
       <PackageReference Include="ZiggyCreatures.FusionCache.OpenTelemetry" Version="2.4.0" />
       <PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="2.4.0" />
-      <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.8" />
+      <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.9" />
     </ItemGroup>
 
 </Project>
