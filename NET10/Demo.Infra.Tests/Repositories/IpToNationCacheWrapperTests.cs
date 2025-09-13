@@ -15,16 +15,16 @@ namespace Demo.Infra.Tests.Repositories;
 /// </summary>
 public class IpToNationCacheWrapperTests
 {
-    private readonly Mock<IpToNationFusionCache> _mockFusionCache;
-    private readonly Mock<IpToNationRedisCache> _mockRedisCache;
+    private readonly Mock<IIpToNationCache> _mockFusionCache;
+    private readonly Mock<IIpToNationCache> _mockRedisCache;
     private readonly Mock<IOptionsMonitor<FusionCacheConfig>> _mockConfigMonitor;
     private readonly Mock<ILogger<IpToNationCacheWrapper>> _mockLogger;
     private readonly IpToNationCacheWrapper _wrapper;
 
     public IpToNationCacheWrapperTests()
     {
-        _mockFusionCache = new Mock<IpToNationFusionCache>();
-        _mockRedisCache = new Mock<IpToNationRedisCache>();
+        _mockFusionCache = new Mock<IIpToNationCache>();
+        _mockRedisCache = new Mock<IIpToNationCache>();
         _mockConfigMonitor = new Mock<IOptionsMonitor<FusionCacheConfig>>();
         _mockLogger = new Mock<ILogger<IpToNationCacheWrapper>>();
 
@@ -215,15 +215,14 @@ public class IpToNationCacheWrapperTests
         var clientIp = "192.168.1.100";
         var countryCode = "KR";
         var expiration = TimeSpan.FromMinutes(30);
-        var expectedResult = Result.Ok();
         _mockRedisCache.Setup(x => x.SetAsync(clientIp, countryCode, expiration))
-            .ReturnsAsync(expectedResult);
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _wrapper.SetAsync(clientIp, countryCode, expiration);
+        await _wrapper.SetAsync(clientIp, countryCode, expiration);
 
         // Assert
-        Assert.True(result.IsSuccess);
+        // SetAsync는 이제 void를 반환하므로 예외가 발생하지 않으면 성공
         _mockRedisCache.Verify(x => x.SetAsync(clientIp, countryCode, expiration), Times.Once);
         _mockFusionCache.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
     }
@@ -242,15 +241,14 @@ public class IpToNationCacheWrapperTests
         var clientIp = "192.168.1.100";
         var countryCode = "US";
         var expiration = TimeSpan.FromMinutes(30);
-        var expectedResult = Result.Ok();
         _mockFusionCache.Setup(x => x.SetAsync(clientIp, countryCode, expiration))
-            .ReturnsAsync(expectedResult);
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _wrapper.SetAsync(clientIp, countryCode, expiration);
+        await _wrapper.SetAsync(clientIp, countryCode, expiration);
 
         // Assert
-        Assert.True(result.IsSuccess);
+        // SetAsync는 이제 void를 반환하므로 예외가 발생하지 않으면 성공
         _mockFusionCache.Verify(x => x.SetAsync(clientIp, countryCode, expiration), Times.Once);
         _mockRedisCache.Verify(x => x.SetAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TimeSpan>()), Times.Never);
     }
@@ -272,13 +270,13 @@ public class IpToNationCacheWrapperTests
         _mockFusionCache.Setup(x => x.SetAsync(clientIp, countryCode, expiration))
             .ThrowsAsync(new InvalidOperationException("FusionCache 오류"));
         _mockRedisCache.Setup(x => x.SetAsync(clientIp, countryCode, expiration))
-            .ReturnsAsync(Result.Ok());
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _wrapper.SetAsync(clientIp, countryCode, expiration);
+        await _wrapper.SetAsync(clientIp, countryCode, expiration);
 
         // Assert
-        Assert.True(result.IsSuccess);
+        // SetAsync는 이제 void를 반환하므로 예외가 발생하지 않으면 성공
         _mockFusionCache.Verify(x => x.SetAsync(clientIp, countryCode, expiration), Times.Once);
         _mockRedisCache.Verify(x => x.SetAsync(clientIp, countryCode, expiration), Times.Once);
     }

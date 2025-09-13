@@ -555,7 +555,15 @@ public static class ServiceCollectionExtensions
         services.AddIpToNationFusionCache(configuration);
 
         // 전환 메커니즘을 위한 래퍼 등록
-        services.AddScoped<IpToNationCacheWrapper>();
+        services.AddScoped<IpToNationCacheWrapper>(serviceProvider =>
+        {
+            var fusionCache = serviceProvider.GetRequiredService<IpToNationFusionCache>();
+            var redisCache = serviceProvider.GetRequiredService<IpToNationRedisCache>();
+            var configMonitor = serviceProvider.GetRequiredService<IOptionsMonitor<FusionCacheConfig>>();
+            var logger = serviceProvider.GetRequiredService<ILogger<IpToNationCacheWrapper>>();
+            
+            return new IpToNationCacheWrapper(fusionCache, redisCache, configMonitor, logger);
+        });
 
         // IIpToNationCache 인터페이스에 래퍼 등록 (기존 등록을 덮어씀)
         services.AddScoped<IIpToNationCache>(serviceProvider =>

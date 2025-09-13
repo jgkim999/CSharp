@@ -14,8 +14,8 @@ namespace Demo.Infra.Repositories;
 /// </summary>
 public class IpToNationCacheWrapper : IIpToNationCache
 {
-  private readonly IpToNationFusionCache _fusionCache;
-  private readonly IpToNationRedisCache _redisCache;
+  private readonly IIpToNationCache _fusionCache;
+  private readonly IIpToNationCache _redisCache;
   private readonly IOptionsMonitor<FusionCacheConfig> _configMonitor;
   private readonly ILogger<IpToNationCacheWrapper> _logger;
 
@@ -27,8 +27,8 @@ public class IpToNationCacheWrapper : IIpToNationCache
   /// <param name="configMonitor">FusionCache 설정 모니터</param>
   /// <param name="logger">로거</param>
   public IpToNationCacheWrapper(
-      IpToNationFusionCache fusionCache,
-      IpToNationRedisCache redisCache,
+      IIpToNationCache fusionCache,
+      IIpToNationCache redisCache,
       IOptionsMonitor<FusionCacheConfig> configMonitor,
       ILogger<IpToNationCacheWrapper> logger)
   {
@@ -87,8 +87,8 @@ public class IpToNationCacheWrapper : IIpToNationCache
   /// <param name="clientIp">저장할 클라이언트 IP 주소</param>
   /// <param name="countryCode">저장할 국가 코드</param>
   /// <param name="expiration">캐시 만료 시간</param>
-  /// <returns>저장 성공 여부</returns>
-  public async Task<Result> SetAsync(string clientIp, string countryCode, TimeSpan expiration)
+  /// <returns>저장 작업</returns>
+  public async Task SetAsync(string clientIp, string countryCode, TimeSpan expiration)
   {
     var config = _configMonitor.CurrentValue;
     var useNewImplementation = ShouldUseNewImplementation(clientIp, config);
@@ -99,13 +99,13 @@ public class IpToNationCacheWrapper : IIpToNationCache
       {
         _logger.LogDebug("FusionCache를 사용하여 IP {ClientIp}에 대한 국가 코드 {CountryCode}를 저장합니다",
             HashIpForLogging(clientIp), countryCode);
-        return await _fusionCache.SetAsync(clientIp, countryCode, expiration);
+        await _fusionCache.SetAsync(clientIp, countryCode, expiration);
       }
       else
       {
         _logger.LogDebug("기존 Redis 캐시를 사용하여 IP {ClientIp}에 대한 국가 코드 {CountryCode}를 저장합니다",
             HashIpForLogging(clientIp), countryCode);
-        return await _redisCache.SetAsync(clientIp, countryCode, expiration);
+        await _redisCache.SetAsync(clientIp, countryCode, expiration);
       }
     }
     catch (Exception ex)
@@ -117,7 +117,8 @@ public class IpToNationCacheWrapper : IIpToNationCache
       if (useNewImplementation && config.TrafficSplitRatio < 1.0)
       {
         _logger.LogWarning("FusionCache 오류로 인해 기존 Redis 캐시로 폴백합니다");
-        return await _redisCache.SetAsync(clientIp, countryCode, expiration);
+        await _redisCache.SetAsync(clientIp, countryCode, expiration);
+        return;
       }
 
       throw;
