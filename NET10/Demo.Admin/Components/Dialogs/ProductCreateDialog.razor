@@ -1,0 +1,105 @@
+@using Demo.Admin.Models
+@using Demo.Application.DTO.Company
+
+<MudDialog>
+    <DialogContent>
+        <EditForm Model="@_model" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudAutocomplete T="Demo.Application.DTO.Company.CompanyDto"
+                                     Value="_selectedCompany"
+                                     ValueChanged="@OnCompanyChanged"
+                                     SearchFunc="@SearchCompanies"
+                                     ToStringFunc="@(e => e?.Name ?? "")"
+                                     Label="회사 선택"
+                                     Variant="Variant.Outlined"
+                                     Required="true"
+                                     Clearable="false"
+                                     ShowProgressIndicator="true"
+                                     ProgressIndicatorColor="Color.Primary"
+                                     AdornmentIcon="@Icons.Material.Filled.Business"
+                                     AdornmentColor="Color.Primary"
+                                     ResetValueOnEmptyText="false"
+                                     CoerceText="false"
+                                     MaxItems="50">
+                        <ItemTemplate Context="company">
+                            <MudText>@company.Name</MudText>
+                            <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-secondary);">ID: @company.Id</MudText>
+                        </ItemTemplate>
+                        <NoItemsTemplate>
+                            <MudText Align="Align.Center" Class="px-4 py-1">
+                                @if (Companies.Any())
+                                {
+                                    <text>검색 결과가 없습니다</text>
+                                }
+                                else
+                                {
+                                    <text>회사 목록을 불러오는 중...</text>
+                                }
+                            </MudText>
+                        </NoItemsTemplate>
+                    </MudAutocomplete>
+                    <ValidationMessage For="@(() => _model.CompanyId)" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Name"
+                                  Label="상품명"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  For="@(() => _model.Name)"
+                                  Counter="100"
+                                  MaxLength="100" />
+                    <ValidationMessage For="@(() => _model.Name)" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudNumericField @bind-Value="_model.Price"
+                                     Label="가격"
+                                     Variant="Variant.Outlined"
+                                     Required="true"
+                                     For="@(() => _model.Price)"
+                                     Min="0"
+                                     T="int" />
+                    <ValidationMessage For="@(() => _model.Price)" />
+                </MudItem>
+            </MudGrid>
+
+            @if (_isLoading)
+            {
+                <div class="d-flex justify-center mt-4">
+                    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                </div>
+            }
+
+            @if (!Companies.Any() && !_isLoading)
+            {
+                <MudAlert Severity="Severity.Warning" Class="mt-4">
+                    회사 목록을 불러올 수 없습니다. 먼저 회사를 생성해주세요.
+                </MudAlert>
+            }
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-4">
+                    @_errorMessage
+                </MudAlert>
+            }
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">취소</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="@(_isLoading || !Companies.Any() || _selectedCompany == null)">
+            @if (_isLoading)
+            {
+                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">생성 중...</MudText>
+            }
+            else
+            {
+                <MudText>생성</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>
