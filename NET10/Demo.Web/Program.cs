@@ -18,6 +18,7 @@ using Demo.Infra.Extensions;
 using Demo.Web;
 using Demo.Web.Endpoints.User;
 using FastEndpoints;
+using FastEndpoints.Swagger;
 using Microsoft.EntityFrameworkCore;
 
 using FluentValidation;
@@ -86,8 +87,8 @@ try
     builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("Redis"));
     
     builder.Services.AddFastEndpoints();
-    
-    builder.Services.AddOpenApi();
+    builder.Services.SwaggerDocument();
+    //builder.Services.AddOpenApi();
     
     // CORS 설정 추가
     builder.Services.AddCors(options =>
