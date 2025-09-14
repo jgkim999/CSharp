@@ -1,0 +1,80 @@
+@using Demo.Admin.Models
+@using Demo.Admin.Services
+@using System.ComponentModel.DataAnnotations
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="@_isFormValid" Model="@_model" Validation="@_validator.ValidateValue">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Name"
+                                  For="@(() => _model.Name)"
+                                  Label="이름"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="이름은 필수입니다"
+                                  Counter="255"
+                                  MaxLength="255"
+                                  Immediate="true" />
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Email"
+                                  For="@(() => _model.Email)"
+                                  Label="이메일"
+                                  Variant="Variant.Outlined"
+                                  Required="true"
+                                  RequiredError="이메일은 필수입니다"
+                                  Counter="255"
+                                  MaxLength="255"
+                                  Immediate="true" />
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Password"
+                                  For="@(() => _model.Password)"
+                                  Label="비밀번호"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Password"
+                                  Required="true"
+                                  RequiredError="비밀번호는 필수입니다"
+                                  Counter="64"
+                                  MaxLength="64"
+                                  Immediate="true" />
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.ConfirmPassword"
+                                  For="@(() => _model.ConfirmPassword)"
+                                  Label="비밀번호 확인"
+                                  Variant="Variant.Outlined"
+                                  InputType="InputType.Password"
+                                  Required="true"
+                                  RequiredError="비밀번호 확인은 필수입니다"
+                                  Counter="64"
+                                  MaxLength="64"
+                                  Immediate="true" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Default">취소</MudButton>
+        <MudButton OnClick="CreateUser" 
+                   Color="Color.Primary" 
+                   Variant="Variant.Filled"
+                   Disabled="@(!_isFormValid || _isCreating)"
+                   StartIcon="@(_isCreating ? null : Icons.Material.Filled.PersonAdd)">
+            @if (_isCreating)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                <MudText Class="ms-2">생성 중...</MudText>
+            }
+            else
+            {
+                <MudText>생성</MudText>
+            }
+        </MudButton>
+    </DialogActions>
+</MudDialog>

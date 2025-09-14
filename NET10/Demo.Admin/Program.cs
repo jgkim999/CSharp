@@ -21,6 +21,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using Demo.Admin.Services;
 using OpenTelemetryBuilder = OpenTelemetry.OpenTelemetryBuilder;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,10 +67,10 @@ try
     #endregion
 
     #region Redis
-    var redisConfig = builder.Configuration.GetSection("RedisConfig").Get<RedisConfig>();
+    var redisConfig = builder.Configuration.GetSection("Redis").Get<RedisConfig>();
     if (redisConfig is null)
         throw new NullReferenceException();
-    builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("RedisConfig"));
+    builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("Redis"));
     #endregion
     
     #region PgSql
@@ -119,6 +120,11 @@ try
         
         return new RestClient(httpClient, restClientOptions);
     });
+
+    // Demo.Admin 서비스 등록
+    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<ICompanyService, CompanyService>();
+    builder.Services.AddScoped<IProductService, ProductService>();
 
     // Add services to the container.
     builder.Services.AddRazorComponents()

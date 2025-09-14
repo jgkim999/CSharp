@@ -6,6 +6,8 @@ using RestSharp;
 using System.Diagnostics;
 using System.Net;
 using Demo.Application.Models;
+using Demo.Admin.Components.Dialogs;
+using Demo.Admin.Services;
 
 namespace Demo.Admin.Components.Pages;
 
@@ -27,6 +29,7 @@ public partial class User : ComponentBase
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
     [Inject] private ILogger<User> Logger { get; set; } = default!;
+    [Inject] private IDialogService DialogService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -293,5 +296,57 @@ public partial class User : ComponentBase
         }
         
         return shouldTrace;
+    }
+
+    private async Task OnCreateUserAsync()
+    {
+        Console.WriteLine("OnCreateUserAsync 시작");
+        IDialogReference? dialogRef = null;
+
+        var parameters = new DialogParameters
+        {
+            ["OnCancel"] = EventCallback.Factory.Create(this, () => dialogRef?.Close(DialogResult.Cancel()))
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        Console.WriteLine("사용자 생성 다이얼로그 열기");
+        dialogRef = await DialogService.ShowAsync<UserCreateDialog>("새 사용자 생성", parameters, options);
+        Console.WriteLine("사용자 생성 다이얼로그 결과 대기 중");
+
+        // 다이얼로그 결과를 안전하게 기다리기
+        try
+        {
+            var result = await dialogRef.Result;
+            Console.WriteLine($"사용자 생성 다이얼로그 결과 - Canceled: {result?.Canceled}, Data: {result?.Data}");
+
+            if (result != null && !result.Canceled)
+            {
+                Console.WriteLine("사용자 생성 성공, 데이터 그리드 새로고침 시작");
+                // 사용자가 성공적으로 생성되면 데이터 그리드 새로고침
+                if (_dataGrid != null)
+                {
+                    await _dataGrid.ReloadServerData();
+                    Console.WriteLine("사용자 데이터 그리드 새로고침 완료");
+                }
+                else
+                {
+                    Console.WriteLine("사용자 데이터 그리드가 null입니다");
+                }
+            }
+            else
+            {
+                Console.WriteLine("사용자 생성 다이얼로그가 취소되었거나 결과가 null입니다");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"사용자 생성 다이얼로그 결과 처리 중 오류: {ex.Message}");
+        }
     }
 }
