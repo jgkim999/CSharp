@@ -1,26 +1,26 @@
-using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 
 namespace Demo.Application.Extensions;
 
-public static class WithCallerInfoLogger
+public static class WithCallerWarningLogger
 {
-    public static void LogInfoWithCaller<T>(
+    public static void LogWarningWithCaller<T>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string message,
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        if (!logger.IsEnabled(LogLevel.Information))
+        if (!logger.IsEnabled(LogLevel.Warning))
             return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] {Message}",
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] {Message}",
             fileName, memberName, sourceLineNumber, message);
     }
 
     // 구조적 로깅용 (1개 파라미터)
-    public static void LogInfoWithCaller<T, TArg>(
+    public static void LogWarningWithCaller<T, TArg>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg arg,
@@ -28,14 +28,15 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        if (!logger.IsEnabled(LogLevel.Information))
+        if (!logger.IsEnabled(LogLevel.Warning))
             return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2>(
+    // 구조적 로깅용 (2개 파라미터)
+    public static void LogWarningWithCaller<T, TArg1, TArg2>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1,
@@ -44,17 +45,15 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        if (!logger.IsEnabled(LogLevel.Information))
+        if (!logger.IsEnabled(LogLevel.Warning))
             return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2);
     }
 
-
     // 구조적 로깅용 (3개 파라미터)
-
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1,
@@ -64,74 +63,60 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        if (!logger.IsEnabled(LogLevel.Information))
+        if (!logger.IsEnabled(LogLevel.Warning))
             return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4>(
+    // LogWarning 4-20개 파라미터 오버로드들
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
-        TArg1 arg1,
-        TArg2 arg2,
-        TArg3 arg3,
-        TArg4 arg4,
+        TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4,
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        if (!logger.IsEnabled(LogLevel.Information))
+        if (!logger.IsEnabled(LogLevel.Warning))
             return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
-        TArg1 arg1,
-        TArg2 arg2,
-        TArg3 arg3,
-        TArg4 arg4,
-        TArg5 arg5,
+        TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5,
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        if (!logger.IsEnabled(LogLevel.Information))
+        if (!logger.IsEnabled(LogLevel.Warning))
             return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5);
     }
 
-
-    // 구조적 로깅용 (6개 파라미터)
-
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
-        TArg1 arg1,
-        TArg2 arg2,
-        TArg3 arg3,
-        TArg4 arg4,
-        TArg5 arg5,
-        TArg6 arg6,
+        TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6,
         [CallerMemberName] string memberName = "",
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
-        if (!logger.IsEnabled(LogLevel.Information))
+        if (!logger.IsEnabled(LogLevel.Warning))
             return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7,
@@ -139,12 +124,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8,
@@ -152,12 +139,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9,
@@ -165,12 +154,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10,
@@ -178,12 +169,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11,
@@ -191,12 +184,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11, TArg12 arg12,
@@ -204,12 +199,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11, TArg12 arg12, TArg13 arg13,
@@ -217,12 +214,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11, TArg12 arg12, TArg13 arg13, TArg14 arg14,
@@ -230,12 +229,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11, TArg12 arg12, TArg13 arg13, TArg14 arg14, TArg15 arg15,
@@ -243,12 +244,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11, TArg12 arg12, TArg13 arg13, TArg14 arg14, TArg15 arg15, TArg16 arg16,
@@ -256,12 +259,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16, TArg17>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16, TArg17>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11, TArg12 arg12, TArg13 arg13, TArg14 arg14, TArg15 arg15, TArg16 arg16, TArg17 arg17,
@@ -269,12 +274,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16, TArg17, TArg18>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16, TArg17, TArg18>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11, TArg12 arg12, TArg13 arg13, TArg14 arg14, TArg15 arg15, TArg16 arg16, TArg17 arg17, TArg18 arg18,
@@ -282,12 +289,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16, TArg17, TArg18, TArg19>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16, TArg17, TArg18, TArg19>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11, TArg12 arg12, TArg13 arg13, TArg14 arg14, TArg15 arg15, TArg16 arg16, TArg17 arg17, TArg18 arg18, TArg19 arg19,
@@ -295,12 +304,14 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19);
     }
 
-    public static void LogInfoWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16, TArg17, TArg18, TArg19, TArg20>(
+    public static void LogWarningWithCaller<T, TArg1, TArg2, TArg3, TArg4, TArg5, TArg6, TArg7, TArg8, TArg9, TArg10, TArg11, TArg12, TArg13, TArg14, TArg15, TArg16, TArg17, TArg18, TArg19, TArg20>(
         this Microsoft.Extensions.Logging.ILogger<T> logger,
         string messageTemplate,
         TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4, TArg5 arg5, TArg6 arg6, TArg7 arg7, TArg8 arg8, TArg9 arg9, TArg10 arg10, TArg11 arg11, TArg12 arg12, TArg13 arg13, TArg14 arg14, TArg15 arg15, TArg16 arg16, TArg17 arg17, TArg18 arg18, TArg19 arg19, TArg20 arg20,
@@ -308,8 +319,10 @@ public static class WithCallerInfoLogger
         [CallerFilePath] string sourceFilePath = "",
         [CallerLineNumber] int sourceLineNumber = 0)
     {
+        if (!logger.IsEnabled(LogLevel.Warning))
+            return;
         var fileName = Path.GetFileName(sourceFilePath);
-        logger.LogInformation("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
+        logger.LogWarning("[{FileName}:{MemberName}:{LineNumber}] " + messageTemplate,
             fileName, memberName, sourceLineNumber, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20);
     }
 }
