@@ -1,4 +1,4 @@
-using Demo.Application.DTO.User;
+using Demo.Application.DTO.Company;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Text.Json;
@@ -11,16 +11,16 @@ using Demo.Admin.Services;
 
 namespace Demo.Admin.Components.Pages;
 
-public partial class User : ComponentBase
+public partial class Company : ComponentBase
 {
-    private const string USER_SEARCH_TERM_KEY = "UserSearchTerm";
-    private const string PAGE_SIZE_KEY = "UserPageSize";
-    
+    private const string COMPANY_SEARCH_TERM_KEY = "CompanySearchTerm";
+    private const string PAGE_SIZE_KEY = "CompanyPageSize";
+
     private static readonly ActivitySource DemoAdminActivitySource = new("Demo.Admin");
-    
-    private MudDataGrid<UserDto> _dataGrid = null!;
+
+    private MudDataGrid<CompanyDto> _dataGrid = null!;
     private string _searchTerm = string.Empty;
-    
+
     // 중복 trace 방지를 위한 상태 추적
     private DateTime _lastTraceTime = DateTime.MinValue;
     private string _lastTraceKey = string.Empty;
@@ -28,20 +28,20 @@ public partial class User : ComponentBase
     [Inject] private RestClient RestClient { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
     [Inject] private Blazored.LocalStorage.ILocalStorageService LocalStorage { get; set; } = default!;
-    [Inject] private ILogger<User> Logger { get; set; } = default!;
+    [Inject] private ILogger<Company> Logger { get; set; } = default!;
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        Logger.LogInformation(nameof(User));
-        
+        Logger.LogInformation(nameof(Company));
+
         // LocalStorage에서 검색어 복원
         var storedSearchTerm = await GetStoredSearchTermAsync();
         if (!string.IsNullOrEmpty(storedSearchTerm))
         {
             _searchTerm = storedSearchTerm;
         }
-        
+
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
         Snackbar.Configuration.ShowTransitionDuration = 100;
         Snackbar.Configuration.VisibleStateDuration = 500;
@@ -59,9 +59,6 @@ public partial class User : ComponentBase
             {
                 await _dataGrid.SetRowsPerPageAsync(storedPageSize);
             }
-
-            // 페이지 크기 변경 이벤트 등록 (중복 등록 방지)
-            // LoadGridData에서 이미 페이지 크기를 저장하므로 여기서는 제거
         }
     }
 
@@ -69,7 +66,7 @@ public partial class User : ComponentBase
     {
         // 검색어 저장
         await SaveSearchTermAsync(_searchTerm);
-        
+
         // 검색 실행 알림
         if (!string.IsNullOrWhiteSpace(_searchTerm))
         {
@@ -77,9 +74,9 @@ public partial class User : ComponentBase
         }
         else
         {
-            Snackbar.Add("전체 사용자 목록을 불러오는 중...", Severity.Info);
+            Snackbar.Add("전체 회사 목록을 불러오는 중...", Severity.Info);
         }
-        
+
         // 데이터 그리드 새로고침
         if (_dataGrid != null)
         {
@@ -87,21 +84,21 @@ public partial class User : ComponentBase
         }
     }
 
-    private async Task<GridData<UserDto>> LoadGridData(GridState<UserDto> state)
+    private async Task<GridData<CompanyDto>> LoadGridData(GridState<CompanyDto> state)
     {
         // 마지막 페이지 호출인지 확인 (페이지네이션 중복 호출 방지)
         var shouldTrace = ShouldCreateTrace(state);
-        
+
         // OpenTelemetry Activity 생성 (조건부)
-        using var activity = shouldTrace ? DemoAdminActivitySource.StartActivity("User List API Call") : null;
-        activity?.SetTag("blazor.component", "User");
-        activity?.SetTag("operation.name", "load_user_list");
-        
+        using var activity = shouldTrace ? DemoAdminActivitySource.StartActivity("Company List API Call") : null;
+        activity?.SetTag("blazor.component", "Company");
+        activity?.SetTag("operation.name", "load_company_list");
+
         try
         {
             // 현재 검색어로 필터링 (페이지 이동 후 돌아왔을 때도 LocalStorage에서 자동으로 가져옴)
             var currentSearchTerm = await GetStoredSearchTermAsync();
-            
+
             // UI의 검색 필드도 동기화
             if (_searchTerm != currentSearchTerm)
             {
@@ -111,7 +108,7 @@ public partial class User : ComponentBase
 
             // 현재 상태의 페이지 크기를 우선 사용하고, 변경된 경우 저장
             var actualPageSize = state.PageSize;
-            
+
             // 페이지 크기가 변경되었으면 저장
             var storedPageSize = await GetStoredPageSizeAsync();
             if (storedPageSize != actualPageSize)
@@ -119,8 +116,8 @@ public partial class User : ComponentBase
                 await SavePageSizeAsync(actualPageSize);
             }
 
-            // RestSharp를 사용한 Demo.Web user list API 호출
-            var request = new RestRequest("api/user/list", Method.Post);
+            // RestSharp를 사용한 Demo.Web company list API 호출
+            var request = new RestRequest("api/company/list", Method.Post);
             request.AddHeader("Accept", "application/json");
             request.AddHeader("Content-Type", "application/json");
 
@@ -139,15 +136,15 @@ public partial class User : ComponentBase
             activity?.SetTag("api.request.page_size", actualPageSize);
 
             var response = await RestClient.ExecuteAsync(request);
-            
+
             if (response.IsSuccessful && !string.IsNullOrEmpty(response.Content))
             {
                 var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 };
-                
-                var apiResponse = JsonSerializer.Deserialize<UserListResponse>(response.Content, options);
+
+                var apiResponse = JsonSerializer.Deserialize<CompanyListResponse>(response.Content, options);
 
                 if (apiResponse == null)
                 {
@@ -164,10 +161,10 @@ public partial class User : ComponentBase
                 }
                 else if (state.Page == 0)
                 {
-                    Snackbar.Add($"사용자 목록을 성공적으로 불러왔습니다. (총 {apiResponse.TotalItems}건)", Severity.Success);
+                    Snackbar.Add($"회사 목록을 성공적으로 불러왔습니다. (총 {apiResponse.TotalItems}건)", Severity.Success);
                 }
 
-                return new GridData<UserDto>
+                return new GridData<CompanyDto>
                 {
                     Items = apiResponse.Items,
                     TotalItems = apiResponse.TotalItems
@@ -176,16 +173,16 @@ public partial class User : ComponentBase
             else
             {
                 var errorMessage = $"HTTP {(int)response.StatusCode} {response.StatusCode}: {response.ErrorMessage ?? "알 수 없는 오류"}";
-                
+
                 activity?.SetTag("operation.result", "http_error");
                 activity?.SetTag("error.message", errorMessage);
                 activity?.SetStatus(ActivityStatusCode.Error, errorMessage);
-                
-                Snackbar.Add("사용자 목록을 불러오는데 실패했습니다.", Severity.Error);
-                
-                return new GridData<UserDto>
+
+                Snackbar.Add("회사 목록을 불러오는데 실패했습니다.", Severity.Error);
+
+                return new GridData<CompanyDto>
                 {
-                    Items = new List<UserDto>(),
+                    Items = new List<CompanyDto>(),
                     TotalItems = 0
                 };
             }
@@ -197,13 +194,13 @@ public partial class User : ComponentBase
             activity?.SetTag("error.message", ex.Message);
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             activity?.AddException(ex);
-            
+
             Snackbar.Add("네트워크 오류가 발생했습니다.", Severity.Error);
             Console.WriteLine($"데이터 로드 오류: {ex.Message}");
-            
-            return new GridData<UserDto>
+
+            return new GridData<CompanyDto>
             {
-                Items = new List<UserDto>(),
+                Items = new List<CompanyDto>(),
                 TotalItems = 0
             };
         }
@@ -213,7 +210,7 @@ public partial class User : ComponentBase
     {
         try
         {
-            return await LocalStorage.GetItemAsync<string>(USER_SEARCH_TERM_KEY) ?? string.Empty;
+            return await LocalStorage.GetItemAsync<string>(COMPANY_SEARCH_TERM_KEY) ?? string.Empty;
         }
         catch
         {
@@ -227,11 +224,11 @@ public partial class User : ComponentBase
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                await LocalStorage.RemoveItemAsync(USER_SEARCH_TERM_KEY);
+                await LocalStorage.RemoveItemAsync(COMPANY_SEARCH_TERM_KEY);
             }
             else
             {
-                await LocalStorage.SetItemAsync(USER_SEARCH_TERM_KEY, searchTerm);
+                await LocalStorage.SetItemAsync(COMPANY_SEARCH_TERM_KEY, searchTerm);
             }
         }
         catch (Exception ex)
@@ -270,42 +267,62 @@ public partial class User : ComponentBase
     /// </summary>
     /// <param name="state">현재 그리드 상태</param>
     /// <returns>trace를 생성할지 여부</returns>
-    private bool ShouldCreateTrace(GridState<UserDto> state)
+    private bool ShouldCreateTrace(GridState<CompanyDto> state)
     {
         var now = DateTime.UtcNow;
         var currentTraceKey = $"{state.Page}_{state.PageSize}_{_searchTerm}";
-        
+
         // 1초 이내의 동일한 요청은 trace 생성 스킵
         var timeSinceLastTrace = now - _lastTraceTime;
         if (timeSinceLastTrace.TotalMilliseconds < 1000 && _lastTraceKey == currentTraceKey)
         {
             return false;
         }
-        
+
         // 초기 로드, 검색, 페이지 크기 변경 시에만 trace 생성
         var isInitialLoad = state.Page == 0 && string.IsNullOrEmpty(_searchTerm);
         var isSearch = !string.IsNullOrEmpty(_searchTerm);
         var isPageSizeChange = _lastTraceKey != currentTraceKey && state.Page == 0;
-        
+
         var shouldTrace = isInitialLoad || isSearch || isPageSizeChange;
-        
+
         if (shouldTrace)
         {
             _lastTraceTime = now;
             _lastTraceKey = currentTraceKey;
         }
-        
+
         return shouldTrace;
     }
 
-    private async Task OnCreateUserAsync()
+    private async Task OnCreateCompanyAsync()
     {
-        Console.WriteLine("OnCreateUserAsync 시작");
+        Console.WriteLine("OnCreateCompanyAsync 시작");
         IDialogReference? dialogRef = null;
 
         var parameters = new DialogParameters
         {
-            ["OnCancel"] = EventCallback.Factory.Create(this, () => dialogRef?.Close(DialogResult.Cancel()))
+            ["OnCancel"] = EventCallback.Factory.Create(this, () => dialogRef?.Close(DialogResult.Cancel())),
+            ["OnCompanyCreated"] = new Action<bool>((success) =>
+            {
+                Console.WriteLine($"OnCompanyCreated Action 호출됨 - Success: {success}");
+                if (success)
+                {
+                    // 즉시 다이얼로그 닫기
+                    dialogRef?.Close(DialogResult.Ok(true));
+                    Console.WriteLine("Action에서 다이얼로그 닫기 완료");
+
+                    // 데이터 그리드 새로고침을 비동기로 실행
+                    InvokeAsync(async () =>
+                    {
+                        if (_dataGrid != null)
+                        {
+                            await _dataGrid.ReloadServerData();
+                            Console.WriteLine("Action에서 데이터 그리드 새로고침 완료");
+                        }
+                    });
+                }
+            })
         };
 
         var options = new DialogOptions
@@ -315,38 +332,38 @@ public partial class User : ComponentBase
             FullWidth = true
         };
 
-        Console.WriteLine("사용자 생성 다이얼로그 열기");
-        dialogRef = await DialogService.ShowAsync<UserCreateDialog>("새 사용자 생성", parameters, options);
-        Console.WriteLine("사용자 생성 다이얼로그 결과 대기 중");
+        Console.WriteLine("다이얼로그 열기");
+        dialogRef = await DialogService.ShowAsync<CompanyCreateDialog>("새 회사 생성", parameters, options);
+        Console.WriteLine("다이얼로그 결과 대기 중");
 
         // 다이얼로그 결과를 안전하게 기다리기
         try
         {
             var result = await dialogRef.Result;
-            Console.WriteLine($"사용자 생성 다이얼로그 결과 - Canceled: {result?.Canceled}, Data: {result?.Data}");
+            Console.WriteLine($"다이얼로그 결과 - Canceled: {result?.Canceled}, Data: {result?.Data}");
 
             if (result != null && !result.Canceled)
             {
-                Console.WriteLine("사용자 생성 성공, 데이터 그리드 새로고침 시작");
-                // 사용자가 성공적으로 생성되면 데이터 그리드 새로고침
+                Console.WriteLine("회사 생성 성공, 데이터 그리드 새로고침 시작");
+                // 회사가 성공적으로 생성되면 데이터 그리드 새로고침
                 if (_dataGrid != null)
                 {
                     await _dataGrid.ReloadServerData();
-                    Console.WriteLine("사용자 데이터 그리드 새로고침 완료");
+                    Console.WriteLine("데이터 그리드 새로고침 완료");
                 }
                 else
                 {
-                    Console.WriteLine("사용자 데이터 그리드가 null입니다");
+                    Console.WriteLine("데이터 그리드가 null입니다");
                 }
             }
             else
             {
-                Console.WriteLine("사용자 생성 다이얼로그가 취소되었거나 결과가 null입니다");
+                Console.WriteLine("다이얼로그가 취소되었거나 결과가 null입니다");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"사용자 생성 다이얼로그 결과 처리 중 오류: {ex.Message}");
+            Console.WriteLine($"다이얼로그 결과 처리 중 오류: {ex.Message}");
         }
     }
 }

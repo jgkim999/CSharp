@@ -123,6 +123,7 @@ try
 
     // Demo.Admin 서비스 등록
     builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<ICompanyService, CompanyService>();
 
     // Add services to the container.
     builder.Services.AddRazorComponents()

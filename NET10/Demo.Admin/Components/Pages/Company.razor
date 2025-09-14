@@ -1,0 +1,21 @@
+@page "/Company"
+
+<h3>Company</h3>
+
+<div class="d-flex align-center gap-3 mb-4">
+    <MudTextField @bind-Value="_searchTerm" Label="Search by Name" Variant="Variant.Outlined" Class="flex-grow-1" Margin="Margin.Dense" />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search" OnClick="OnSearchAsync" Size="Size.Small">Search</MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Business" OnClick="OnCreateCompanyAsync" Size="Size.Small">생성</MudButton>
+</div>
+
+<MudDataGrid ServerData="LoadGridData" T="Demo.Application.DTO.Company.CompanyDto" @ref="_dataGrid" Dense="true" Hover="true"
+    Bordered="true" Striped="false" Elevation="0">
+    <Columns>
+        <PropertyColumn Property="x => x.Id" Title="Id" />
+        <PropertyColumn Property="x => x.Name" Title="Company Name" />
+        <PropertyColumn Property="x => x.CreatedAt" Title="Created At" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Demo.Application.DTO.Company.CompanyDto" Disabled="false" />
+    </PagerContent>
+</MudDataGrid>
