@@ -1,4 +1,3 @@
-using System.Reflection;
 using Demo.Application.Configs;
 using Demo.Application.Services;
 using Npgsql;
@@ -8,12 +7,11 @@ using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using OpenTelemetryBuilder = OpenTelemetry.OpenTelemetryBuilder;
 using Sdk = OpenTelemetry.Sdk;
 
 namespace Demo.Web;
 
-public static class AppInitializer
+public static class OpenTelemetryInitializer
 {
     public static void AddOpenTelemetryApplication(this WebApplicationBuilder appBuilder, Serilog.ILogger logger)
     {

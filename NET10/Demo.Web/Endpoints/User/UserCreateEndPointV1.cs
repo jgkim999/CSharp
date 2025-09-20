@@ -9,6 +9,23 @@ using Microsoft.Extensions.Options;
 
 namespace Demo.Web.Endpoints.User;
 
+/// <summary>
+/// 
+/// </summary>
+public class UserCreateEndpointSummary : Summary<UserCreateEndpointV1>
+{
+    public UserCreateEndpointSummary()
+    {
+        Summary = "새로운 사용자를 생성합니다.";
+        Description = "이 엔드포인트는 사용자 이름과 이메일 주소를 받아 시스템에 새로운 사용자를 등록하고, 생성된 사용자의 ID를 반환합니다.";
+        ExampleRequest = new UserCreateRequest { Name = "John Doe", Email = "john.doe@example.com", Password = "1234qwer!@#$"};
+        // HTTP 응답 코드별 설명 추가
+        //Response<MyResponse>(200, "ok response with body", example: new() {...});
+        //Response<ErrorResponse>(400, "validation failure");
+        //Response(404, "account not found");
+    }
+}
+
 public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
 {
     private readonly ICommandMediator _commandMediator;

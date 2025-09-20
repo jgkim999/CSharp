@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Demo.Application.Extensions;
 using Demo.Application.Models;
 using Demo.Application.Queries;
 using Demo.Application.Services;
@@ -37,6 +38,8 @@ public class ServerTimeEndpoint : EndpointWithoutRequest
     {
         Activity? parentActivity = Activity.Current;
         using Activity? span = _telemetryService.StartActivity(nameof(ServerTimeEndpoint), ActivityKind.Internal, parentActivity?.Context);
+        
+        _logger.LogInfoWithCaller("ServerTimeEndpoint {Date}", DateTime.UtcNow);
         
         var queryMediator = Resolve<IQueryMediator>();
         var query = new ServerTimeQuery();
