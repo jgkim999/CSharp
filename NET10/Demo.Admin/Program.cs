@@ -1,28 +1,16 @@
-using System.Globalization;
-using System.Reflection;
 using Blazored.LocalStorage;
 using Demo.Admin;
 using MudBlazor.Services;
 using RestSharp;
 using Demo.Admin.Components;
 using Demo.Application.Configs;
-using Demo.Application.Services;
 using Demo.Domain;
 using Demo.Infra.Configs;
 using Demo.Infra.Repositories;
 using Demo.Infra.Services;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using OpenTelemetry;
-using OpenTelemetry.Exporter;
-using OpenTelemetry.Instrumentation.StackExchangeRedis;
-using OpenTelemetry.Logs;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 using Serilog;
 using Demo.Admin.Services;
-using OpenTelemetryBuilder = OpenTelemetry.OpenTelemetryBuilder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +51,7 @@ try
     if (rabbitMqConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
+    builder.Services.AddSingleton<RabbitMqConnection>();
     builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
     #endregion
 

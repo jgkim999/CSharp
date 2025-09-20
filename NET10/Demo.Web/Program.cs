@@ -73,6 +73,7 @@ try
     var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
     if (rabbitMqConfig is null)
         throw new NullReferenceException();
+    builder.Services.AddSingleton<RabbitMqConnection>();
     builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
     builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
 
