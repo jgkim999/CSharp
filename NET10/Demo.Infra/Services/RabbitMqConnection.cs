@@ -38,27 +38,31 @@ public class RabbitMqConnection : IDisposable, IAsyncDisposable
             HostName = _hostName,
             //Port = AmqpTcpEndpoint.UseDefaultPort,
             //MaxInboundMessageBodySize = 512 * 1024 * 1024
-            AutomaticRecoveryEnabled = true
+            AutomaticRecoveryEnabled = true,
+            NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
+            TopologyRecoveryEnabled = true,
+            ConsumerDispatchConcurrency = 1, // 1개씩만 처리하고 나머지는 큐에 넣어두고 처리한다.
         };
         _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
-        
+
         _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+        // Note: RabbitMQ.Client 7.x에서는 publisher confirms가 기본적으로 활성화됨
         
         _channel.BasicAcksAsync += (sender, args) =>
         {
-            _logger.LogInformation("Message acked");
+            _logger.LogDebug("Message acked");
             return Task.CompletedTask;
         };
         
         _channel.BasicNacksAsync += (sender, args) =>
         {
-            _logger.LogInformation("Message nack {@Args}", args);
+            _logger.LogDebug("Message nack {@Args}", args);
             return Task.CompletedTask;
         };
         
         _channel.BasicReturnAsync += (sender, args) =>
         {
-            _logger.LogInformation("Message return {@Args}", args);
+            _logger.LogDebug("Message return {@Args}", args);
             return Task.CompletedTask;
         };
         

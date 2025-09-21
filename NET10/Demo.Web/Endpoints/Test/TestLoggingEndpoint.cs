@@ -5,6 +5,15 @@ using System.Diagnostics;
 
 namespace Demo.Web.Endpoints.Test;
 
+public class TestLoggingSummary : EndpointSummary
+{
+    public TestLoggingSummary()
+    {
+        Summary = "테스트용 로깅 API입니다.";
+        Description = "테스트용 로깅 API입니다.";
+    }
+}
+
 /// <summary>
 /// 로깅 테스트를 위한 엔드포인트
 /// </summary>
@@ -26,11 +35,8 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
     {
         Get("/api/test/logging");
         AllowAnonymous();
-        Summary(s =>
-        {
-            s.Summary = "로깅 및 트레이싱 테스트";
-            s.Description = "Serilog와 OpenTelemetry 통합 테스트를 위한 엔드포인트";
-        });
+        Group<LoggingTest>();
+        Summary(new TestLoggingSummary());
     }
 
     /// <summary>

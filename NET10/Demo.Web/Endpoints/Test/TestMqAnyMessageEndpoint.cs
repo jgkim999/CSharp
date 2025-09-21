@@ -1,28 +1,38 @@
-using System.ComponentModel;
 using System.Diagnostics;
 using Demo.Application.Services;
 using Demo.Domain;
-using Demo.Domain.Enums;
 using FastEndpoints;
 
 namespace Demo.Web.Endpoints.Test;
 
-public class MqPublishRequest
+class TestMqAnyMessageSummary : EndpointSummary
 {
-    [DefaultValue("WTF MQ")]
-    public string Message { get; set; } = "Hello MQ";
+    public TestMqAnyMessageSummary()
+    {
+        Summary = "MQ Any Message Test";
+        Description = "MQ Publish Any message";
+        ExampleRequest = new MqPublishRequest()
+        {
+            Message = "Any message"
+        };
+        Responses[200] = "success";
+        Responses[403] = "forbidden";
+    }
 }
 
-public class TestMqPublishEndpoint : Endpoint<MqPublishRequest>
+public class TestMqAnyMessageEndpoint : Endpoint<MqPublishRequest>
 {
-    private readonly ILogger<TestMqPublishEndpoint> _logger;
+    private readonly ILogger<TestMqAnyMessageEndpoint> _logger;
     private readonly ITelemetryService _telemetryService;
     private readonly IMqPublishService _mqPublishService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TestLoggingEndpoint"/> class with the specified logger and telemetry service.
     /// </summary>
-    public TestMqPublishEndpoint(ILogger<TestMqPublishEndpoint> logger, ITelemetryService telemetryService, IMqPublishService mqPublishService)
+    public TestMqAnyMessageEndpoint(
+        ILogger<TestMqAnyMessageEndpoint> logger,
+        ITelemetryService telemetryService,
+        IMqPublishService mqPublishService)
     {
         _logger = logger;
         _telemetryService = telemetryService;
@@ -31,13 +41,10 @@ public class TestMqPublishEndpoint : Endpoint<MqPublishRequest>
 
     public override void Configure()
     {
-        Post("/api/test/mq");
+        Post("/api/test/mqany");
         AllowAnonymous();
-        Summary(s =>
-        {
-            s.Summary = "MQ publish";
-            s.Description = "Serilog와 OpenTelemetry 통합 테스트를 위한 엔드포인트";
-        });
+        Group<MqTest>();
+        Summary(new TestMqAnyMessageSummary());
     }
 
     /// <summary>
@@ -46,15 +53,14 @@ public class TestMqPublishEndpoint : Endpoint<MqPublishRequest>
     /// <param name="ct">Cancellation token for the request.</param>
     public override async Task HandleAsync(MqPublishRequest msg, CancellationToken ct)
     {
-        // 에러 시뮬레이션
         try
         {
-            _telemetryService.StartActivity(nameof(TestMqPublishEndpoint));
+            using var activity = _telemetryService.StartActivity(nameof(TestMqAnyMessageEndpoint));
             await _mqPublishService.PublishAnyAsync(msg.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, nameof(TestMqPublishEndpoint));
+            _logger.LogError(ex, nameof(TestMqAnyMessageEndpoint));
         }
         
         Response = new

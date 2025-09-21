@@ -149,6 +149,14 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
         return span;
     }
 
+    public Activity? StartActivity(string operationName, ActivityKind kind, string? parentTraceId)
+    {
+        if (parentTraceId is null)
+            return null;
+        var span = _activitySource.StartActivity(operationName, kind, parentTraceId);
+        return span;
+    }
+
     /// <summary>
     /// HTTP 요청 메트릭을 기록합니다.
     /// </summary>
