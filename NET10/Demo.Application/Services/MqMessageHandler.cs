@@ -43,4 +43,35 @@ public class MqMessageHandler : IMqMessageHandler
         _logger.LogInformation("Message Processed. {Message}", message);
         await Task.CompletedTask;
     }
+
+    /// <summary>
+    /// MessagePack으로 deserialize된 타입 객체를 직접 처리합니다
+    /// 타입별로 다른 처리 로직을 구현할 수 있습니다
+    /// </summary>
+    /// <param name="senderType">메시지 발송자 타입 (Multi, Any, Unique)</param>
+    /// <param name="sender">메시지 발송자 식별자</param>
+    /// <param name="correlationId">메시지 상관 관계 ID</param>
+    /// <param name="messageId">메시지 고유 ID</param>
+    /// <param name="messageObject">deserialize된 메시지 객체</param>
+    /// <param name="messageType">메시지 객체의 타입</param>
+    /// <param name="ct">작업 취소 토큰</param>
+    /// <returns>비동기 작업</returns>
+    public async ValueTask HandleMessagePackAsync(
+        MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct)
+    {
+        _logger.LogInformation("MessagePack Object Processed. Type: {MessageType}, Object: {MessageObject}",
+            messageType.FullName,
+            System.Text.Json.JsonSerializer.Serialize(messageObject, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            }));
+        await Task.CompletedTask;
+    }
 }

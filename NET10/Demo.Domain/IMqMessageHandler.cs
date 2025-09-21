@@ -24,4 +24,24 @@ public interface IMqMessageHandler
         string? messageId,
         string message,
         CancellationToken ct);
+
+    /// <summary>
+    /// MessagePack으로 deserialize된 타입 객체를 직접 처리합니다
+    /// </summary>
+    /// <param name="senderType">메시지 발송자 타입 (Multi, Any, Unique)</param>
+    /// <param name="sender">메시지 발송자 식별자</param>
+    /// <param name="correlationId">메시지 상관 관계 ID</param>
+    /// <param name="messageId">메시지 고유 ID</param>
+    /// <param name="messageObject">deserialize된 메시지 객체</param>
+    /// <param name="messageType">메시지 객체의 타입</param>
+    /// <param name="ct">작업 취소 토큰</param>
+    /// <returns>비동기 작업</returns>
+    ValueTask HandleMessagePackAsync(
+        MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct);
 }

@@ -1,38 +1,24 @@
-using Demo.Application;
 using Demo.Application.Configs;
 using Demo.Application.DTO.User;
-using LiteBus.Queries.Abstractions;
-using LiteBus.Commands.Abstractions;
-using LiteBus.Events.Abstractions;
-using Demo.Application.ErrorHandlers;
 using Demo.Application.Extensions;
 using Demo.Application.Middleware;
 using Demo.Application.Models;
 using Demo.Application.Services;
 using Demo.Domain;
 using Demo.Domain.Repositories;
-using Demo.Infra;
 using Demo.Infra.Configs;
 using Demo.Infra.Repositories;
 using Demo.Infra.Services;
 using Demo.Infra.Extensions;
 using Demo.Web;
-using Demo.Web.Endpoints.User;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.EntityFrameworkCore;
 
 using FluentValidation;
-using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
-using LiteBus.Events.Extensions.MicrosoftDependencyInjection;
-using LiteBus.Messaging.Extensions.MicrosoftDependencyInjection;
-using LiteBus.Queries.Extensions.MicrosoftDependencyInjection;
 using Mapster;
-using OpenTelemetry.Exporter;
-using OpenTelemetry.Logs;
 using Scalar.AspNetCore;
 using Serilog;
-using Serilog.Sinks.OpenTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 

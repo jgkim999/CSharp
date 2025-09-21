@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Demo.Domain.Enums;
 using System.Buffers;
+using MessagePack;
 
 namespace Demo.Infra.Services;
 
@@ -133,8 +134,21 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     
     private (byte[] Body, BasicProperties Properties) MakeData(byte[] body, string? correlationId = null)
     {
+        return MakeDataWithType(body, null, correlationId);
+    }
+
+    private (byte[] Body, BasicProperties Properties) MakeDataWithType(byte[] body, Type? messageType, string? correlationId = null)
+    {
         // 헤더는 매번 새로 생성 (RabbitMQ 메시지와 함께 전송되므로 풀링 불가)
         var headers = new Dictionary<string, object>(8);
+
+        // MessagePack 타입 정보를 헤더에 추가
+        if (messageType != null)
+        {
+            headers["message_type"] = messageType.FullName ?? messageType.Name;
+            headers["message_assembly"] = messageType.Assembly.GetName().Name ?? string.Empty;
+            headers["content_type"] = "application/x-msgpack";
+        }
 
         var properties = new BasicProperties
         {
@@ -182,7 +196,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
 
         return (body, properties);
     }
-    
+
     public async ValueTask PublishUniqueAsync(
         string target, string message, CancellationToken ct = default, string? correlationId = null)
     {
@@ -225,6 +239,13 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         byte[] body, CancellationToken ct = default, string? correlationId = null)
     {
         var data = MakeData(body, correlationId);
+        await PublishMultiAsync(data.Body, data.Properties, ct);
+    }
+    
+    public async ValueTask PublishMultiAsync<T>(T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
+    {
+        byte[] bytes = MessagePackSerializer.Serialize(messagePack);
+        var data = MakeDataWithType(bytes, typeof(T), correlationId);
         await PublishMultiAsync(data.Body, data.Properties, ct);
     }
     
