@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Demo.Domain.Enums;
 using System.Buffers;
 using MessagePack;
+using Microsoft.IO;
 
 namespace Demo.Infra.Services;
 
@@ -30,6 +31,10 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
 
     // 메모리 최적화를 위한 객체 풀링
     private readonly ConcurrentBag<StringBuilder> _stringBuilderPool;
+
+    // RecyclableMemoryStream 관리자
+    private static readonly RecyclableMemoryStreamManager MemoryStreamManager =
+        new RecyclableMemoryStreamManager();
    
     public RabbitMqPublishService(
         IOptions<RabbitMqConfig> config,
@@ -84,9 +89,48 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         // - ProducerExchangeAny: direct 타입
     }
     
+    private bool _disposed;
+
     public void Dispose()
     {
-        _connection.Dispose();
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                try
+                {
+                    // Consumer 이벤트 핸들러 해제
+                    _uniqueConsumer.ReceivedAsync -= OnUniqueReceived;
+
+                    // 대기 중인 요청들 정리 (타임아웃 처리)
+                    foreach (var pendingRequest in _pendingRequests.Values)
+                    {
+                        pendingRequest.TrySetCanceled();
+                    }
+                    _pendingRequests.Clear();
+
+                    // StringBuilder 풀 정리 (GC가 처리하도록)
+                    while (_stringBuilderPool.TryTake(out _))
+                    {
+                        // StringBuilder 객체들을 풀에서 제거
+                    }
+
+                    // Connection 해제
+                    _connection.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error during RabbitMqPublishService disposal");
+                }
+            }
+            _disposed = true;
+        }
     }
 
 
@@ -114,7 +158,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         }
     }
 
-    private (byte[] Body, BasicProperties Properties) MakeData(string message, string? correlationId = null)
+    private (ReadOnlyMemory<byte> Body, BasicProperties Properties) MakeData(string message, string? correlationId = null)
     {
         // ArrayPool을 사용한 메모리 최적화
         var maxByteCount = Encoding.UTF8.GetMaxByteCount(message.Length);
@@ -124,7 +168,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             var actualLength = Encoding.UTF8.GetBytes(message, rental);
             var body = new byte[actualLength];
             Array.Copy(rental, body, actualLength);
-            return MakeData(body, correlationId);
+            return MakeData(body.AsMemory(), correlationId);
         }
         finally
         {
@@ -132,12 +176,12 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         }
     }
     
-    private (byte[] Body, BasicProperties Properties) MakeData(byte[] body, string? correlationId = null)
+    private (ReadOnlyMemory<byte> Body, BasicProperties Properties) MakeData(ReadOnlyMemory<byte> body, string? correlationId = null)
     {
         return MakeDataWithType(body, null, correlationId);
     }
 
-    private (byte[] Body, BasicProperties Properties) MakeDataWithType(byte[] body, Type? messageType, string? correlationId = null)
+    private (ReadOnlyMemory<byte> Body, BasicProperties Properties) MakeDataWithType(ReadOnlyMemory<byte> body, Type? messageType, string? correlationId = null)
     {
         // 헤더는 매번 새로 생성 (RabbitMQ 메시지와 함께 전송되므로 풀링 불가)
         var headers = new Dictionary<string, object>(8);
@@ -200,6 +244,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     public async ValueTask PublishUniqueAsync(
         string target, string message, CancellationToken ct = default, string? correlationId = null)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var data = MakeData(message, correlationId);
         await PublishUniqueAsync(target, data.Body, data.Properties, ct);
     }
@@ -207,14 +252,30 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     public async ValueTask PublishUniqueAsync(
         string target, byte[] message, CancellationToken ct = default, string? correlationId = null)
     {
-        var data = MakeData(message, correlationId);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var data = MakeData(message.AsMemory(), correlationId);
+        await PublishUniqueAsync(target, data.Body, data.Properties, ct);
+    }
+
+    public async ValueTask PublishUniqueAsync<T>(string target, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        // RecyclableMemoryStream을 사용한 메모리 최적화
+        using var memoryStream = MemoryStreamManager.GetStream();
+        await MessagePackSerializer.SerializeAsync(memoryStream, messagePack, cancellationToken: ct);
+
+        // ReadOnlyMemory로 직접 사용하여 불필요한 배열 복사 제거
+        var serializedMemory = memoryStream.GetReadOnlySequence().IsSingleSegment
+            ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
+            : memoryStream.ToArray().AsMemory();
+        var data = MakeDataWithType(serializedMemory, typeof(T), correlationId);
         await PublishUniqueAsync(target, data.Body, data.Properties, ct);
     }
     
     private async ValueTask PublishUniqueAsync(
-        string target, byte[] body, BasicProperties properties, CancellationToken ct = default)
+        string target, ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
     {
-        using var span = _telemetryService.StartActivity(nameof(PublishUniqueAsync), ActivityKind.Producer, Activity.Current?.Context);
+        using var span = _telemetryService.StartActivity("rabbitmq.publish.unique", ActivityKind.Producer, Activity.Current?.Context);
         // 특정 Consumer의 Reply queue로 직접 전송 (exchange 없이)
         await _connection.Channel.BasicPublishAsync(
             exchange: "", // Default exchange 사용 (queue 이름을 routing key로 사용)
@@ -231,6 +292,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     public async ValueTask PublishMultiAsync(
         string message, CancellationToken ct = default, string? correlationId = null)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var data = MakeData(message, correlationId);
         await PublishMultiAsync(data.Body, data.Properties, ct);
     }
@@ -238,21 +300,30 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     public async ValueTask PublishMultiAsync(
         byte[] body, CancellationToken ct = default, string? correlationId = null)
     {
-        var data = MakeData(body, correlationId);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var data = MakeData(body.AsMemory(), correlationId);
         await PublishMultiAsync(data.Body, data.Properties, ct);
     }
     
     public async ValueTask PublishMultiAsync<T>(T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
     {
-        byte[] bytes = MessagePackSerializer.Serialize(messagePack);
-        var data = MakeDataWithType(bytes, typeof(T), correlationId);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        // RecyclableMemoryStream을 사용한 메모리 최적화
+        using var memoryStream = MemoryStreamManager.GetStream();
+        await MessagePackSerializer.SerializeAsync(memoryStream, messagePack, cancellationToken: ct);
+
+        // ReadOnlyMemory로 직접 사용하여 불필요한 배열 복사 제거
+        var serializedMemory = memoryStream.GetReadOnlySequence().IsSingleSegment
+            ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
+            : memoryStream.ToArray().AsMemory();
+        var data = MakeDataWithType(serializedMemory, typeof(T), correlationId);
         await PublishMultiAsync(data.Body, data.Properties, ct);
     }
     
     private async ValueTask PublishMultiAsync(
-        byte[] body, BasicProperties properties, CancellationToken ct = default, string? correlationId = null)
+        ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
     {
-        using var span = _telemetryService.StartActivity(nameof(PublishMultiAsync), ActivityKind.Producer, Activity.Current?.Context);
+        using var span = _telemetryService.StartActivity("rabbitmq.publish.multi", ActivityKind.Producer, Activity.Current?.Context);
         await _connection.Channel.BasicPublishAsync(
             exchange: _connection.ProducerExchangeMulti,
             routingKey: "", // fanout에서는 routing key 불필요
@@ -266,6 +337,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     public async ValueTask PublishAnyAsync(
         string message, CancellationToken ct = default, string? correlationId = null)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         var data = MakeData(message, correlationId);
         await PublishAnyAsync(data.Body, data.Properties, ct);
     }
@@ -273,14 +345,30 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     public async ValueTask PublishAnyAsync(
         byte[] body, CancellationToken ct = default, string? correlationId = null)
     {
-        var data = MakeData(body, correlationId);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        var data = MakeData(body.AsMemory(), correlationId);
+        await PublishAnyAsync(data.Body, data.Properties, ct);
+    }
+
+    public async ValueTask PublishAnyAsync<T>(T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        // RecyclableMemoryStream을 사용한 메모리 최적화
+        using var memoryStream = MemoryStreamManager.GetStream();
+        await MessagePackSerializer.SerializeAsync(memoryStream, messagePack, cancellationToken: ct);
+
+        // ReadOnlyMemory로 직접 사용하여 불필요한 배열 복사 제거
+        var serializedMemory = memoryStream.GetReadOnlySequence().IsSingleSegment
+            ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
+            : memoryStream.ToArray().AsMemory();
+        var data = MakeDataWithType(serializedMemory, typeof(T), correlationId);
         await PublishAnyAsync(data.Body, data.Properties, ct);
     }
     
     private async ValueTask PublishAnyAsync(
-        byte[] body, BasicProperties properties, CancellationToken ct = default)
+        ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
     {
-        using var span = _telemetryService.StartActivity(nameof(PublishAnyAsync), ActivityKind.Producer, Activity.Current?.Context);
+        using var span = _telemetryService.StartActivity("rabbitmq.publish.any", ActivityKind.Producer, Activity.Current?.Context);
         // Round-robin: Direct exchange를 사용하여 동일한 routing key로 바인딩된 모든 consumer가 round-robin으로 처리
         await _connection.Channel.BasicPublishAsync(
             exchange: "",
@@ -304,6 +392,5 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         {
             _logger.LogError(ex, "Error processing reply message");
         }
-        await Task.CompletedTask;
     }
 }
