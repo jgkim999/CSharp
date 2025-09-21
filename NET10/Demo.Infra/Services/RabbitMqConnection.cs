@@ -32,11 +32,11 @@ public class RabbitMqConnection : IDisposable, IAsyncDisposable
 
         var factory = new ConnectionFactory
         {
-            //UserName = ConnectionFactory.DefaultUser,
-            //Password = ConnectionFactory.DefaultPass,
+            UserName = _config.UserName,
+            Password = _config.Password,
             //VirtualHost = ConnectionFactory.DefaultVHost,
             HostName = _hostName,
-            //Port = AmqpTcpEndpoint.UseDefaultPort,
+            Port = _config.Port,
             //MaxInboundMessageBodySize = 512 * 1024 * 1024
             AutomaticRecoveryEnabled = true,
             NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
