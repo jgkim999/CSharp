@@ -11,8 +11,19 @@ using Sdk = OpenTelemetry.Sdk;
 
 namespace Demo.Web;
 
+/// <summary>
+/// OpenTelemetry 텔레메트리 시스템 초기화를 담당하는 정적 클래스
+/// 추적, 메트릭, 로깅을 포함한 포괄적인 관찰성(Observability) 설정을 제공합니다
+/// </summary>
 public static class OpenTelemetryInitializer
 {
+    /// <summary>
+    /// WebApplicationBuilder에 OpenTelemetry 텔레메트리 시스템을 추가하고 구성합니다
+    /// ASP.NET Core, HTTP 클라이언트, 데이터베이스, Redis, RabbitMQ 등의 자동 계측을 포함합니다
+    /// </summary>
+    /// <param name="appBuilder">웹 애플리케이션 빌더</param>
+    /// <param name="logger">Serilog 로거 인스턴스</param>
+    /// <exception cref="NullReferenceException">OpenTelemetry 구성이 null인 경우</exception>
     public static void AddOpenTelemetryApplication(this WebApplicationBuilder appBuilder, Serilog.ILogger logger)
     {
         var openTelemetryConfig = appBuilder.Configuration.GetSection("OpenTelemetry").Get<OtelConfig>();

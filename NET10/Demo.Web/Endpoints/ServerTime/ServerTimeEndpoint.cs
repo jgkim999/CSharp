@@ -8,17 +8,28 @@ using LiteBus.Queries.Abstractions;
 
 namespace Demo.Web.Endpoints.ServerTime;
 
+/// <summary>
+/// 서버 시간을 반환
+/// </summary>
 public class ServerTimeEndpoint : EndpointWithoutRequest
 {
     private readonly ILogger<ServerTimeEndpoint> _logger;
     private readonly ITelemetryService _telemetryService;
     
+    /// <summary>
+    /// 서버 시간 반환
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="telemetryService"></param>
     public ServerTimeEndpoint(ILogger<ServerTimeEndpoint> logger, ITelemetryService telemetryService)
     {
         _logger = logger;
         _telemetryService = telemetryService;
     }
     
+    /// <summary>
+    /// 엔드포인트 구성
+    /// </summary>
     public override void Configure()
     {
         Get("/api/serverTime");

@@ -178,5 +178,7 @@ finally
     Log.CloseAndFlush();
 }
 
-// 테스트에서 접근할 수 있도록 Program 클래스를 public으로 선언
+/// <summary>
+/// 테스트에서 접근할 수 있도록 Program 클래스를 public으로 선언 
+/// </summary>
 public partial class Program { }
