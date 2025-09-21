@@ -9,6 +9,10 @@ using Microsoft.Extensions.Options;
 
 namespace Demo.Web.Endpoints.Company;
 
+/// <summary>
+/// 회사 생성 엔드포인트의 Swagger 문서화를 위한 요약 클래스
+/// FastEndpoints의 Summary를 상속받아 API 문서를 정의합니다.
+/// </summary>
 public class CompanyCreateEndpointV1 : Endpoint<CompanyCreateRequest, EmptyResponse>
 {
     private readonly ICommandMediator _commandMediator;

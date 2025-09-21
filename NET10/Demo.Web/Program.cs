@@ -1,37 +1,24 @@
-using Demo.Application;
 using Demo.Application.Configs;
 using Demo.Application.DTO.User;
-using LiteBus.Queries.Abstractions;
-using LiteBus.Commands.Abstractions;
-using LiteBus.Events.Abstractions;
-using Demo.Application.ErrorHandlers;
 using Demo.Application.Extensions;
 using Demo.Application.Middleware;
 using Demo.Application.Models;
+using Demo.Application.Services;
 using Demo.Domain;
 using Demo.Domain.Repositories;
-using Demo.Infra;
 using Demo.Infra.Configs;
 using Demo.Infra.Repositories;
 using Demo.Infra.Services;
 using Demo.Infra.Extensions;
 using Demo.Web;
-using Demo.Web.Endpoints.User;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.EntityFrameworkCore;
 
 using FluentValidation;
-using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
-using LiteBus.Events.Extensions.MicrosoftDependencyInjection;
-using LiteBus.Messaging.Extensions.MicrosoftDependencyInjection;
-using LiteBus.Queries.Extensions.MicrosoftDependencyInjection;
 using Mapster;
-using OpenTelemetry.Exporter;
-using OpenTelemetry.Logs;
 using Scalar.AspNetCore;
 using Serilog;
-using Serilog.Sinks.OpenTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,8 +60,10 @@ try
     var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
     if (rabbitMqConfig is null)
         throw new NullReferenceException();
-    builder.Services.AddSingleton<RabbitMqConnection>();
     builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
+    builder.Services.AddSingleton<RabbitMqConnection>();
+    builder.Services.AddSingleton<RabbitMqHandler>();
+    builder.Services.AddSingleton<IMqMessageHandler, MqMessageHandler>();
     builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
 
     #endregion
@@ -175,5 +164,7 @@ finally
     Log.CloseAndFlush();
 }
 
-// 테스트에서 접근할 수 있도록 Program 클래스를 public으로 선언
+/// <summary>
+/// 테스트에서 접근할 수 있도록 Program 클래스를 public으로 선언 
+/// </summary>
 public partial class Program { }

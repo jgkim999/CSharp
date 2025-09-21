@@ -10,10 +10,15 @@ using Microsoft.Extensions.Options;
 namespace Demo.Web.Endpoints.User;
 
 /// <summary>
-/// 
+/// 사용자 생성 엔드포인트의 Swagger 문서화를 위한 요약 클래스
+/// FastEndpoints의 Summary를 상속받아 API 문서를 정의합니다
 /// </summary>
 public class UserCreateEndpointSummary : Summary<UserCreateEndpointV1>
 {
+    /// <summary>
+    /// UserCreateEndpointSummary의 새 인스턴스를 초기화하고 Swagger 문서 정보를 설정합니다
+    /// CQRS 패턴을 사용하여 사용자 생성 커맨드를 처리하며, Rate Limiting을 지원합니다
+    /// </summary>
     public UserCreateEndpointSummary()
     {
         Summary = "새로운 사용자를 생성합니다.";
@@ -26,6 +31,11 @@ public class UserCreateEndpointSummary : Summary<UserCreateEndpointV1>
     }
 }
 
+/// <summary>
+/// 사용자 생성을 위한 V1 엔드포인트 클래스
+/// CQRS 패턴과 LiteBus 중재자를 사용하여 사용자 생성 커맨드를 처리합니다
+/// Rate Limiting, OpenTelemetry 추적, 오류 처리 등을 지원합니다
+/// </summary>
 public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
 {
     private readonly ICommandMediator _commandMediator;
@@ -34,8 +44,13 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
     private readonly RateLimitConfig _rateLimitConfig;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="UserCreateEndpointV1"/> class with the specified command mediator, telemetry service, logger, and rate limit configuration.
+    /// UserCreateEndpointV1의 새 인스턴스를 초기화합니다
+    /// CQRS 커맨드 중재자, 텔레메트리 서비스, 로거, Rate Limit 설정을 주입받습니다
     /// </summary>
+    /// <param name="commandMediator">CQRS 커맨드 처리를 위한 ICommandMediator 인스턴스</param>
+    /// <param name="telemetryService">OpenTelemetry 추적을 위한 ITelemetryService 인스턴스</param>
+    /// <param name="logger">로깅을 위한 ILogger 인스턴스</param>
+    /// <param name="rateLimitConfig">Rate Limiting 설정을 위한 RateLimitConfig</param>
     public UserCreateEndpointV1(
         ICommandMediator commandMediator,
         ITelemetryService telemetryService,
@@ -49,8 +64,8 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
     }
 
     /// <summary>
-    /// Configures the endpoint to handle HTTP POST requests at the route "/api/user/create" and allows anonymous access.
-    /// Applies rate limiting based on configuration settings.
+    /// 엔드포인트의 라우팅, 보안, Rate Limiting 설정을 구성합니다
+    /// POST /api/user/create 경로로 익명 접근을 허용하며, 설정에 따라 Rate Limiting을 적용합니다
     /// </summary>
     public override void Configure()
     {
@@ -69,10 +84,13 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
     }
 
     /// <summary>
-    /// Processes a user creation request, invoking the user creation command and returning an appropriate HTTP response based on the outcome.
+    /// 사용자 생성 요청을 비동기적으로 처리합니다
+    /// OpenTelemetry Activity를 생성하여 추적을 수행하고, CQRS 커맨드를 통해 사용자를 생성합니다
+    /// 오류 상황에 따라 적절한 HTTP 상태 코드와 사용자 친화적 메시지를 반환합니다
     /// </summary>
-    /// <param name="req">The user creation request containing name, email, and password.</param>
-    /// <param name="ct">A cancellation token for the asynchronous operation.</param>
+    /// <param name="req">사용자 생성 요청 데이터 (이름, 이메일, 비밀번호 포함)</param>
+    /// <param name="ct">비동기 작업 취소를 위한 CancellationToken</param>
+    /// <returns>사용자 생성 결과에 따른 HTTP 응답</returns>
     public override async Task HandleAsync(UserCreateRequest req, CancellationToken ct)
     {
         using var activity = _telemetryService.StartActivity("user.create");
@@ -124,6 +142,12 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
         }
     }
 
+    /// <summary>
+    /// 오류 메시지를 분석하여 적절한 HTTP 상태 코드와 사용자 친화적 메시지를 반환합니다
+    /// 데이터베이스 제약 조건 오류, 유효성 검사 오류 등을 분류하여 처리합니다
+    /// </summary>
+    /// <param name="errorMessage">분석할 오류 메시지</param>
+    /// <returns>HTTP 상태 코드와 사용자 친화적 메시지를 포함한 튜플</returns>
     private static (int StatusCode, string UserFriendlyMessage) GetErrorDetails(string errorMessage)
     {
         // 데이터베이스 제약 조건 오류 분석

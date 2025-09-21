@@ -7,12 +7,24 @@ using Demo.Application.Extensions;
 
 namespace Demo.Web.Endpoints.Product;
 
+/// <summary>
+/// 상품 생성을 위한 V1 엔드포인트 클래스
+/// CQRS 패턴과 LiteBus 중재자를 사용하여 상품 생성 커맨드를 처리합니다
+/// OpenTelemetry 추적과 오류 처리를 지원합니다
+/// </summary>
 public class ProductCreateEndpointV1 : Endpoint<ProductCreateRequest, EmptyResponse>
 {
     private readonly ICommandMediator _commandMediator;
     private readonly ITelemetryService _telemetryService;
     private readonly ILogger<ProductCreateEndpointV1> _logger;
 
+    /// <summary>
+    /// ProductCreateEndpointV1의 새 인스턴스를 초기화합니다
+    /// CQRS 커맨드 중재자, 텔레메트리 서비스, 로거를 주입받습니다
+    /// </summary>
+    /// <param name="commandMediator">CQRS 커맨드 처리를 위한 ICommandMediator 인스턴스</param>
+    /// <param name="telemetryService">OpenTelemetry 추적을 위한 ITelemetryService 인스턴스</param>
+    /// <param name="logger">로깅을 위한 ILogger 인스턴스</param>
     public ProductCreateEndpointV1(
         ICommandMediator commandMediator,
         ITelemetryService telemetryService,
@@ -23,12 +35,24 @@ public class ProductCreateEndpointV1 : Endpoint<ProductCreateRequest, EmptyRespo
         _logger = logger;
     }
 
+    /// <summary>
+    /// 엔드포인트의 라우팅 및 보안 설정을 구성합니다
+    /// POST /api/product/create 경로로 익명 접근을 허용합니다
+    /// </summary>
     public override void Configure()
     {
         Post("/api/product/create");
         AllowAnonymous();
     }
 
+    /// <summary>
+    /// 상품 생성 요청을 비동기적으로 처리합니다
+    /// OpenTelemetry Activity를 생성하여 추적을 수행하고, CQRS 커맨드를 통해 상품을 생성합니다
+    /// 상품 생성 과정에서 발생하는 오류를 처리하고 적절한 HTTP 응답을 반환합니다
+    /// </summary>
+    /// <param name="req">상품 생성 요청 데이터 (회사ID, 상품명, 가격 포함)</param>
+    /// <param name="ct">비동기 작업 취소를 위한 CancellationToken</param>
+    /// <returns>상품 생성 결과에 따른 HTTP 응답</returns>
     public override async Task HandleAsync(ProductCreateRequest req, CancellationToken ct)
     {
         using var activity = _telemetryService.StartActivity("product.create");

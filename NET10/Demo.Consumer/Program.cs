@@ -1,3 +1,4 @@
+using Demo.Application.Services;
 using Demo.Domain;
 using Demo.Infra.Configs;
 using Demo.Infra.Services;
@@ -39,8 +40,10 @@ try
     var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
     if (rabbitMqConfig is null)
         throw new NullReferenceException();
-    builder.Services.AddSingleton<RabbitMqConnection>();
     builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
+    builder.Services.AddSingleton<RabbitMqConnection>();
+    builder.Services.AddSingleton<RabbitMqHandler>();
+    builder.Services.AddSingleton<IMqMessageHandler, MqMessageHandler>();
     builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
     builder.Services.AddHostedService<RabbitMqConsumerService>();
     #endregion
@@ -48,11 +51,6 @@ try
     var app = builder.Build();
 
     app.UseHttpsRedirection();
-
-    var summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
 
     app.Run();
 }

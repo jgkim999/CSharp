@@ -172,7 +172,7 @@ public class TelemetryServiceRegressionTests : IDisposable
         const int userId = 123;
 
         // Activity가 null일 수 있으므로 using 문 사용하지 않음
-        var activity = _telemetryService.StartActivity("test-operation");
+        using var activity = _telemetryService.StartActivity("test-operation");
 
         // Act & Assert
         var exception = Record.Exception(() =>
@@ -195,7 +195,7 @@ public class TelemetryServiceRegressionTests : IDisposable
         const int userId = 456;
 
         // Activity가 null일 수 있으므로 using 문 사용하지 않음
-        var activity = _telemetryService.StartActivity("test-operation");
+        using var activity = _telemetryService.StartActivity("test-operation");
 
         // Act & Assert
         var exception = Record.Exception(() =>
@@ -219,7 +219,7 @@ public class TelemetryServiceRegressionTests : IDisposable
         const int userId = 789;
 
         // Activity가 null일 수 있으므로 using 문 사용하지 않음
-        var activity = _telemetryService.StartActivity("test-operation");
+        using var activity = _telemetryService.StartActivity("test-operation");
 
         // Act & Assert
         var exception = Record.Exception(() =>
