@@ -18,6 +18,7 @@ public interface ITelemetryService
     Activity? StartActivity(string operationName, ActivityKind kind, Dictionary<string, object?>? tags = null);
     Activity? StartActivity(string operationName, ActivityKind kind, ActivityContext? parentContext,
         Dictionary<string, object?>? tags = null);
+    Activity? StartActivity(string operationName, ActivityKind kind, string? parentTraceId);
     
     /// <summary>
     /// HTTP 요청 메트릭을 기록합니다.

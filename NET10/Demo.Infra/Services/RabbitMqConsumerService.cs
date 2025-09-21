@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Demo.Infra.Configs;
 using System.Text;
 using Demo.Application.Services;
@@ -13,6 +14,7 @@ namespace Demo.Infra.Services;
 public class RabbitMqConsumerService : BackgroundService
 {
     private readonly RabbitMqConnection _connection;
+    private readonly ITelemetryService _telemetryService;
     private readonly ILogger<RabbitMqConsumerService> _logger;
     
     private readonly string _multiQueue;
@@ -29,6 +31,7 @@ public class RabbitMqConsumerService : BackgroundService
         ArgumentNullException.ThrowIfNull(publishService);
         _logger = logger;
         _connection = connection;
+        _telemetryService = telemetryService;
 
         // Multi: 각 Consumer마다 고유한 queue (fanout으로 모든 Consumer에게 전송)
         _multiQueue = config.Value.QueueName + ".multi." + Ulid.NewUlid();
@@ -104,6 +107,10 @@ public class RabbitMqConsumerService : BackgroundService
             var replyTo = ea.BasicProperties?.ReplyTo;
             var correlationId = ea.BasicProperties?.CorrelationId;
             var messageId = ea.BasicProperties?.MessageId;
+            var traceId = ea.BasicProperties?.Headers?["trace_id"]?.ToString();
+            var spanId = ea.BasicProperties?.Headers?["span_id"]?.ToString();
+            
+            using var activity = _telemetryService.StartActivity("RabbitMqConsumerService.ProcessMessageAsync", ActivityKind.Consumer, traceId);
 
             _logger.LogInformation(
                 "Received message from {QueueType} queue: {Message}, Exchange: {Exchange}, RoutingKey: {RoutingKey}, ReplyTo: {ReplyTo}, CorrelationId: {CorrelationId}",
