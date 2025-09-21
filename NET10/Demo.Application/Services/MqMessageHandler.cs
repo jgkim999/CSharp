@@ -1,3 +1,4 @@
+using Demo.Application.DTO;
 using Demo.Domain;
 using Demo.Domain.Enums;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,10 @@ namespace Demo.Application.Services;
 public class MqMessageHandler : IMqMessageHandler
 {
     private readonly ILogger<MqMessageHandler> _logger;
-
+    private readonly Dictionary<
+        string,
+        Func<MqSenderType, string?, string?, string?, object, Type, CancellationToken, ValueTask>> _handlers;
+    
     /// <summary>
     /// MqMessageHandler의 새 인스턴스를 초기화합니다
     /// </summary>
@@ -19,6 +23,47 @@ public class MqMessageHandler : IMqMessageHandler
     public MqMessageHandler(ILogger<MqMessageHandler> logger)
     {
         _logger = logger;
+        
+        _handlers = new()
+        {
+            { nameof(MqPublishRequest), OnMqPublishRequestAsync },
+            { nameof(MqPublishRequest2), OnMqPublishRequest2Async }
+        };
+    }
+
+    private async ValueTask OnMqPublishRequest2Async(MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct)
+    {
+        MqPublishRequest2? request = messageObject as MqPublishRequest2;
+        if (request == null)
+        {
+            _logger.LogError("Message casting error. {Message}", messageId);
+            return;
+        }
+        _logger.LogInformation("Message Processed. {Message}", request.CreatedAt);
+    }
+
+    private async ValueTask OnMqPublishRequestAsync(
+        MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct)
+    {
+        MqPublishRequest? request = messageObject as MqPublishRequest;
+        if (request == null)
+        {
+            _logger.LogError("Message casting error. {Message}", messageId);
+            return;
+        }
+        _logger.LogInformation("Message Processed. {Message}", request.Message);
     }
 
     /// <summary>
@@ -65,13 +110,16 @@ public class MqMessageHandler : IMqMessageHandler
         Type messageType,
         CancellationToken ct)
     {
-        _logger.LogInformation("MessagePack Object Processed. Type: {MessageType}, Object: {MessageObject}",
-            messageType.FullName,
-            System.Text.Json.JsonSerializer.Serialize(messageObject, new System.Text.Json.JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-            }));
-        await Task.CompletedTask;
+        _logger.LogInformation(
+            "MessagePack Object Processed. Type: {MessageType}",
+            messageType.FullName);
+        if (_handlers.TryGetValue(messageType.Name, out var handler))
+        {
+            await handler(senderType, sender, correlationId, messageId, messageObject, messageType, ct);
+        }
+        else
+        {
+            _logger.LogError("Register message {MessageType}", messageType.FullName);
+        }
     }
 }
