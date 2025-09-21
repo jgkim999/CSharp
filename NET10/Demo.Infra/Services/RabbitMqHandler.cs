@@ -8,13 +8,24 @@ using RabbitMQ.Client.Events;
 
 namespace Demo.Infra.Services;
 
+/// <summary>
+/// RabbitMQ 메시지 처리를 담당하는 핸들러 클래스
+/// OpenTelemetry 추적 컨텍스트를 포함한 메시지 처리 및 응답 관리를 수행합니다
+/// </summary>
 public class RabbitMqHandler
 {
     private readonly RabbitMqConnection _connection;
     private readonly ITelemetryService _telemetryService;
     private readonly IMqMessageHandler _mqMessageHandler;
     private readonly ILogger<RabbitMqHandler> _logger;
-    
+
+    /// <summary>
+    /// RabbitMqHandler의 새 인스턴스를 초기화합니다
+    /// </summary>
+    /// <param name="connection">RabbitMQ 연결 인스턴스</param>
+    /// <param name="mqMessageHandler">메시지 처리를 위한 핸들러</param>
+    /// <param name="logger">로거 인스턴스</param>
+    /// <param name="telemetryService">텔레메트리 서비스</param>
     public RabbitMqHandler(
         RabbitMqConnection connection,
         IMqMessageHandler mqMessageHandler,
@@ -27,6 +38,11 @@ public class RabbitMqHandler
         _telemetryService = telemetryService;
     }
 
+    /// <summary>
+    /// 수신된 메시지의 헤더에서 W3C Trace Context를 파싱하여 OpenTelemetry Activity를 생성합니다
+    /// </summary>
+    /// <param name="ea">RabbitMQ에서 수신된 메시지 이벤트 인자</param>
+    /// <returns>생성된 Activity 또는 null (파싱 실패 시)</returns>
     private Activity? MakeActivity(BasicDeliverEventArgs ea)
     {
         try
@@ -103,6 +119,14 @@ public class RabbitMqHandler
         }
     }
     
+    /// <summary>
+    /// RabbitMQ에서 수신된 메시지를 비동기적으로 처리합니다
+    /// W3C Trace Context 파싱, 메시지 디코딩, 비즈니스 로직 처리, ACK/NACK 응답을 수행합니다
+    /// </summary>
+    /// <param name="senderType">메시지 발송자 타입 (Multi, Any, Unique)</param>
+    /// <param name="ea">RabbitMQ에서 수신된 메시지 이벤트 인자</param>
+    /// <param name="ct">작업 취소 토큰</param>
+    /// <returns>비동기 작업</returns>
     public async ValueTask HandleAsync(MqSenderType senderType, BasicDeliverEventArgs ea, CancellationToken ct = default)
     {
         try
