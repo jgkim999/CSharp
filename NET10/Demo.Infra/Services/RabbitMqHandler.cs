@@ -9,6 +9,7 @@ using MessagePack;
 using System.Reflection;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using Serilog;
 
 namespace Demo.Infra.Services;
 
@@ -239,14 +240,17 @@ public class RabbitMqHandler
     /// </summary>
     /// <param name="messageTypeName">타입의 전체 이름</param>
     /// <returns>타입 객체 또는 null</returns>
-    private static Type? GetTypeFromCache(string messageTypeName)
+    private Type? GetTypeFromCache(string messageTypeName)
     {
         return TypeCache.GetOrAdd(messageTypeName, typeName =>
         {
             // 1. 먼저 Type.GetType으로 시도 (mscorlib 및 현재 어셈블리)
             var type = Type.GetType(typeName, throwOnError: false, ignoreCase: false);
             if (type != null)
+            {
+                _logger.LogDebug("Type {TypeName} found via Type.GetType() and added to cache", typeName);
                 return type;
+            }
 
             // 2. 로드된 모든 어셈블리에서 타입 검색
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -255,7 +259,11 @@ public class RabbitMqHandler
                 {
                     type = assembly.GetType(typeName, throwOnError: false, ignoreCase: false);
                     if (type != null)
+                    {
+                        _logger.LogDebug("Type {TypeName} found in assembly {AssemblyName} and added to cache",
+                            typeName, assembly.GetName().Name);
                         return type;
+                    }
                 }
                 catch (Exception)
                 {
@@ -263,6 +271,7 @@ public class RabbitMqHandler
                 }
             }
 
+            _logger.LogWarning("Type {TypeName} not found in any assembly and null cached", typeName);
             return null;
         });
     }
@@ -273,17 +282,22 @@ public class RabbitMqHandler
     /// </summary>
     /// <param name="messageType">deserialize할 메시지 타입</param>
     /// <returns>컴파일된 deserialize 델리게이트</returns>
-    private static Func<ReadOnlyMemory<byte>, MessagePackSerializerOptions, CancellationToken, object?> GetDeserializeMethod(Type messageType)
+    private Func<ReadOnlyMemory<byte>, MessagePackSerializerOptions, CancellationToken, object?> GetDeserializeMethod(Type messageType)
     {
         return DeserializeMethodCache.GetOrAdd(messageType, type =>
         {
+            _logger.LogDebug("Creating deserialize method for type {TypeName} and adding to cache", type.FullName);
+
             // MessagePackSerializer.Deserialize<T>(ReadOnlyMemory<byte>, MessagePackSerializerOptions, CancellationToken) 메서드 가져오기
             var deserializeMethod = typeof(MessagePackSerializer)
                 .GetMethod("Deserialize", new[] { typeof(ReadOnlyMemory<byte>), typeof(MessagePackSerializerOptions), typeof(CancellationToken) })
                 ?.MakeGenericMethod(type);
 
             if (deserializeMethod == null)
+            {
+                _logger.LogError("Could not find MessagePackSerializer.Deserialize method for type {TypeName}", type.FullName);
                 throw new InvalidOperationException($"Could not find MessagePackSerializer.Deserialize method for type {type.FullName}");
+            }
 
             // Expression Tree를 사용하여 컴파일된 델리게이트 생성
             var bytesParam = Expression.Parameter(typeof(ReadOnlyMemory<byte>), "bytes");
@@ -296,7 +310,10 @@ public class RabbitMqHandler
             var lambda = Expression.Lambda<Func<ReadOnlyMemory<byte>, MessagePackSerializerOptions, CancellationToken, object?>>(
                 convertToObject, bytesParam, optionsParam, cancellationTokenParam);
 
-            return lambda.Compile();
+            var compiledDelegate = lambda.Compile();
+            _logger.LogDebug("Successfully compiled deserialize method for type {TypeName} and cached", type.FullName);
+
+            return compiledDelegate;
         });
     }
 
@@ -347,10 +364,7 @@ public class RabbitMqHandler
                     string.Join(", ", AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name)));
                 return;
             }
-
-            _logger.LogDebug("Successfully resolved MessagePack type {MessageType} from assembly {Assembly}",
-                messageTypeName, messageType.Assembly.GetName().Name);
-
+          
             // MessagePack deserialize - 컴파일된 델리게이트 사용으로 성능 최적화
             try
             {
@@ -362,8 +376,6 @@ public class RabbitMqHandler
                     _logger.LogWarning("MessagePack deserialization returned null for type {MessageType}", messageTypeName);
                     return;
                 }
-
-                _logger.LogDebug("Successfully deserialized MessagePack message of type {MessageType}", messageTypeName);
 
                 // 타입 객체를 직접 핸들러에 전달
                 await _mqMessageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, deserializedObject, messageType, ct);

@@ -2,6 +2,7 @@ using Demo.Application.DTO;
 using Demo.Domain;
 using Demo.Domain.Enums;
 using Microsoft.Extensions.Logging;
+using System.Collections.Frozen;
 
 namespace Demo.Application.Services;
 
@@ -12,7 +13,7 @@ namespace Demo.Application.Services;
 public class MqMessageHandler : IMqMessageHandler
 {
     private readonly ILogger<MqMessageHandler> _logger;
-    private readonly Dictionary<
+    private readonly FrozenDictionary<
         string,
         Func<MqSenderType, string?, string?, string?, object, Type, CancellationToken, ValueTask>> _handlers;
     
@@ -24,14 +25,14 @@ public class MqMessageHandler : IMqMessageHandler
     {
         _logger = logger;
         
-        _handlers = new()
+        _handlers = new Dictionary<string, Func<MqSenderType, string?, string?, string?, object, Type, CancellationToken, ValueTask>>(2)
         {
-            { nameof(MqPublishRequest), OnMqPublishRequestAsync },
-            { nameof(MqPublishRequest2), OnMqPublishRequest2Async }
-        };
+            { typeof(MqPublishRequest).FullName!, OnMqPublishRequestAsync },
+            { typeof(MqPublishRequest2).FullName!, OnMqPublishRequest2Async }
+        }.ToFrozenDictionary();
     }
 
-    private async ValueTask OnMqPublishRequest2Async(MqSenderType senderType,
+    private ValueTask OnMqPublishRequest2Async(MqSenderType senderType,
         string? sender,
         string? correlationId,
         string? messageId,
@@ -39,16 +40,25 @@ public class MqMessageHandler : IMqMessageHandler
         Type messageType,
         CancellationToken ct)
     {
-        MqPublishRequest2? request = messageObject as MqPublishRequest2;
-        if (request == null)
+        try
         {
-            _logger.LogError("Message casting error. {Message}", messageId);
-            return;
+            if (messageObject is not MqPublishRequest2 request)
+            {
+                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
+                    messageId, nameof(MqPublishRequest2), messageObject.GetType().Name);
+                return ValueTask.CompletedTask;
+            }
+            _logger.LogInformation("Message Processed. MessageId: {MessageId}, CreatedAt: {CreatedAt}", messageId, request.CreatedAt);
+            return ValueTask.CompletedTask;
         }
-        _logger.LogInformation("Message Processed. {Message}", request.CreatedAt);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing MqPublishRequest2. MessageId: {MessageId}", messageId);
+            return ValueTask.CompletedTask;
+        }
     }
 
-    private async ValueTask OnMqPublishRequestAsync(
+    private ValueTask OnMqPublishRequestAsync(
         MqSenderType senderType,
         string? sender,
         string? correlationId,
@@ -57,13 +67,22 @@ public class MqMessageHandler : IMqMessageHandler
         Type messageType,
         CancellationToken ct)
     {
-        MqPublishRequest? request = messageObject as MqPublishRequest;
-        if (request == null)
+        try
         {
-            _logger.LogError("Message casting error. {Message}", messageId);
-            return;
+            if (messageObject is not MqPublishRequest request)
+            {
+                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
+                    messageId, nameof(MqPublishRequest), messageObject.GetType().Name);
+                return ValueTask.CompletedTask;
+            }
+            _logger.LogInformation("Message Processed. MessageId: {MessageId}, Message: {Message}", messageId, request.Message);
+            return ValueTask.CompletedTask;
         }
-        _logger.LogInformation("Message Processed. {Message}", request.Message);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing MqPublishRequest. MessageId: {MessageId}", messageId);
+            return ValueTask.CompletedTask;
+        }
     }
 
     /// <summary>
@@ -77,7 +96,7 @@ public class MqMessageHandler : IMqMessageHandler
     /// <param name="message">처리할 메시지 내용</param>
     /// <param name="ct">작업 취소 토큰</param>
     /// <returns>비동기 작업</returns>
-    public async ValueTask HandleAsync(
+    public ValueTask HandleAsync(
         MqSenderType senderType,
         string? sender,
         string? correlationId,
@@ -85,8 +104,16 @@ public class MqMessageHandler : IMqMessageHandler
         string message,
         CancellationToken ct)
     {
-        _logger.LogInformation("Message Processed. {Message}", message);
-        await Task.CompletedTask;
+        try
+        {
+            _logger.LogInformation("Message Processed. MessageId: {MessageId}, Message: {Message}", messageId, message);
+            return ValueTask.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing message. MessageId: {MessageId}", messageId);
+            return ValueTask.CompletedTask;
+        }
     }
 
     /// <summary>
@@ -110,16 +137,26 @@ public class MqMessageHandler : IMqMessageHandler
         Type messageType,
         CancellationToken ct)
     {
-        _logger.LogInformation(
-            "MessagePack Object Processed. Type: {MessageType}",
-            messageType.FullName);
-        if (_handlers.TryGetValue(messageType.Name, out var handler))
+        try
         {
-            await handler(senderType, sender, correlationId, messageId, messageObject, messageType, ct);
+            _logger.LogInformation(
+                "MessagePack Object Processed. MessageId: {MessageId}, Type: {MessageType}",
+                messageId, messageType.FullName);
+
+            if (_handlers.TryGetValue(messageType.FullName!, out var handler))
+            {
+                await handler(senderType, sender, correlationId, messageId, messageObject, messageType, ct);
+            }
+            else
+            {
+                _logger.LogWarning("No handler registered for message type: {MessageType}, MessageId: {MessageId}",
+                    messageType.FullName, messageId);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _logger.LogError("Register message {MessageType}", messageType.FullName);
+            _logger.LogError(ex, "Error processing MessagePack object. MessageId: {MessageId}, Type: {MessageType}",
+                messageId, messageType.FullName);
         }
     }
 }
