@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Demo.Application.Services;
 using Demo.Domain;
+using Demo.Domain.Enums;
 using FastEndpoints;
 
 namespace Demo.Web.Endpoints.Test;
@@ -49,7 +50,7 @@ public class TestMqPublishEndpoint : Endpoint<MqPublishRequest>
         try
         {
             _telemetryService.StartActivity(nameof(TestMqPublishEndpoint));
-            await _mqPublishService.PublishMessageAsync(msg.Message);
+            await _mqPublishService.PublishAnyAsync(msg.Message);
         }
         catch (Exception ex)
         {
