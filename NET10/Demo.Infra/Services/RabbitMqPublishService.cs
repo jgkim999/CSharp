@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Demo.Domain.Enums;
+using System.Buffers;
 
 namespace Demo.Infra.Services;
 
@@ -25,6 +26,9 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     // 요청-응답 매칭을 위한 대기 중인 요청 저장소
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _pendingRequests;
     private readonly AsyncEventingBasicConsumer _uniqueConsumer;
+
+    // 메모리 최적화를 위한 객체 풀링
+    private readonly ConcurrentBag<StringBuilder> _stringBuilderPool;
    
     public RabbitMqPublishService(
         IOptions<RabbitMqConfig> config,
@@ -42,8 +46,18 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         _telemetryService = telemetryService;
         _handler = handler;
 
-        // 요청-응답 매칭용 딕셔너리 초기화
-        _pendingRequests = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
+        // 요청-응답 매칭용 딕셔너리 초기화 (성능 최적화)
+        _pendingRequests = new ConcurrentDictionary<string, TaskCompletionSource<string>>(
+            Environment.ProcessorCount, 100);
+
+        // 메모리 최적화를 위한 객체 풀 초기화
+        _stringBuilderPool = new ConcurrentBag<StringBuilder>();
+
+        // 초기 StringBuilder들을 미리 생성하여 풀에 추가
+        for (int i = 0; i < Environment.ProcessorCount; i++)
+        {
+            _stringBuilderPool.Add(new StringBuilder(64)); // traceparent 길이 고려
+        }
 
         // Unique queue 생성 (메시지를 받기 위한 고유 queue)
         _uniqueQueue = $"{Environment.MachineName}.unique.{Ulid.NewUlid()}";
@@ -74,40 +88,98 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         _connection.Dispose();
     }
 
+
+    /// <summary>
+    /// StringBuilder를 풀에서 가져오거나 새로 생성합니다
+    /// </summary>
+    private StringBuilder GetStringBuilder()
+    {
+        if (_stringBuilderPool.TryTake(out var sb))
+        {
+            sb.Clear();
+            return sb;
+        }
+        return new StringBuilder(64);
+    }
+
+    /// <summary>
+    /// StringBuilder를 풀에 반환합니다
+    /// </summary>
+    private void ReturnStringBuilder(StringBuilder sb)
+    {
+        if (sb.Capacity <= 256) // 너무 큰 StringBuilder는 풀에 반환하지 않음
+        {
+            _stringBuilderPool.Add(sb);
+        }
+    }
+
     private (byte[] Body, BasicProperties Properties) MakeData(string message, string? correlationId = null)
     {
-        var body = Encoding.UTF8.GetBytes(message);
-        return MakeData(body, correlationId);
+        // ArrayPool을 사용한 메모리 최적화
+        var maxByteCount = Encoding.UTF8.GetMaxByteCount(message.Length);
+        var rental = ArrayPool<byte>.Shared.Rent(maxByteCount);
+        try
+        {
+            var actualLength = Encoding.UTF8.GetBytes(message, rental);
+            var body = new byte[actualLength];
+            Array.Copy(rental, body, actualLength);
+            return MakeData(body, correlationId);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(rental);
+        }
     }
     
     private (byte[] Body, BasicProperties Properties) MakeData(byte[] body, string? correlationId = null)
     {
+        // 헤더는 매번 새로 생성 (RabbitMQ 메시지와 함께 전송되므로 풀링 불가)
+        var headers = new Dictionary<string, object>(8);
+
         var properties = new BasicProperties
         {
             ReplyTo = _uniqueQueue,
             CorrelationId = correlationId ?? Ulid.NewUlid().ToString(),
             Timestamp = new AmqpTimestamp(new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()),
             MessageId = Ulid.NewUlid().ToString(),
-            Headers = new Dictionary<string, object>()!
+            Headers = headers!
         };
 
         // W3C Trace Context 표준에 따른 traceparent 헤더 추가
         if (Activity.Current != null)
         {
-            var traceId = Activity.Current.TraceId.ToString();
-            var spanId = Activity.Current.SpanId.ToString();
-            var traceFlagsValue = (byte)Activity.Current.ActivityTraceFlags;
-            var traceFlags = traceFlagsValue.ToString("x2");
-            _logger.LogInformation("traceFlags; {Flag}", traceFlags);
+            // StringBuilder를 사용한 문자열 연결 최적화
+            var sb = GetStringBuilder();
+            try
+            {
+                // ToString()을 사용하되 StringBuilder로 최적화
+                var traceId = Activity.Current.TraceId.ToString();
+                var spanId = Activity.Current.SpanId.ToString();
+                var traceFlagsValue = (byte)Activity.Current.ActivityTraceFlags;
 
-            // traceparent: version-traceid-spanid-traceflags
-            string traceParent = $"00-{traceId}-{spanId}-{traceFlags}";
-            _logger.LogInformation("Send traceParent: {TraceParent}", traceParent);
-            
-            properties.Headers["traceparent"] = traceParent;
-            properties.Headers["trace_id"] = traceId;
-            properties.Headers["span_id"] = spanId;
+                // StringBuilder로 traceparent 구성 (메모리 할당 최소화)
+                sb.Append("00-")
+                  .Append(traceId)
+                  .Append('-')
+                  .Append(spanId)
+                  .Append('-')
+                  .Append(traceFlagsValue.ToString("x2"));
+
+                var traceParent = sb.ToString();
+
+                // 로깅을 Debug 레벨로 변경 (프로덕션 성능 최적화)
+                _logger.LogDebug("Send traceParent: {TraceParent}", traceParent);
+
+                headers["traceparent"] = traceParent;
+                headers["trace_id"] = traceId;
+                headers["span_id"] = spanId;
+            }
+            finally
+            {
+                ReturnStringBuilder(sb);
+            }
         }
+
         return (body, properties);
     }
     
