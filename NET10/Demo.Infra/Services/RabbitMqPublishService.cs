@@ -8,6 +8,7 @@ using RabbitMQ.Client.Events;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Demo.Domain.Enums;
 
 namespace Demo.Infra.Services;
 
@@ -15,6 +16,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
 {
     private readonly RabbitMqConfig _config;
     private readonly RabbitMqConnection _connection;
+    private readonly RabbitMqHandler _handler;
     
     private readonly string _uniqueQueue;
     private readonly ITelemetryService _telemetryService;
@@ -27,6 +29,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     public RabbitMqPublishService(
         IOptions<RabbitMqConfig> config,
         RabbitMqConnection connection,
+        RabbitMqHandler handler,
         ITelemetryService telemetryService,
         ILogger<RabbitMqPublishService> logger)
     {
@@ -37,6 +40,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         _connection = connection;
         _logger = logger;
         _telemetryService = telemetryService;
+        _handler = handler;
 
         // 요청-응답 매칭용 딕셔너리 초기화
         _pendingRequests = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
@@ -83,8 +87,8 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             ReplyTo = _uniqueQueue,
             CorrelationId = correlationId ?? Ulid.NewUlid().ToString(),
             Timestamp = new AmqpTimestamp(new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()),
-            MessageId = Guid.NewGuid().ToString(),
-            Headers = new Dictionary<string, object>()
+            MessageId = Ulid.NewUlid().ToString(),
+            Headers = new Dictionary<string, object>()!
         };
 
         // W3C Trace Context 표준에 따른 traceparent 헤더 추가
@@ -201,18 +205,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     {
         try
         {
-            var correlationId = ea.BasicProperties?.CorrelationId;
-            var responseBody = ea.Body.ToArray();
-            var traceId = ea.BasicProperties?.Headers?["trace_id"]?.ToString();
-            var spanId = ea.BasicProperties?.Headers?["span_id"]?.ToString();
-         
-            using var span = _telemetryService.StartActivity(nameof(OnUniqueReceived), ActivityKind.Consumer, traceId);
-            
-            var responseMessage = Encoding.UTF8.GetString(responseBody);
-
-            _logger.LogInformation(
-                "Unique received. CorrelationId: {CorrelationId}, Message: {Message}",
-                correlationId, responseMessage);
+            await _handler.HandleAsync(MqSenderType.Unique, ea);
         }
         catch (Exception ex)
         {

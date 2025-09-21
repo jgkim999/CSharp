@@ -1,6 +1,6 @@
 namespace Demo.Domain.Enums;
 
-public enum MqEnum
+public enum MqSenderType
 {
     Multi,
     Unique,

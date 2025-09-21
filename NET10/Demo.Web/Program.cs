@@ -8,6 +8,7 @@ using Demo.Application.ErrorHandlers;
 using Demo.Application.Extensions;
 using Demo.Application.Middleware;
 using Demo.Application.Models;
+using Demo.Application.Services;
 using Demo.Domain;
 using Demo.Domain.Repositories;
 using Demo.Infra;
@@ -73,8 +74,10 @@ try
     var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
     if (rabbitMqConfig is null)
         throw new NullReferenceException();
-    builder.Services.AddSingleton<RabbitMqConnection>();
     builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
+    builder.Services.AddSingleton<RabbitMqConnection>();
+    builder.Services.AddSingleton<RabbitMqHandler>();
+    builder.Services.AddSingleton<IMqMessageHandler, MqMessageHandler>();
     builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
 
     #endregion
