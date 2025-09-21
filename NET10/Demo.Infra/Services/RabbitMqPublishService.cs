@@ -84,12 +84,26 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             CorrelationId = correlationId ?? Ulid.NewUlid().ToString(),
             Timestamp = new AmqpTimestamp(new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()),
             MessageId = Guid.NewGuid().ToString(),
-            Headers = new Dictionary<string, object>
-            {
-                ["trace_id"] = Activity.Current?.TraceId.ToString() ?? "",
-                ["span_id"] = Activity.Current?.SpanId.ToString() ?? ""
-            }!
+            Headers = new Dictionary<string, object>()
         };
+
+        // W3C Trace Context 표준에 따른 traceparent 헤더 추가
+        if (Activity.Current != null)
+        {
+            var traceId = Activity.Current.TraceId.ToString();
+            var spanId = Activity.Current.SpanId.ToString();
+            var traceFlagsValue = (byte)Activity.Current.ActivityTraceFlags;
+            var traceFlags = traceFlagsValue.ToString("x2");
+            _logger.LogInformation("traceFlags; {Flag}", traceFlags);
+
+            // traceparent: version-traceid-spanid-traceflags
+            string traceParent = $"00-{traceId}-{spanId}-{traceFlags}";
+            _logger.LogInformation("Send traceParent: {TraceParent}", traceParent);
+            
+            properties.Headers["traceparent"] = traceParent;
+            properties.Headers["trace_id"] = traceId;
+            properties.Headers["span_id"] = spanId;
+        }
         return (body, properties);
     }
     

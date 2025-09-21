@@ -35,7 +35,7 @@ public class CreateEndpointV2 : Endpoint<MyRequest, MyResponse>
     public override async Task HandleAsync(MyRequest req, CancellationToken ct)
     {
         var telemetryService = TryResolve<ITelemetryService>();
-        telemetryService?.StartActivity(nameof(CreateEndpointV2));
+        using var activity = telemetryService?.StartActivity(nameof(CreateEndpointV2));
 
         await Send.OkAsync(new()
         {

@@ -107,10 +107,71 @@ public class RabbitMqConsumerService : BackgroundService
             var replyTo = ea.BasicProperties?.ReplyTo;
             var correlationId = ea.BasicProperties?.CorrelationId;
             var messageId = ea.BasicProperties?.MessageId;
-            var traceId = ea.BasicProperties?.Headers?["trace_id"]?.ToString();
-            var spanId = ea.BasicProperties?.Headers?["span_id"]?.ToString();
-            
-            using var activity = _telemetryService.StartActivity("RabbitMqConsumerService.ProcessMessageAsync", ActivityKind.Consumer, traceId);
+            // W3C Trace Context 표준에 따른 traceparent 헤더 파싱
+            ActivityContext parentContext = default;
+            var traceparentObj = ea.BasicProperties?.Headers?["traceparent"];
+            string? traceparent = null;
+
+            if (traceparentObj != null)
+            {
+                traceparent = traceparentObj switch
+                {
+                    string str => str,
+                    byte[] bytes => System.Text.Encoding.UTF8.GetString(bytes),
+                    _ => traceparentObj.ToString()
+                };
+            }
+
+            if (!string.IsNullOrEmpty(traceparent))
+            {
+                try
+                {
+                    _logger.LogInformation("Receive traceParent: {TraceParent}", traceparent);
+                    // traceparent 형식: version-traceid-spanid-traceflags
+                    // 예: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
+                    var parts = traceparent.Split('-');
+                    if (parts.Length == 4 && parts[0] == "00") // version 00만 지원
+                    {
+                        var traceId = parts[1];
+                        var spanId = parts[2];
+                        var traceFlagsStr = parts[3];
+
+                        if (traceId.Length == 32 && spanId.Length == 16 && traceFlagsStr.Length == 2)
+                        {
+                            var parsedTraceId = ActivityTraceId.CreateFromString(traceId.AsSpan());
+                            var parsedSpanId = ActivitySpanId.CreateFromString(spanId.AsSpan());
+                            var traceFlags = ActivityTraceFlags.None;
+                            if (byte.TryParse(traceFlagsStr, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out var flags))
+                            {
+                                traceFlags = (ActivityTraceFlags)flags;
+                            }
+                            else
+                            {
+                                _logger.LogDebug("Failed to parse trace flags '{TraceFlags}', using default", traceFlagsStr);
+                                traceFlags = ActivityTraceFlags.Recorded;
+                            }
+
+                            parentContext = new ActivityContext(parsedTraceId, parsedSpanId, traceFlags);
+                            _logger.LogDebug("Successfully parsed W3C traceparent: {Traceparent}", traceparent);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Invalid traceparent format lengths: TraceId={TraceIdLength}, SpanId={SpanIdLength}, TraceFlags={TraceFlagsLength}",
+                                traceId.Length, spanId.Length, traceFlagsStr.Length);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Unsupported traceparent version or invalid format: {Traceparent}", traceparent);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to parse W3C traceparent header: {Traceparent}", traceparent);
+                }
+            }
+
+            using var activity = _telemetryService.StartActivity("RabbitMqConsumerService.ProcessMessageAsync", ActivityKind.Consumer, parentContext);
 
             _logger.LogInformation(
                 "Received message from {QueueType} queue: {Message}, Exchange: {Exchange}, RoutingKey: {RoutingKey}, ReplyTo: {ReplyTo}, CorrelationId: {CorrelationId}",
