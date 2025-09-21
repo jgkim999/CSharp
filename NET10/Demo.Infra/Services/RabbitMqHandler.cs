@@ -26,33 +26,11 @@ public class RabbitMqHandler
         _logger = logger;
         _telemetryService = telemetryService;
     }
-    
-    public async ValueTask HandleAsync(MqSenderType senderType, BasicDeliverEventArgs ea, CancellationToken ct = default)
+
+    private Activity? MakeActivity(BasicDeliverEventArgs ea)
     {
         try
         {
-            string exchange = ea.Exchange;
-            string routingKey = ea.RoutingKey;
-            
-            // 메시지 속성에서 Reply-To 정보 추출
-            var replyTo = ea.BasicProperties?.ReplyTo;
-            var correlationId = ea.BasicProperties?.CorrelationId;
-            var messageId = ea.BasicProperties?.MessageId;
-            //var contentType = ea.BasicProperties?.ContentType;
-            //var contentEncoding = ea.BasicProperties?.ContentEncoding;
-            //var priority = ea.BasicProperties?.Priority;
-            //var expiration = ea.BasicProperties?.Expiration;
-            //var userId = ea.BasicProperties?.UserId;
-            //var appId = ea.BasicProperties?.AppId;
-            //var clusterId = ea.BasicProperties?.ClusterId;
-            //var type = ea.BasicProperties?.Type;
-            //var timestamp = ea.BasicProperties?.Timestamp.UnixTime;
-            //var headers = ea.BasicProperties?.Headers;
-            //var deliveryMode = ea.BasicProperties?.DeliveryMode;
-            //var persistent = ea.BasicProperties?.Persistent;
-            //var correlationIdObj = ea.BasicProperties?.CorrelationId;
-            //var replyToAddress = ea.BasicProperties?.ReplyToAddress;
-            
             // W3C Trace Context 표준에 따른 traceparent 헤더 파싱
             ActivityContext parentContext = default;
             var traceParentObj = ea.BasicProperties?.Headers?["traceparent"];
@@ -116,9 +94,42 @@ public class RabbitMqHandler
                     _logger.LogWarning(ex, "Failed to parse W3C traceparent header: {Traceparent}", traceparent);
                 }
             }
-
-            using var activity = _telemetryService.StartActivity("RabbitMqConsumerService.ProcessMessageAsync", ActivityKind.Consumer, parentContext);
-
+            return _telemetryService.StartActivity("rabbitmq.handler", ActivityKind.Consumer, parentContext);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception");
+            return null;
+        }
+    }
+    
+    public async ValueTask HandleAsync(MqSenderType senderType, BasicDeliverEventArgs ea, CancellationToken ct = default)
+    {
+        try
+        {
+            string exchange = ea.Exchange;
+            string routingKey = ea.RoutingKey;
+            
+            // 메시지 속성에서 Reply-To 정보 추출
+            //var appId = ea.BasicProperties?.AppId;
+            //var clusterId = ea.BasicProperties?.ClusterId;
+            //var contentEncoding = ea.BasicProperties?.ContentEncoding;
+            //var contentType = ea.BasicProperties?.ContentType;
+            var correlationId = ea.BasicProperties?.CorrelationId;
+            //var deliveryMode = ea.BasicProperties?.DeliveryMode;
+            //var expiration = ea.BasicProperties?.Expiration;
+            //var headers = ea.BasicProperties?.Headers;
+            var messageId = ea.BasicProperties?.MessageId;
+            //var persistent = ea.BasicProperties?.Persistent;
+            //var priority = ea.BasicProperties?.Priority;
+            var replyTo = ea.BasicProperties?.ReplyTo;
+            //var replyToAddress = ea.BasicProperties?.ReplyToAddress;
+            //var timestamp = ea.BasicProperties?.Timestamp.UnixTime;
+            //var type = ea.BasicProperties?.Type;
+            //var userId = ea.BasicProperties?.UserId;
+            
+            using var activity = MakeActivity(ea);
+            
             ReadOnlySpan<byte> bodySpan = ea.Body.Span;
             var message = Encoding.UTF8.GetString(bodySpan);
 
