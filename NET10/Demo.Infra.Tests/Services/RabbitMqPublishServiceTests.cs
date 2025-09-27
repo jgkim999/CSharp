@@ -98,8 +98,8 @@ public class RabbitMqPublishServiceTests : IAsyncLifetime
         {
             HostName = _rabbitMqContainer.Hostname,
             Port = _rabbitMqContainer.GetMappedPublicPort(5672),
-            QueueName = "test-queue",
-            ExchangePrefix = "test-exchange",
+            MultiQueue = "test-queue",
+            MultiExchange = "test-exchange",
             UserName = "rabbitmq", // Testcontainers 기본 사용자
             Password = "rabbitmq"  // Testcontainers 기본 비밀번호
         };
@@ -138,9 +138,11 @@ public class RabbitMqPublishServiceTests : IAsyncLifetime
             // Consumer 시작
             _ = consumerService.StartAsync(CancellationToken.None);
             await Task.Delay(1000); // Consumer 준비 시간
-
+            
             // Act
-            await publishService.PublishMultiAsync(testMessage, CancellationToken.None, correlationId);
+            var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+            await publishService.PublishMultiAsync(
+                config.Value.MultiExchange, testMessage, CancellationToken.None, correlationId);
             await Task.Delay(2000); // 메시지 처리 시간
 
             // Assert
@@ -175,9 +177,11 @@ public class RabbitMqPublishServiceTests : IAsyncLifetime
             // Consumer 시작
             _ = consumerService.StartAsync(CancellationToken.None);
             await Task.Delay(1000); // Consumer 준비 시간
-
+            
             // Act
-            await publishService.PublishMultiAsync(testMessagePack, CancellationToken.None, correlationId);
+            var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+            await publishService.PublishMultiAsync(
+                config.Value.MultiExchange, testMessagePack, CancellationToken.None, correlationId);
             await Task.Delay(2000); // 메시지 처리 시간
 
             // Assert
@@ -221,7 +225,9 @@ public class RabbitMqPublishServiceTests : IAsyncLifetime
             await Task.Delay(1000); // Consumer 준비 시간
 
             // Act
-            await publishService.PublishAnyAsync(testMessagePack, CancellationToken.None, correlationId);
+            var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+            await publishService.PublishAnyAsync(
+                config.Value.AnyQueue, testMessagePack, CancellationToken.None, correlationId);
             await Task.Delay(2000); // 메시지 처리 시간
 
             // Assert
@@ -308,8 +314,9 @@ public class RabbitMqPublishServiceTests : IAsyncLifetime
         publishService.Dispose();
 
         // Assert
+        var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
         await Assert.ThrowsAsync<ObjectDisposedException>(
-            () => publishService.PublishMultiAsync(testMessage).AsTask());
+            () => publishService.PublishMultiAsync(config.Value.MultiExchange, testMessage).AsTask());
 
         await connection.DisposeAsync();
     }
@@ -328,7 +335,8 @@ public class RabbitMqPublishServiceTests : IAsyncLifetime
         try
         {
             // Act & Assert
-            await publishService.PublishMultiAsync(message);
+            var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+            await publishService.PublishMultiAsync(config.Value.MultiExchange, message);
 
             Assert.True(true); // 예외 없이 실행 완료되면 성공
         }

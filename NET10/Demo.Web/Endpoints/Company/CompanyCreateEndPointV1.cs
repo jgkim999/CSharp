@@ -9,6 +9,16 @@ using Microsoft.Extensions.Options;
 
 namespace Demo.Web.Endpoints.Company;
 
+public class CompanyCreateSummary : Summary<CompanyCreateEndpointV1>
+{
+    public CompanyCreateSummary()
+    {
+        Summary = "회사 생성";
+        Description = "회사 생성 API입니다.";
+        Response<EmptyResponse>(200, "성공");
+    }
+}
+
 /// <summary>
 /// 회사 생성 엔드포인트의 Swagger 문서화를 위한 요약 클래스
 /// FastEndpoints의 Summary를 상속받아 API 문서를 정의합니다.
@@ -43,6 +53,7 @@ public class CompanyCreateEndpointV1 : Endpoint<CompanyCreateRequest, EmptyRespo
     {
         Post("/api/company/create");
         AllowAnonymous();
+        Summary(new CompanyCreateSummary());
 
         // Rate Limiting 적용: 설정 파일에서 읽어온 값 사용
         if (_rateLimitConfig.UserCreateEndpoint.Enabled)

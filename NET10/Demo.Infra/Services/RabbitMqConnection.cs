@@ -15,13 +15,20 @@ public class RabbitMqConnection : IDisposable, IAsyncDisposable
     
     public IChannel Channel => _channel;
     
-    private readonly string _producerExchangeMulti;
+    private readonly string _multiExchange;
+    private readonly string _multiQueue;
     
     private readonly string _anyQueue;
+
+    private readonly string _unqueQueue;
     
-    public string ProducerExchangeMulti => _producerExchangeMulti;
+    public string MultiExchange => _multiExchange;
+    
+    public string MultiQueue => _multiQueue;
 
     public string AnyQueue => _anyQueue;
+    
+    public string UniqueQueue => _unqueQueue;
     
     public RabbitMqConnection(IOptions<RabbitMqConfig> config, ILogger<RabbitMqConsumerService> logger)
     {
@@ -34,13 +41,13 @@ public class RabbitMqConnection : IDisposable, IAsyncDisposable
         {
             UserName = _config.UserName,
             Password = _config.Password,
-            //VirtualHost = ConnectionFactory.DefaultVHost,
-            HostName = _hostName,
+            VirtualHost = _config.VirtualHost,
+            HostName = _config.HostName,
             Port = _config.Port,
             //MaxInboundMessageBodySize = 512 * 1024 * 1024
-            AutomaticRecoveryEnabled = true,
-            NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
-            TopologyRecoveryEnabled = true,
+            AutomaticRecoveryEnabled = _config.AutomaticRecoveryEnabled,
+            NetworkRecoveryInterval = TimeSpan.FromSeconds(_config.NetworkRecoveryInterval),
+            TopologyRecoveryEnabled = _config.TopologyRecoveryEnabled,
             ConsumerDispatchConcurrency = _config.ConsumerDispatchConcurrency, // 1개씩만 처리하고 나머지는 큐에 넣어두고 처리한다.
         };
         _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
@@ -84,16 +91,13 @@ public class RabbitMqConnection : IDisposable, IAsyncDisposable
             return Task.CompletedTask;
         };
         
-        _producerExchangeMulti = _config.ExchangePrefix + ".producer@M";
+        _multiExchange = _config.MultiExchange + "@M";
         
-        _anyQueue = "demo.any.shared";
-        _channel.ExchangeDeclareAsync(exchange: _producerExchangeMulti, type: "fanout");
+        _multiQueue = _config.MultiQueue + "." + Ulid.NewUlid();
+
+        _anyQueue = _config.AnyQueue;
         
-        _channel.QueueDeclareAsync(queue: _anyQueue,
-            durable: true,  // 서버 재시작 시에도 유지
-            exclusive: false,
-            autoDelete: false, // 공유 queue이므로 자동 삭제 비활성화
-            arguments: null);
+        _unqueQueue = _config.UniqueQueue + "." + Ulid.NewUlid();
     }
 
     public void Dispose()

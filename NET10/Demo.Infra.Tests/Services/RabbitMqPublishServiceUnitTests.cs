@@ -31,8 +31,8 @@ public class RabbitMqPublishServiceUnitTests
         config.UserName.Should().Be("guest");
         config.Password.Should().Be("guest");
         config.HostName.Should().Be(string.Empty);
-        config.ExchangePrefix.Should().Be(string.Empty);
-        config.QueueName.Should().Be(string.Empty);
+        config.MultiExchange.Should().Be(string.Empty);
+        config.MultiQueue.Should().Be(string.Empty);
     }
 
     [Fact]
@@ -45,8 +45,8 @@ public class RabbitMqPublishServiceUnitTests
             Port = 15672,
             UserName = "admin",
             Password = "secret",
-            ExchangePrefix = "custom-exchange",
-            QueueName = "custom-queue"
+            MultiExchange = "custom-exchange",
+            MultiQueue = "custom-queue"
         };
 
         // Assert
@@ -54,8 +54,8 @@ public class RabbitMqPublishServiceUnitTests
         config.Port.Should().Be(15672);
         config.UserName.Should().Be("admin");
         config.Password.Should().Be("secret");
-        config.ExchangePrefix.Should().Be("custom-exchange");
-        config.QueueName.Should().Be("custom-queue");
+        config.MultiExchange.Should().Be("custom-exchange");
+        config.MultiQueue.Should().Be("custom-queue");
     }
 
     [Theory]

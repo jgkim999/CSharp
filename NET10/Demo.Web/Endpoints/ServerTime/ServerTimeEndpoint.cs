@@ -8,6 +8,15 @@ using LiteBus.Queries.Abstractions;
 
 namespace Demo.Web.Endpoints.ServerTime;
 
+public class ServerTimeSummary : Summary<ServerTimeEndpoint>
+{
+    public ServerTimeSummary()
+    {
+        Summary = "서버 시간";
+        Description = "NodaTime Example";
+    }
+}
+
 /// <summary>
 /// 서버 시간을 반환
 /// </summary>
@@ -34,11 +43,7 @@ public class ServerTimeEndpoint : EndpointWithoutRequest
     {
         Get("/api/serverTime");
         AllowAnonymous();
-        Summary(s =>
-        {
-            s.Summary = "서버 시간";
-            s.Description = "NodaTime Example";
-        });
+        Summary(new ServerTimeSummary());
     }
 
     /// <summary>

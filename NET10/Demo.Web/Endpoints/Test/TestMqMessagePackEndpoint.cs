@@ -84,7 +84,7 @@ public class TestMqMessagePackEndpoint : Endpoint<MqPublishRequest>
             using var activity = _telemetryService.StartActivity(nameof(TestMqMessagePackEndpoint));
 
             // MessagePack으로 메시지 발행 (타입 정보 포함)
-            await _mqPublishService.PublishMultiAsync(msg, ct);
+            await _mqPublishService.PublishMultiAsync("consumer-multi-exchange", msg, ct);
         }
         catch (Exception ex)
         {

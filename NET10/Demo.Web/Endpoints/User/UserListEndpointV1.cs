@@ -6,6 +6,15 @@ using Demo.Application.Models;
 
 namespace Demo.Web.Endpoints.User;
 
+public class UserListSummary : Summary<UserListEndpointV1>
+{
+    public UserListSummary()
+    {
+        Summary = "사용자 목록 조회";
+        Description = "사용자 목록을 조회합니다";
+    }
+}
+
 /// <summary>
 /// 사용자 목록 조회를 위한 V1 엔드포인트 클래스
 /// CQRS 패턴과 LiteBus 중재자를 사용하여 사용자 목록 쿼리를 처리합니다
@@ -42,6 +51,8 @@ public class UserListEndpointV1 : Endpoint<UserListRequest, UserListResponse>
     {
         Post("/api/user/list");
         AllowAnonymous();
+        Group<UserGroup>();
+        Summary(new UserListSummary());
     }
 
     /// <summary>

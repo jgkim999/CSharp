@@ -82,7 +82,7 @@ public class TestMqAnyMessageEndpoint : Endpoint<MqPublishRequest>
         try
         {
             using var activity = _telemetryService.StartActivity(nameof(TestMqAnyMessageEndpoint));
-            await _mqPublishService.PublishAnyAsync(msg.Message);
+            await _mqPublishService.PublishAnyAsync("consumer-any-queue", msg.Message, ct);
         }
         catch (Exception ex)
         {

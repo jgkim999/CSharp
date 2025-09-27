@@ -21,7 +21,7 @@ public class UserCreateEndpointSummary : Summary<UserCreateEndpointV1>
     /// </summary>
     public UserCreateEndpointSummary()
     {
-        Summary = "새로운 사용자를 생성합니다.";
+        Summary = "새로운 사용자 생성";
         Description = "이 엔드포인트는 사용자 이름과 이메일 주소를 받아 시스템에 새로운 사용자를 등록하고, 생성된 사용자의 ID를 반환합니다.";
         ExampleRequest = new UserCreateRequest { Name = "John Doe", Email = "john.doe@example.com", Password = "1234qwer!@#$"};
         // HTTP 응답 코드별 설명 추가
@@ -71,7 +71,8 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
     {
         Post("/api/user/create");
         AllowAnonymous();
-
+        Group<UserGroup>();
+        Summary(new UserCreateEndpointSummary());
         // Rate Limiting 적용: 설정 파일에서 읽어온 값 사용
         if (_rateLimitConfig.UserCreateEndpoint.Enabled)
         {

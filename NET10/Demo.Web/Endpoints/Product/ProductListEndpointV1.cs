@@ -6,6 +6,15 @@ using Demo.Application.Models;
 
 namespace Demo.Web.Endpoints.Product;
 
+public class ProductListSummary : Summary<ProductListEndpointV1>
+{
+    public ProductListSummary()
+    {
+        Summary = "상품 목록 조회";
+        Description = "상품 목록을 조회합니다";
+    }
+}
+
 /// <summary>
 /// 상품 목록 조회를 위한 V1 엔드포인트 클래스
 /// CQRS 패턴과 LiteBus 중재자를 사용하여 상품 목록 쿼리를 처리합니다
@@ -42,6 +51,7 @@ public class ProductListEndpointV1 : Endpoint<ProductListRequest, ProductListRes
     {
         Post("/api/product/list");
         AllowAnonymous();
+        Summary(new ProductListSummary());
     }
 
     /// <summary>

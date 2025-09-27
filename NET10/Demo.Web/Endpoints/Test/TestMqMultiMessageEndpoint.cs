@@ -82,7 +82,7 @@ public class TestMqMultiMessageEndpoint : Endpoint<MqPublishRequest>
         try
         {
             using var span = _telemetryService.StartActivity(nameof(TestMqMultiMessageEndpoint));
-            await _mqPublishService.PublishMultiAsync(msg.Message);
+            await _mqPublishService.PublishMultiAsync("consumer-multi-exchange", msg.Message, ct);
         }
         catch (Exception ex)
         {

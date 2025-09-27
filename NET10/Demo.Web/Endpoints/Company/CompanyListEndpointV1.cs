@@ -6,6 +6,15 @@ using Demo.Application.Models;
 
 namespace Demo.Web.Endpoints.Company;
 
+public class CompanyListSummary : Summary<CompanyListEndpointV1>
+{
+    public CompanyListSummary()
+    {
+        Summary = "회사 목록";
+        Description = "회사 목록을 조회합니다";
+    }
+}
+
 /// <summary>
 /// 회사 목록 조회를 위한 V1 엔드포인트 클래스
 /// CQRS 패턴과 LiteBus 중재자를 사용하여 회사 목록 조회 쿼리를 처리합니다
@@ -40,6 +49,7 @@ public class CompanyListEndpointV1 : Endpoint<CompanyListRequest, CompanyListRes
     {
         Post("/api/company/list");
         AllowAnonymous();
+        Summary(new CompanyListSummary());
     }
 
     /// <summary>

@@ -7,6 +7,17 @@ using Demo.Application.Extensions;
 
 namespace Demo.Web.Endpoints.Product;
 
+public class ProductCreateSummary : Summary<ProductCreateEndpointV1>
+{
+    public ProductCreateSummary()
+    {
+        Summary = "상품 생성";
+        Description = "상품을 생성합니다";
+        Response(200, "성공");
+        Response(500, "서버 에러");
+    }
+}
+
 /// <summary>
 /// 상품 생성을 위한 V1 엔드포인트 클래스
 /// CQRS 패턴과 LiteBus 중재자를 사용하여 상품 생성 커맨드를 처리합니다
@@ -43,6 +54,7 @@ public class ProductCreateEndpointV1 : Endpoint<ProductCreateRequest, EmptyRespo
     {
         Post("/api/product/create");
         AllowAnonymous();
+        Summary(new ProductListSummary());
     }
 
     /// <summary>

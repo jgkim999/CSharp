@@ -241,23 +241,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         return (body, properties);
     }
 
-    public async ValueTask PublishUniqueAsync(
-        string target, string message, CancellationToken ct = default, string? correlationId = null)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        var data = MakeData(message, correlationId);
-        await PublishUniqueAsync(target, data.Body, data.Properties, ct);
-    }
-    
-    public async ValueTask PublishUniqueAsync(
-        string target, byte[] message, CancellationToken ct = default, string? correlationId = null)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        var data = MakeData(message.AsMemory(), correlationId);
-        await PublishUniqueAsync(target, data.Body, data.Properties, ct);
-    }
-
-    public async ValueTask PublishUniqueAsync<T>(string target, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
+    public async ValueTask PublishUniqueAsync<T>(string queueName, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         // RecyclableMemoryStream을 사용한 메모리 최적화
@@ -269,43 +253,28 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
             : memoryStream.ToArray().AsMemory();
         var data = MakeDataWithType(serializedMemory, typeof(T), correlationId);
-        await PublishUniqueAsync(target, data.Body, data.Properties, ct);
+        await PublishUniqueAsync(queueName, data.Body, data.Properties, ct);
     }
     
     private async ValueTask PublishUniqueAsync(
-        string target, ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
+        string queueName, ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
     {
         using var span = _telemetryService.StartActivity("rabbitmq.publish.unique", ActivityKind.Producer, Activity.Current?.Context);
         // 특정 Consumer의 Reply queue로 직접 전송 (exchange 없이)
         await _connection.Channel.BasicPublishAsync(
             exchange: "", // Default exchange 사용 (queue 이름을 routing key로 사용)
-            routingKey: target,
+            routingKey: queueName,
             basicProperties: properties,
             body: body,
             mandatory: false,
             cancellationToken: ct);
         _logger.LogDebug(
             "Unique Message sent. Target: {Target}, CorrelationId: {CorrelationId}",
-            target, properties.CorrelationId);
-    }
-
-    public async ValueTask PublishMultiAsync(
-        string message, CancellationToken ct = default, string? correlationId = null)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        var data = MakeData(message, correlationId);
-        await PublishMultiAsync(data.Body, data.Properties, ct);
+            queueName, properties.CorrelationId);
     }
     
-    public async ValueTask PublishMultiAsync(
-        byte[] body, CancellationToken ct = default, string? correlationId = null)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        var data = MakeData(body.AsMemory(), correlationId);
-        await PublishMultiAsync(data.Body, data.Properties, ct);
-    }
-    
-    public async ValueTask PublishMultiAsync<T>(T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
+    public async ValueTask PublishMultiAsync<T>(
+        string exchangeName, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         // RecyclableMemoryStream을 사용한 메모리 최적화
@@ -317,15 +286,15 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
             : memoryStream.ToArray().AsMemory();
         var data = MakeDataWithType(serializedMemory, typeof(T), correlationId);
-        await PublishMultiAsync(data.Body, data.Properties, ct);
+        await PublishMultiAsync(exchangeName, data.Body, data.Properties, ct);
     }
     
     private async ValueTask PublishMultiAsync(
-        ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
+        string exchangeName, ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
     {
         using var span = _telemetryService.StartActivity("rabbitmq.publish.multi", ActivityKind.Producer, Activity.Current?.Context);
         await _connection.Channel.BasicPublishAsync(
-            exchange: _connection.ProducerExchangeMulti,
+            exchange: exchangeName,
             routingKey: "", // fanout에서는 routing key 불필요
             basicProperties: properties,
             body: body,
@@ -334,23 +303,8 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         _logger.LogDebug("Multi message sent: CorrelationId: {CorrelationId}", properties.CorrelationId);
     }
 
-    public async ValueTask PublishAnyAsync(
-        string message, CancellationToken ct = default, string? correlationId = null)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        var data = MakeData(message, correlationId);
-        await PublishAnyAsync(data.Body, data.Properties, ct);
-    }
-
-    public async ValueTask PublishAnyAsync(
-        byte[] body, CancellationToken ct = default, string? correlationId = null)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        var data = MakeData(body.AsMemory(), correlationId);
-        await PublishAnyAsync(data.Body, data.Properties, ct);
-    }
-
-    public async ValueTask PublishAnyAsync<T>(T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
+    public async ValueTask PublishAnyAsync<T>(
+        string queueName, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         // RecyclableMemoryStream을 사용한 메모리 최적화
@@ -362,17 +316,17 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
             : memoryStream.ToArray().AsMemory();
         var data = MakeDataWithType(serializedMemory, typeof(T), correlationId);
-        await PublishAnyAsync(data.Body, data.Properties, ct);
+        await PublishAnyAsync(queueName, data.Body, data.Properties, ct);
     }
     
     private async ValueTask PublishAnyAsync(
-        ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
+        string queueName, ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
     {
         using var span = _telemetryService.StartActivity("rabbitmq.publish.any", ActivityKind.Producer, Activity.Current?.Context);
         // Round-robin: Direct exchange를 사용하여 동일한 routing key로 바인딩된 모든 consumer가 round-robin으로 처리
         await _connection.Channel.BasicPublishAsync(
             exchange: "",
-            routingKey: _connection.AnyQueue, // 모든 Any consumer가 이 routing key로 바인딩됨
+            routingKey: queueName, // 모든 Any queue가 이 routing key로 바인딩됨
             basicProperties: properties,
             body: body,
             mandatory: false,
@@ -382,110 +336,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             properties.CorrelationId);
     }
 
-    // 요청-응답 패턴 메서드들
-    public async Task<string> SendAndWaitForResponseAsync(string target, string message, TimeSpan? timeout = null, CancellationToken ct = default)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var correlationId = Ulid.NewUlid().ToString();
-        var timeoutSpan = timeout ?? TimeSpan.FromSeconds(30);
-
-        using var span = _telemetryService.StartActivity("rabbitmq.request_response.string", ActivityKind.Client, Activity.Current?.Context);
-        span?.SetTag("correlation_id", correlationId);
-        span?.SetTag("target", target);
-        span?.SetTag("timeout_seconds", timeoutSpan.TotalSeconds);
-
-        var tcs = new TaskCompletionSource<(string?, byte[]?)>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pendingRequests[correlationId] = tcs;
-
-        try
-        {
-            // 요청 메시지 전송
-            await SendRequestMessage(target, message, correlationId, ct);
-
-            // 응답 대기 (타임아웃 지원)
-            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeoutCts.CancelAfter(timeoutSpan);
-
-            var responseTask = tcs.Task;
-            var timeoutTask = Task.Delay(timeoutSpan, timeoutCts.Token);
-
-            var completedTask = await Task.WhenAny(responseTask, timeoutTask);
-
-            if (completedTask == timeoutTask)
-            {
-                _logger.LogWarning("Request timeout for correlation ID: {CorrelationId}, Target: {Target}", correlationId, target);
-                throw new TimeoutException($"Request timeout after {timeoutSpan.TotalSeconds} seconds for target: {target}");
-            }
-
-            var (stringResponse, _) = await responseTask;
-
-            if (stringResponse == null)
-            {
-                throw new InvalidOperationException("Received null string response");
-            }
-
-            _logger.LogDebug("Response received for correlation ID: {CorrelationId}", correlationId);
-            return stringResponse;
-        }
-        finally
-        {
-            _pendingRequests.TryRemove(correlationId, out _);
-        }
-    }
-
-    public async Task<byte[]> SendAndWaitForResponseAsync(string target, byte[] body, TimeSpan? timeout = null, CancellationToken ct = default)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-
-        var correlationId = Ulid.NewUlid().ToString();
-        var timeoutSpan = timeout ?? TimeSpan.FromSeconds(30);
-
-        using var span = _telemetryService.StartActivity("rabbitmq.request_response.bytes", ActivityKind.Client, Activity.Current?.Context);
-        span?.SetTag("correlation_id", correlationId);
-        span?.SetTag("target", target);
-        span?.SetTag("timeout_seconds", timeoutSpan.TotalSeconds);
-
-        var tcs = new TaskCompletionSource<(string?, byte[]?)>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pendingRequests[correlationId] = tcs;
-
-        try
-        {
-            // 요청 메시지 전송
-            await SendRequestMessage(target, body, correlationId, ct);
-
-            // 응답 대기 (타임아웃 지원)
-            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            timeoutCts.CancelAfter(timeoutSpan);
-
-            var responseTask = tcs.Task;
-            var timeoutTask = Task.Delay(timeoutSpan, timeoutCts.Token);
-
-            var completedTask = await Task.WhenAny(responseTask, timeoutTask);
-
-            if (completedTask == timeoutTask)
-            {
-                _logger.LogWarning("Request timeout for correlation ID: {CorrelationId}, Target: {Target}", correlationId, target);
-                throw new TimeoutException($"Request timeout after {timeoutSpan.TotalSeconds} seconds for target: {target}");
-            }
-
-            var (_, byteResponse) = await responseTask;
-
-            if (byteResponse == null)
-            {
-                throw new InvalidOperationException("Received null byte response");
-            }
-
-            _logger.LogDebug("Response received for correlation ID: {CorrelationId}", correlationId);
-            return byteResponse;
-        }
-        finally
-        {
-            _pendingRequests.TryRemove(correlationId, out _);
-        }
-    }
-
-    public async Task<TResponse> SendAndWaitForResponseAsync<TRequest, TResponse>(string target, TRequest request, TimeSpan? timeout = null, CancellationToken ct = default)
+    public async Task<TResponse> PublishAndWaitForResponseAsync<TRequest, TResponse>(string queueName, TRequest request, TimeSpan? timeout = null, CancellationToken ct = default)
         where TRequest : class
         where TResponse : class
     {
@@ -494,9 +345,9 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         var correlationId = Ulid.NewUlid().ToString();
         var timeoutSpan = timeout ?? TimeSpan.FromSeconds(30);
 
-        using var span = _telemetryService.StartActivity("rabbitmq.request_response.messagepack", ActivityKind.Client, Activity.Current?.Context);
+        using var span = _telemetryService.StartActivity("rabbitmq.publish.unique.response", ActivityKind.Client, Activity.Current?.Context);
         span?.SetTag("correlation_id", correlationId);
-        span?.SetTag("target", target);
+        span?.SetTag("target", queueName);
         span?.SetTag("request_type", typeof(TRequest).Name);
         span?.SetTag("response_type", typeof(TResponse).Name);
         span?.SetTag("timeout_seconds", timeoutSpan.TotalSeconds);
@@ -512,7 +363,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             var requestBytes = memoryStream.ToArray();
 
             // 요청 메시지 전송
-            await SendRequestMessage(target, requestBytes, correlationId, ct, typeof(TRequest));
+            await SendRequestMessageAsync(queueName, requestBytes, correlationId, ct, typeof(TRequest));
 
             // 응답 대기 (타임아웃 지원)
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -525,8 +376,8 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
 
             if (completedTask == timeoutTask)
             {
-                _logger.LogWarning("Request timeout for correlation ID: {CorrelationId}, Target: {Target}", correlationId, target);
-                throw new TimeoutException($"Request timeout after {timeoutSpan.TotalSeconds} seconds for target: {target}");
+                _logger.LogWarning("Request timeout for correlation ID: {CorrelationId}, Target: {Target}", correlationId, queueName);
+                throw new TimeoutException($"Request timeout after {timeoutSpan.TotalSeconds} seconds for queueName: {queueName}");
             }
 
             var (_, byteResponse) = await responseTask;
@@ -548,13 +399,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         }
     }
 
-    private async Task SendRequestMessage(string target, string message, string correlationId, CancellationToken ct)
-    {
-        var body = Encoding.UTF8.GetBytes(message);
-        await SendRequestMessage(target, body, correlationId, ct);
-    }
-
-    private async Task SendRequestMessage(string target, byte[] body, string correlationId, CancellationToken ct, Type? messageType = null)
+    private async Task SendRequestMessageAsync(string target, byte[] body, string correlationId, CancellationToken ct, Type? messageType = null)
     {
         var headers = new Dictionary<string, object>();
 
@@ -599,7 +444,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             "Request sent to target: {Target}, CorrelationId: {CorrelationId}, ReplyTo: {ReplyTo}",
             target, correlationId, _uniqueQueue);
     }
-
+    
     private async Task OnUniqueReceived(object sender, BasicDeliverEventArgs ea)
     {
         try
