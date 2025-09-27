@@ -6,10 +6,8 @@ using Demo.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Events;
 using MessagePack;
-using System.Reflection;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
-using Serilog;
 
 namespace Demo.Infra.Services;
 
@@ -184,7 +182,13 @@ public class RabbitMqHandler
             {
                 var message = Encoding.UTF8.GetString(bodySpan);
                 // 일반 문자열 메시지 처리
-                await _mqMessageHandler.HandleAsync(senderType, replyTo, correlationId, messageId, message, ct);
+                var response = await _mqMessageHandler.HandleAsync(senderType, replyTo, correlationId, messageId, message, ct);
+
+                // 응답이 있고 ReplyTo가 있는 경우 응답 전송
+                if (!string.IsNullOrEmpty(response) && !string.IsNullOrEmpty(replyTo) && !string.IsNullOrEmpty(correlationId))
+                {
+                    await SendResponseAsync(replyTo, response, correlationId, ct);
+                }
             }
             // 성공적으로 처리된 경우 Ack 전송
             await _connection.Channel.BasicAckAsync(ea.DeliveryTag, multiple: false, cancellationToken: ct);
@@ -378,7 +382,25 @@ public class RabbitMqHandler
                 }
 
                 // 타입 객체를 직접 핸들러에 전달
-                await _mqMessageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, deserializedObject, messageType, ct);
+                _logger.LogDebug("Calling HandleMessagePackAsync for type {MessageType}, sender: {Sender}, correlationId: {CorrelationId}",
+                    messageType.FullName, sender, correlationId);
+
+                var response = await _mqMessageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, deserializedObject, messageType, ct);
+
+                _logger.LogDebug("HandleMessagePackAsync returned response: {Response} (type: {ResponseType})",
+                    response, response?.GetType().FullName ?? "null");
+
+                // 응답이 있고 ReplyTo가 있는 경우 응답 전송
+                if (response != null && !string.IsNullOrEmpty(sender) && !string.IsNullOrEmpty(correlationId))
+                {
+                    _logger.LogInformation("Sending response to {Sender} with correlationId {CorrelationId}", sender, correlationId);
+                    await SendResponseAsync(sender, response, correlationId, ct);
+                }
+                else
+                {
+                    _logger.LogWarning("No response sent - Response: {Response}, Sender: {Sender}, CorrelationId: {CorrelationId}",
+                        response, sender, correlationId);
+                }
             }
             catch (InvalidOperationException ex)
             {
@@ -388,6 +410,85 @@ public class RabbitMqHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing MessagePack message");
+        }
+    }
+
+    /// <summary>
+    /// 응답을 RabbitMQ를 통해 전송합니다
+    /// </summary>
+    /// <param name="replyTo">응답을 보낼 큐 이름</param>
+    /// <param name="response">응답 객체 (문자열 또는 객체)</param>
+    /// <param name="correlationId">상관 관계 ID</param>
+    /// <param name="ct">작업 취소 토큰</param>
+    /// <returns>비동기 작업</returns>
+    private async ValueTask SendResponseAsync(string replyTo, object response, string correlationId, CancellationToken ct)
+    {
+        try
+        {
+            using var span = _telemetryService.StartActivity("rabbitmq.response", ActivityKind.Producer, Activity.Current?.Context);
+            span?.SetTag("correlation_id", correlationId);
+            span?.SetTag("reply_to", replyTo);
+
+            byte[] responseBody;
+            var headers = new Dictionary<string, object>();
+
+            // 응답 타입에 따라 직렬화 방식 결정
+            if (response is string stringResponse)
+            {
+                // 문자열 응답
+                responseBody = Encoding.UTF8.GetBytes(stringResponse);
+                _logger.LogDebug("Sending string response to {ReplyTo}, Length: {Length}", replyTo, responseBody.Length);
+            }
+            else
+            {
+                // 객체 응답 (MessagePack 직렬화)
+                using var memoryStream = new MemoryStream();
+                await MessagePackSerializer.SerializeAsync(memoryStream, response, cancellationToken: ct);
+                responseBody = memoryStream.ToArray();
+
+                // MessagePack 헤더 추가
+                headers["content_type"] = "application/x-msgpack";
+                headers["message_type"] = response.GetType().FullName ?? response.GetType().Name;
+                headers["message_assembly"] = response.GetType().Assembly.GetName().Name ?? string.Empty;
+
+                _logger.LogDebug("Sending MessagePack response to {ReplyTo}, Type: {Type}, Length: {Length}",
+                    replyTo, response.GetType().Name, responseBody.Length);
+            }
+
+            // 응답 속성 설정
+            var properties = new RabbitMQ.Client.BasicProperties
+            {
+                CorrelationId = correlationId,
+                Timestamp = new RabbitMQ.Client.AmqpTimestamp(new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()),
+                MessageId = Ulid.NewUlid().ToString(),
+                Headers = headers!
+            };
+
+            // W3C Trace Context 추가
+            if (Activity.Current != null)
+            {
+                var traceParent = $"00-{Activity.Current.TraceId}-{Activity.Current.SpanId}-{(byte)Activity.Current.ActivityTraceFlags:x2}";
+                headers["traceparent"] = traceParent;
+                headers["trace_id"] = Activity.Current.TraceId.ToString();
+                headers["span_id"] = Activity.Current.SpanId.ToString();
+            }
+
+            // 응답 전송 (Default exchange 사용, replyTo를 routing key로 사용)
+            await _connection.Channel.BasicPublishAsync(
+                exchange: "", // Default exchange
+                routingKey: replyTo,
+                basicProperties: properties,
+                body: responseBody,
+                mandatory: false,
+                cancellationToken: ct);
+
+            _logger.LogInformation("Response sent successfully to {ReplyTo} with CorrelationId: {CorrelationId}",
+                replyTo, correlationId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send response to {ReplyTo} with CorrelationId: {CorrelationId}",
+                replyTo, correlationId);
         }
     }
 }

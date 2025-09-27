@@ -1,5 +1,6 @@
 using Demo.Application.DTO;
 using Demo.Application.Services;
+using Demo.Domain;
 using Demo.Domain.Enums;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;

@@ -26,7 +26,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     private readonly ILogger<RabbitMqPublishService> _logger;
 
     // 요청-응답 매칭을 위한 대기 중인 요청 저장소
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _pendingRequests;
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<(string? StringResponse, byte[]? ByteResponse)>> _pendingRequests;
     private readonly AsyncEventingBasicConsumer _uniqueConsumer;
 
     // 메모리 최적화를 위한 객체 풀링
@@ -53,7 +53,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         _handler = handler;
 
         // 요청-응답 매칭용 딕셔너리 초기화 (성능 최적화)
-        _pendingRequests = new ConcurrentDictionary<string, TaskCompletionSource<string>>(
+        _pendingRequests = new ConcurrentDictionary<string, TaskCompletionSource<(string?, byte[]?)>>(
             Environment.ProcessorCount, 100);
 
         // 메모리 최적화를 위한 객체 풀 초기화
@@ -382,11 +382,275 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             properties.CorrelationId);
     }
 
+    // 요청-응답 패턴 메서드들
+    public async Task<string> SendAndWaitForResponseAsync(string target, string message, TimeSpan? timeout = null, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var correlationId = Ulid.NewUlid().ToString();
+        var timeoutSpan = timeout ?? TimeSpan.FromSeconds(30);
+
+        using var span = _telemetryService.StartActivity("rabbitmq.request_response.string", ActivityKind.Client, Activity.Current?.Context);
+        span?.SetTag("correlation_id", correlationId);
+        span?.SetTag("target", target);
+        span?.SetTag("timeout_seconds", timeoutSpan.TotalSeconds);
+
+        var tcs = new TaskCompletionSource<(string?, byte[]?)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _pendingRequests[correlationId] = tcs;
+
+        try
+        {
+            // 요청 메시지 전송
+            await SendRequestMessage(target, message, correlationId, ct);
+
+            // 응답 대기 (타임아웃 지원)
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(timeoutSpan);
+
+            var responseTask = tcs.Task;
+            var timeoutTask = Task.Delay(timeoutSpan, timeoutCts.Token);
+
+            var completedTask = await Task.WhenAny(responseTask, timeoutTask);
+
+            if (completedTask == timeoutTask)
+            {
+                _logger.LogWarning("Request timeout for correlation ID: {CorrelationId}, Target: {Target}", correlationId, target);
+                throw new TimeoutException($"Request timeout after {timeoutSpan.TotalSeconds} seconds for target: {target}");
+            }
+
+            var (stringResponse, _) = await responseTask;
+
+            if (stringResponse == null)
+            {
+                throw new InvalidOperationException("Received null string response");
+            }
+
+            _logger.LogDebug("Response received for correlation ID: {CorrelationId}", correlationId);
+            return stringResponse;
+        }
+        finally
+        {
+            _pendingRequests.TryRemove(correlationId, out _);
+        }
+    }
+
+    public async Task<byte[]> SendAndWaitForResponseAsync(string target, byte[] body, TimeSpan? timeout = null, CancellationToken ct = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var correlationId = Ulid.NewUlid().ToString();
+        var timeoutSpan = timeout ?? TimeSpan.FromSeconds(30);
+
+        using var span = _telemetryService.StartActivity("rabbitmq.request_response.bytes", ActivityKind.Client, Activity.Current?.Context);
+        span?.SetTag("correlation_id", correlationId);
+        span?.SetTag("target", target);
+        span?.SetTag("timeout_seconds", timeoutSpan.TotalSeconds);
+
+        var tcs = new TaskCompletionSource<(string?, byte[]?)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _pendingRequests[correlationId] = tcs;
+
+        try
+        {
+            // 요청 메시지 전송
+            await SendRequestMessage(target, body, correlationId, ct);
+
+            // 응답 대기 (타임아웃 지원)
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(timeoutSpan);
+
+            var responseTask = tcs.Task;
+            var timeoutTask = Task.Delay(timeoutSpan, timeoutCts.Token);
+
+            var completedTask = await Task.WhenAny(responseTask, timeoutTask);
+
+            if (completedTask == timeoutTask)
+            {
+                _logger.LogWarning("Request timeout for correlation ID: {CorrelationId}, Target: {Target}", correlationId, target);
+                throw new TimeoutException($"Request timeout after {timeoutSpan.TotalSeconds} seconds for target: {target}");
+            }
+
+            var (_, byteResponse) = await responseTask;
+
+            if (byteResponse == null)
+            {
+                throw new InvalidOperationException("Received null byte response");
+            }
+
+            _logger.LogDebug("Response received for correlation ID: {CorrelationId}", correlationId);
+            return byteResponse;
+        }
+        finally
+        {
+            _pendingRequests.TryRemove(correlationId, out _);
+        }
+    }
+
+    public async Task<TResponse> SendAndWaitForResponseAsync<TRequest, TResponse>(string target, TRequest request, TimeSpan? timeout = null, CancellationToken ct = default)
+        where TRequest : class
+        where TResponse : class
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var correlationId = Ulid.NewUlid().ToString();
+        var timeoutSpan = timeout ?? TimeSpan.FromSeconds(30);
+
+        using var span = _telemetryService.StartActivity("rabbitmq.request_response.messagepack", ActivityKind.Client, Activity.Current?.Context);
+        span?.SetTag("correlation_id", correlationId);
+        span?.SetTag("target", target);
+        span?.SetTag("request_type", typeof(TRequest).Name);
+        span?.SetTag("response_type", typeof(TResponse).Name);
+        span?.SetTag("timeout_seconds", timeoutSpan.TotalSeconds);
+
+        var tcs = new TaskCompletionSource<(string?, byte[]?)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _pendingRequests[correlationId] = tcs;
+
+        try
+        {
+            // MessagePack 직렬화
+            using var memoryStream = MemoryStreamManager.GetStream();
+            await MessagePackSerializer.SerializeAsync(memoryStream, request, cancellationToken: ct);
+            var requestBytes = memoryStream.ToArray();
+
+            // 요청 메시지 전송
+            await SendRequestMessage(target, requestBytes, correlationId, ct, typeof(TRequest));
+
+            // 응답 대기 (타임아웃 지원)
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(timeoutSpan);
+
+            var responseTask = tcs.Task;
+            var timeoutTask = Task.Delay(timeoutSpan, timeoutCts.Token);
+
+            var completedTask = await Task.WhenAny(responseTask, timeoutTask);
+
+            if (completedTask == timeoutTask)
+            {
+                _logger.LogWarning("Request timeout for correlation ID: {CorrelationId}, Target: {Target}", correlationId, target);
+                throw new TimeoutException($"Request timeout after {timeoutSpan.TotalSeconds} seconds for target: {target}");
+            }
+
+            var (_, byteResponse) = await responseTask;
+
+            if (byteResponse == null)
+            {
+                throw new InvalidOperationException("Received null response");
+            }
+
+            // MessagePack 역직렬화
+            var response = MessagePackSerializer.Deserialize<TResponse>(byteResponse, cancellationToken: ct);
+
+            _logger.LogDebug("Response received and deserialized for correlation ID: {CorrelationId}", correlationId);
+            return response;
+        }
+        finally
+        {
+            _pendingRequests.TryRemove(correlationId, out _);
+        }
+    }
+
+    private async Task SendRequestMessage(string target, string message, string correlationId, CancellationToken ct)
+    {
+        var body = Encoding.UTF8.GetBytes(message);
+        await SendRequestMessage(target, body, correlationId, ct);
+    }
+
+    private async Task SendRequestMessage(string target, byte[] body, string correlationId, CancellationToken ct, Type? messageType = null)
+    {
+        var headers = new Dictionary<string, object>();
+
+        // MessagePack 타입 정보를 헤더에 추가 (필요한 경우)
+        if (messageType != null)
+        {
+            headers["message_type"] = messageType.FullName ?? messageType.Name;
+            headers["message_assembly"] = messageType.Assembly.GetName().Name ?? string.Empty;
+            headers["content_type"] = "application/x-msgpack";
+        }
+
+        var properties = new BasicProperties
+        {
+            ReplyTo = _uniqueQueue,
+            CorrelationId = correlationId,
+            Timestamp = new AmqpTimestamp(new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds()),
+            MessageId = Ulid.NewUlid().ToString(),
+            Headers = headers!
+        };
+
+        // W3C Trace Context 표준에 따른 traceparent 헤더 추가
+        if (Activity.Current != null)
+        {
+            var traceParent = $"00-{Activity.Current.TraceId}-{Activity.Current.SpanId}-{(byte)Activity.Current.ActivityTraceFlags:x2}";
+            headers["traceparent"] = traceParent;
+            headers["trace_id"] = Activity.Current.TraceId.ToString();
+            headers["span_id"] = Activity.Current.SpanId.ToString();
+
+            _logger.LogDebug("Send traceParent: {TraceParent}", traceParent);
+        }
+
+        // 특정 타겟 큐로 직접 메시지 전송
+        await _connection.Channel.BasicPublishAsync(
+            exchange: "", // Default exchange 사용
+            routingKey: target,
+            basicProperties: properties,
+            body: body,
+            mandatory: false,
+            cancellationToken: ct);
+
+        _logger.LogDebug(
+            "Request sent to target: {Target}, CorrelationId: {CorrelationId}, ReplyTo: {ReplyTo}",
+            target, correlationId, _uniqueQueue);
+    }
+
     private async Task OnUniqueReceived(object sender, BasicDeliverEventArgs ea)
     {
         try
         {
-            await _handler.HandleAsync(MqSenderType.Unique, ea);
+            var correlationId = ea.BasicProperties.CorrelationId;
+
+            _logger.LogDebug("Received message in unique queue. CorrelationId: {CorrelationId}, HasHeaders: {HasHeaders}",
+                correlationId, ea.BasicProperties.Headers != null);
+
+            // 요청-응답 처리 확인
+            if (!string.IsNullOrEmpty(correlationId) && _pendingRequests.TryGetValue(correlationId, out var tcs))
+            {
+                // 응답 타입 확인 (헤더 기반) - RabbitMQ 헤더는 byte[]로 전송됨
+                var isMessagePack = false;
+                if (ea.BasicProperties.Headers?.TryGetValue("content_type", out var contentTypeObj) == true)
+                {
+                    var contentType = contentTypeObj switch
+                    {
+                        string str => str,
+                        byte[] bytes => Encoding.UTF8.GetString(bytes),
+                        _ => contentTypeObj?.ToString()
+                    };
+                    isMessagePack = contentType == "application/x-msgpack";
+
+                    _logger.LogDebug("Response content type: {ContentType}, IsMessagePack: {IsMessagePack}",
+                        contentType, isMessagePack);
+                }
+
+                if (isMessagePack)
+                {
+                    // MessagePack 응답 처리
+                    var responseBytes = ea.Body.ToArray();
+                    _logger.LogDebug("Processing MessagePack response, bytes length: {Length}", responseBytes.Length);
+                    tcs.TrySetResult((null, responseBytes));
+                }
+                else
+                {
+                    // 문자열 응답 처리
+                    var responseText = Encoding.UTF8.GetString(ea.Body.Span);
+                    _logger.LogDebug("Processing string response: {Response}", responseText);
+                    tcs.TrySetResult((responseText, null));
+                }
+
+                _logger.LogInformation("Response processed for correlation ID: {CorrelationId}", correlationId);
+            }
+            else
+            {
+                _logger.LogDebug("No pending request found for correlation ID: {CorrelationId}. Processing as regular message.", correlationId);
+                // 일반 메시지 처리 (기존 로직)
+                await _handler.HandleAsync(MqSenderType.Unique, ea);
+            }
         }
         catch (Exception ex)
         {

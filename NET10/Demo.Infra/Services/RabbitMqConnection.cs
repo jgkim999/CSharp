@@ -41,7 +41,7 @@ public class RabbitMqConnection : IDisposable, IAsyncDisposable
             AutomaticRecoveryEnabled = true,
             NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
             TopologyRecoveryEnabled = true,
-            ConsumerDispatchConcurrency = 1, // 1개씩만 처리하고 나머지는 큐에 넣어두고 처리한다.
+            ConsumerDispatchConcurrency = _config.ConsumerDispatchConcurrency, // 1개씩만 처리하고 나머지는 큐에 넣어두고 처리한다.
         };
         _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
 

@@ -59,7 +59,7 @@ public class RabbitMqPublishServiceTests : IAsyncLifetime
                     _receivedMessages.Enqueue(message);
                     _output.WriteLine($"Received message: {message} from {senderType}");
                 })
-            .Returns(ValueTask.CompletedTask);
+            .Returns(ValueTask.FromResult<string?>(null));
 
         _mockMessageHandler
             .Setup(x => x.HandleMessagePackAsync(It.IsAny<MqSenderType>(), It.IsAny<string?>(),
@@ -69,7 +69,7 @@ public class RabbitMqPublishServiceTests : IAsyncLifetime
                     _receivedMessagePackObjects.Enqueue((messageObject, messageType));
                     _output.WriteLine($"Received MessagePack object: {messageType.Name} from {senderType}");
                 })
-            .Returns(ValueTask.CompletedTask);
+            .Returns(ValueTask.FromResult<object?>(null));
 
         // DI 컨테이너 설정
         var services = new ServiceCollection();

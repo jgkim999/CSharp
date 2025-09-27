@@ -1,4 +1,5 @@
 using Demo.Application.Services;
+using Demo.Consumer;
 using Demo.Domain;
 using Demo.Infra.Configs;
 using Demo.Infra.Services;
@@ -43,7 +44,7 @@ try
     builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
     builder.Services.AddSingleton<RabbitMqConnection>();
     builder.Services.AddSingleton<RabbitMqHandler>();
-    builder.Services.AddSingleton<IMqMessageHandler, MqMessageHandler>();
+    builder.Services.AddSingleton<IMqMessageHandler, ConsumerMessageHandler>();
     builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
     builder.Services.AddHostedService<RabbitMqConsumerService>();
     #endregion

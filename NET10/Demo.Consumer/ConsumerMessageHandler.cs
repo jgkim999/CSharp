@@ -1,19 +1,14 @@
+using System.Collections.Frozen;
 using Demo.Application.DTO;
+using Demo.Application.Models;
 using Demo.Domain;
 using Demo.Domain.Enums;
-using Microsoft.Extensions.Logging;
-using System.Collections.Frozen;
-using Demo.Application.Models;
 
-namespace Demo.Application.Services;
+namespace Demo.Consumer;
 
-/// <summary>
-/// 메시지 큐에서 수신된 메시지를 처리하는 기본 구현체
-/// IMqMessageHandler 인터페이스를 구현하여 비즈니스 로직 처리를 담당합니다
-/// </summary>
-public class MqMessageHandler : IMqMessageHandler
+public class ConsumerMessageHandler : IMqMessageHandler
 {
-    private readonly ILogger<MqMessageHandler> _logger;
+    private readonly ILogger<ConsumerMessageHandler> _logger;
     private readonly FrozenDictionary<
         string,
         Func<MqSenderType, string?, string?, string?, object, Type, CancellationToken, ValueTask<object?>>> _handlers;
@@ -22,7 +17,7 @@ public class MqMessageHandler : IMqMessageHandler
     /// MqMessageHandler의 새 인스턴스를 초기화합니다
     /// </summary>
     /// <param name="logger">로거 인스턴스</param>
-    public MqMessageHandler(ILogger<MqMessageHandler> logger)
+    public ConsumerMessageHandler(ILogger<ConsumerMessageHandler> logger)
     {
         _logger = logger;
 

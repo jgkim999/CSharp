@@ -15,8 +15,9 @@ public class RabbitMqConsumerService : BackgroundService
     private readonly ITelemetryService _telemetryService;
     private readonly ILogger<RabbitMqConsumerService> _logger;
     private readonly RabbitMqHandler _handler;
-    
+
     private readonly string _multiQueue;
+    private readonly string[] _uniqueQueues;
 
     public RabbitMqConsumerService(
         IOptions<RabbitMqConfig> config,
@@ -40,13 +41,31 @@ public class RabbitMqConsumerService : BackgroundService
             exclusive: false,
             autoDelete: true,
             arguments: null);
-        
+
         // Multi: fanout exchange - routing key 무시되므로 빈 문자열 사용
         _connection.Channel.QueueBindAsync(
             queue: _multiQueue,
             exchange: _connection.ProducerExchangeMulti,
             routingKey: "",
             arguments: null);
+
+        // Unique: QueueName에서 콤마로 구분된 큐들을 파싱
+        _uniqueQueues = config.Value.QueueName
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(q => q.Trim())
+            .ToArray();
+
+        // Unique 큐들을 선언
+        foreach (var queue in _uniqueQueues)
+        {
+            _connection.Channel.QueueDeclareAsync(queue: queue,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+            _logger.LogInformation("Unique queue declared: {QueueName}", queue);
+        }
     }
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -84,10 +103,24 @@ public class RabbitMqConsumerService : BackgroundService
             await ProcessMessageAsync(MqSenderType.Any, ea, stoppingToken);
         };
 
+        // Unique queue consumer
+        var uniqueConsumer = new AsyncEventingBasicConsumer(_connection.Channel);
+        uniqueConsumer.ReceivedAsync += async (model, ea) =>
+        {
+            await ProcessMessageAsync(MqSenderType.Unique, ea, stoppingToken);
+        };
+
         // queue에서 메시지 수신 시작 (autoAck: false로 수동 Ack 설정)
         await _connection.Channel.BasicConsumeAsync(queue: _multiQueue, autoAck: false, consumer: multiConsumer, stoppingToken);
         await _connection.Channel.BasicConsumeAsync(queue: _connection.AnyQueue, autoAck: false, consumer: anyConsumer, stoppingToken);
-        
+
+        // Unique 큐들에 대한 consumer 등록
+        foreach (var queue in _uniqueQueues)
+        {
+            await _connection.Channel.BasicConsumeAsync(queue: queue, autoAck: false, consumer: uniqueConsumer, stoppingToken);
+            _logger.LogInformation("Started consuming from unique queue: {QueueName}", queue);
+        }
+
         // 무한 대기하며 메시지 처리
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }

@@ -16,8 +16,8 @@ public interface IMqMessageHandler
     /// <param name="messageId">메시지 고유 ID</param>
     /// <param name="message">처리할 메시지 내용</param>
     /// <param name="ct">작업 취소 토큰</param>
-    /// <returns>비동기 작업</returns>
-    ValueTask HandleAsync(
+    /// <returns>응답 메시지 (null이면 응답하지 않음)</returns>
+    ValueTask<string?> HandleAsync(
         MqSenderType senderType,
         string? sender,
         string? correlationId,
@@ -35,8 +35,8 @@ public interface IMqMessageHandler
     /// <param name="messageObject">deserialize된 메시지 객체</param>
     /// <param name="messageType">메시지 객체의 타입</param>
     /// <param name="ct">작업 취소 토큰</param>
-    /// <returns>비동기 작업</returns>
-    ValueTask HandleMessagePackAsync(
+    /// <returns>응답 객체 (null이면 응답하지 않음)</returns>
+    ValueTask<object?> HandleMessagePackAsync(
         MqSenderType senderType,
         string? sender,
         string? correlationId,
