@@ -11,8 +11,9 @@ using Testcontainers.Redis;
 namespace Demo.Infra.Tests.Repositories;
 
 /// <summary>
-/// Redis TestContainer를 사용한 IpToNationRedisCache 테스트
-/// 실제 Redis 인스턴스와의 상호작용을 테스트
+/// Valkey TestContainer를 사용한 IpToNationRedisCache 테스트
+/// 실제 Valkey 인스턴스와의 상호작용을 테스트
+/// Valkey는 Redis와 완전 호환되는 오픈소스 포크입니다
 /// </summary>
 public class IpToNationRedisCacheTests : IAsyncLifetime
 {
@@ -29,9 +30,9 @@ public class IpToNationRedisCacheTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        // Redis TestContainer 시작
+        // Valkey TestContainer 시작 (Redis 호환)
         _redisContainer = new RedisBuilder()
-            .WithImage("redis:7-alpine")
+            .WithImage("valkey/valkey:8.1.3-alpine")
             .WithPortBinding(6379, true)
             .Build();
 

@@ -23,6 +23,7 @@ namespace Demo.Infra.Benchmarks;
 /// <summary>
 /// IP 국가 코드 캐시 구현체들의 응답 시간 벤치마크 테스트
 /// L1 캐시 히트, L2 캐시 히트, 기존 구현체와의 성능 비교를 수행합니다
+/// Valkey(Redis 호환 오픈소스 포크)를 백엔드로 사용합니다
 /// </summary>
 [MemoryDiagnoser]
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
@@ -66,9 +67,9 @@ public class IpToNationCacheResponseTimeBenchmark : IAsyncDisposable
     [GlobalSetup]
     public async Task GlobalSetup()
     {
-        // Redis 컨테이너 시작
+        // Valkey 컨테이너 시작 (Redis 호환)
         _redisContainer = new RedisBuilder()
-            .WithImage("redis:7-alpine")
+            .WithImage("valkey/valkey:8.1.3-alpine")
             .WithPortBinding(6379, true)
             .Build();
         

@@ -25,6 +25,7 @@ namespace Demo.Infra.Benchmarks;
 /// <summary>
 /// IP 국가 코드 캐시 구현체들의 동시성 및 처리량 벤치마크 테스트
 /// 동시 요청 처리 능력, 캐시 스탬피드 방지 효과, 메모리 사용량을 측정합니다
+/// Valkey(Redis 호환 오픈소스 포크)를 백엔드로 사용합니다
 /// </summary>
 [MemoryDiagnoser]
 [ThreadingDiagnoser]
@@ -69,9 +70,9 @@ public class IpToNationCacheConcurrencyBenchmark : IAsyncDisposable
     [GlobalSetup]
     public async Task GlobalSetup()
     {
-        // Redis 컨테이너 시작
+        // Valkey 컨테이너 시작 (Redis 호환)
         _redisContainer = new RedisBuilder()
-            .WithImage("redis:7-alpine")
+            .WithImage("valkey/valkey:8.1.3-alpine")
             .WithPortBinding(6379, true)
             .Build();
         
