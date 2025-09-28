@@ -1,4 +1,5 @@
 using Demo.Application.Configs;
+using Demo.Infra.Tests.Fixtures;
 using Demo.Infra.Tests.TestHelpers;
 using FluentAssertions;
 using FluentResults;
@@ -11,38 +12,29 @@ using Testcontainers.Redis;
 namespace Demo.Infra.Tests.Repositories;
 
 /// <summary>
-/// Valkey TestContainer를 사용한 IpToNationRedisCache 테스트
+/// 공유 Valkey 컨테이너를 사용한 IpToNationRedisCache 테스트
 /// 실제 Valkey 인스턴스와의 상호작용을 테스트
 /// Valkey는 Redis와 완전 호환되는 오픈소스 포크입니다
 /// </summary>
-public class IpToNationRedisCacheTests : IAsyncLifetime
+public class IpToNationRedisCacheTests : IClassFixture<ContainerFixture>
 {
+    private readonly ContainerFixture _containerFixture;
     private readonly Mock<ILogger<TestableIpToNationRedisCache>> _mockLogger;
     private readonly Faker _faker;
-    private RedisContainer? _redisContainer;
-    private TestableIpToNationRedisCache? _cache;
+    private readonly TestableIpToNationRedisCache _cache;
 
-    public IpToNationRedisCacheTests()
+    public IpToNationRedisCacheTests(ContainerFixture containerFixture)
     {
+        _containerFixture = containerFixture;
         _mockLogger = new Mock<ILogger<TestableIpToNationRedisCache>>();
         _faker = new Faker();
-    }
 
-    public async Task InitializeAsync()
-    {
-        // Valkey TestContainer 시작 (Redis 호환)
-        _redisContainer = new RedisBuilder()
-            .WithImage("valkey/valkey:8.1.3-alpine")
-            .WithPortBinding(6379, true)
-            .Build();
-
-        await _redisContainer.StartAsync();
-
-        // Redis 캐시 인스턴스 생성
+        // 공유 컨테이너를 사용하여 Redis 캐시 인스턴스 생성 (고유한 prefix 사용)
+        var testId = Guid.NewGuid().ToString("N")[..8];
         var redisConfig = new RedisConfig
         {
-            IpToNationConnectionString = _redisContainer.GetConnectionString(),
-            KeyPrefix = "test"
+            IpToNationConnectionString = _containerFixture.RedisConnectionString,
+            KeyPrefix = $"test-{testId}"
         };
 
         var mockOptions = new Mock<IOptions<RedisConfig>>();
@@ -51,14 +43,6 @@ public class IpToNationRedisCacheTests : IAsyncLifetime
         _cache = new TestableIpToNationRedisCache(mockOptions.Object, _mockLogger.Object);
     }
 
-    public async Task DisposeAsync()
-    {
-        if (_redisContainer != null)
-        {
-            await _redisContainer.StopAsync();
-            await _redisContainer.DisposeAsync();
-        }
-    }
 
     [Fact]
     public async Task GetAsync_Should_Return_Failure_When_Key_Not_Found()
@@ -67,7 +51,7 @@ public class IpToNationRedisCacheTests : IAsyncLifetime
         var clientIp = _faker.Internet.Ip();
 
         // Act
-        var result = await _cache!.GetAsync(clientIp);
+        var result = await _cache.GetAsync(clientIp);
 
         // Assert
         result.Should().NotBeNull();
@@ -86,7 +70,7 @@ public class IpToNationRedisCacheTests : IAsyncLifetime
         var expiry = TimeSpan.FromMinutes(30);
 
         // Act
-        await _cache!.SetAsync(clientIp, countryCode, expiry);
+        await _cache.SetAsync(clientIp, countryCode, expiry);
         var result = await _cache.GetAsync(clientIp);
 
         // Assert
@@ -128,7 +112,7 @@ public class IpToNationRedisCacheTests : IAsyncLifetime
         var expiry = TimeSpan.FromSeconds(seconds);
 
         // Act
-        await _cache!.SetAsync(clientIp, countryCode, expiry);
+        await _cache.SetAsync(clientIp, countryCode, expiry);
         var result = await _cache.GetAsync(clientIp);
 
         // Assert
@@ -146,7 +130,7 @@ public class IpToNationRedisCacheTests : IAsyncLifetime
         var expiry = TimeSpan.FromSeconds(1);
 
         // Act
-        await _cache!.SetAsync(clientIp, countryCode, expiry);
+        await _cache.SetAsync(clientIp, countryCode, expiry);
         var result = await _cache.GetAsync(clientIp);
 
         // Assert - 값이 설정되었는지 확인
@@ -172,7 +156,7 @@ public class IpToNationRedisCacheTests : IAsyncLifetime
         // Arrange
         var redisConfig = new RedisConfig
         {
-            IpToNationConnectionString = _redisContainer!.GetConnectionString(),
+            IpToNationConnectionString = _containerFixture.RedisConnectionString,
 #pragma warning disable CS8601 // 가능한 null 참조 할당입니다.
             KeyPrefix = keyPrefix // Test purpose
 #pragma warning restore CS8601 // 가능한 null 참조 할당입니다.
@@ -199,35 +183,27 @@ public class IpToNationRedisCacheTests : IAsyncLifetime
 }
 
 /// <summary>
-/// Redis TestContainer를 사용한 고성능 및 동시성 통합 테스트
+/// 공유 Redis 컨테이너를 사용한 고성능 및 동시성 통합 테스트
 /// </summary>
-public class IpToNationRedisCacheIntegrationTests : IAsyncLifetime
+public class IpToNationRedisCacheIntegrationTests : IClassFixture<ContainerFixture>
 {
+    private readonly ContainerFixture _containerFixture;
     private readonly Mock<ILogger<TestableIpToNationRedisCache>> _mockLogger;
     private readonly Faker _faker;
-    private RedisContainer? _redisContainer;
-    private TestableIpToNationRedisCache? _cache;
+    private readonly TestableIpToNationRedisCache _cache;
 
-    public IpToNationRedisCacheIntegrationTests()
+    public IpToNationRedisCacheIntegrationTests(ContainerFixture containerFixture)
     {
+        _containerFixture = containerFixture;
         _mockLogger = new Mock<ILogger<TestableIpToNationRedisCache>>();
         _faker = new Faker();
-    }
 
-    public async Task InitializeAsync()
-    {
-        // Redis TestContainer 시작
-        _redisContainer = new RedisBuilder()
-            .WithImage("redis:7-alpine")
-            .Build();
-
-        await _redisContainer.StartAsync();
-
-        // Redis 캐시 인스턴스 생성
+        // 공유 컨테이너를 사용하여 Redis 캐시 인스턴스 생성 (고유한 prefix 사용)
+        var testId = Guid.NewGuid().ToString("N")[..8];
         var redisConfig = new RedisConfig
         {
-            IpToNationConnectionString = _redisContainer.GetConnectionString(),
-            KeyPrefix = "integration-test"
+            IpToNationConnectionString = _containerFixture.RedisConnectionString,
+            KeyPrefix = $"integration-test-{testId}"
         };
 
         var mockOptions = new Mock<IOptions<RedisConfig>>();
@@ -236,14 +212,6 @@ public class IpToNationRedisCacheIntegrationTests : IAsyncLifetime
         _cache = new TestableIpToNationRedisCache(mockOptions.Object, _mockLogger.Object);
     }
 
-    public async Task DisposeAsync()
-    {
-        if (_redisContainer != null)
-        {
-            await _redisContainer.StopAsync();
-            await _redisContainer.DisposeAsync();
-        }
-    }
 
     [Fact]
     public async Task Cache_Should_Handle_Multiple_Concurrent_Operations()
@@ -258,14 +226,14 @@ public class IpToNationRedisCacheIntegrationTests : IAsyncLifetime
         // Act - 동시에 설정
         foreach (var (ip, country) in ipCountryPairs)
         {
-            operations.Add(_cache!.SetAsync(ip, country, TimeSpan.FromMinutes(10)));
+            operations.Add(_cache.SetAsync(ip, country, TimeSpan.FromMinutes(10)));
         }
         await Task.WhenAll(operations);
 
         // Act - 동시에 조회
         var getTasks = ipCountryPairs.Select(async pair =>
         {
-            var result = await _cache!.GetAsync(pair.Item1);
+            var result = await _cache.GetAsync(pair.Item1);
             return (IP: pair.Item1, Result: result);
         });
 
@@ -294,7 +262,7 @@ public class IpToNationRedisCacheIntegrationTests : IAsyncLifetime
         {
             var ip = $"10.0.{i / 256}.{i % 256}";
             var country = _faker.Address.CountryCode();
-            tasks.Add(_cache!.SetAsync(ip, country, TimeSpan.FromHours(1)));
+            tasks.Add(_cache.SetAsync(ip, country, TimeSpan.FromHours(1)));
         }
 
         await Task.WhenAll(tasks);
@@ -308,7 +276,7 @@ public class IpToNationRedisCacheIntegrationTests : IAsyncLifetime
         var testIps = new[] { "10.0.0.1", "10.0.0.10", "10.0.0.50" };
         foreach (var ip in testIps)
         {
-            var result = await _cache!.GetAsync(ip);
+            var result = await _cache.GetAsync(ip);
             result.IsSuccess.Should().BeTrue();
         }
     }
@@ -324,7 +292,7 @@ public class IpToNationRedisCacheIntegrationTests : IAsyncLifetime
         var expiry = TimeSpan.FromMinutes(10);
 
         // Act
-        await _cache!.SetAsync(edgeCaseIp, countryCode, expiry);
+        await _cache.SetAsync(edgeCaseIp, countryCode, expiry);
         var result = await _cache.GetAsync(edgeCaseIp);
 
         // Assert
@@ -342,7 +310,7 @@ public class IpToNationRedisCacheIntegrationTests : IAsyncLifetime
         var expiry = TimeSpan.FromMinutes(10);
 
         // Act
-        await _cache!.SetAsync(clientIp, unicodeCountryCode, expiry);
+        await _cache.SetAsync(clientIp, unicodeCountryCode, expiry);
         var result = await _cache.GetAsync(clientIp);
 
         // Assert

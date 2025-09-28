@@ -4,6 +4,7 @@ using Demo.Domain;
 using Demo.Domain.Enums;
 using Demo.Infra.Configs;
 using Demo.Infra.Services;
+using Demo.Infra.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using System.Collections.Concurrent;
 using System.Text;
-using Testcontainers.RabbitMq;
 using Xunit.Abstractions;
 
 namespace Demo.Infra.Tests.Services;
@@ -19,30 +19,24 @@ namespace Demo.Infra.Tests.Services;
 
 /// <summary>
 /// RabbitMQ 전송/수신 통합 테스트
-/// Testcontainers를 사용하여 실제 RabbitMQ 인스턴스와 테스트
+/// IClassFixture를 사용하여 공유 컨테이너에서 테스트
 /// </summary>
-public class RabbitMqPublishServiceTests : IAsyncLifetime
+public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
 {
     private readonly ITestOutputHelper _output;
-    private readonly RabbitMqContainer _rabbitMqContainer;
+    private readonly ContainerFixture _containerFixture;
     private readonly ServiceProvider _serviceProvider;
     private readonly Mock<ITelemetryService> _mockTelemetryService;
     private readonly Mock<IMqMessageHandler> _mockMessageHandler;
     private readonly ConcurrentQueue<string> _receivedMessages;
     private readonly ConcurrentQueue<(object messageObject, Type messageType)> _receivedMessagePackObjects;
 
-    public RabbitMqPublishServiceTests(ITestOutputHelper output)
+    public RabbitMqPublishServiceTests(ITestOutputHelper output, ContainerFixture containerFixture)
     {
         _output = output;
+        _containerFixture = containerFixture;
         _receivedMessages = new ConcurrentQueue<string>();
         _receivedMessagePackObjects = new ConcurrentQueue<(object, Type)>();
-
-        // RabbitMQ 테스트 컨테이너 설정
-        _rabbitMqContainer = new RabbitMqBuilder()
-            .WithImage("rabbitmq:4.1.4-management")
-            .WithPortBinding(5672, true)
-            .WithPortBinding(15672, true)
-            .Build();
 
         // Mock 서비스들 설정
         _mockTelemetryService = new Mock<ITelemetryService>();
@@ -78,26 +72,16 @@ public class RabbitMqPublishServiceTests : IAsyncLifetime
         services.AddSingleton(_mockMessageHandler.Object);
 
         _serviceProvider = services.BuildServiceProvider();
-    }
 
-    public async Task InitializeAsync()
-    {
-        await _rabbitMqContainer.StartAsync();
-        _output.WriteLine($"RabbitMQ Container Started: {_rabbitMqContainer.GetConnectionString()}");
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _rabbitMqContainer.StopAsync();
-        await _serviceProvider.DisposeAsync();
+        _output.WriteLine($"Using shared RabbitMQ Container: {_containerFixture.RabbitMqConnectionString}");
     }
 
     private RabbitMqConfig CreateRabbitMqConfig()
     {
         return new RabbitMqConfig
         {
-            HostName = _rabbitMqContainer.Hostname,
-            Port = _rabbitMqContainer.GetMappedPublicPort(5672),
+            HostName = _containerFixture.RabbitMqContainer.Hostname,
+            Port = _containerFixture.RabbitMqContainer.GetMappedPublicPort(5672),
             MultiQueue = "test-queue",
             MultiExchange = "test-exchange",
             AnyQueue = "test-any-queue",

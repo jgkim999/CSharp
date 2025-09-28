@@ -1,5 +1,6 @@
 using Demo.Infra.Configs;
 using Demo.Infra.Services;
+using Demo.Infra.Tests.Fixtures;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -11,44 +12,30 @@ namespace Demo.Infra.Tests.Services;
 
 /// <summary>
 /// RabbitMqConnection 통합 테스트
-/// 실제 RabbitMQ 컨테이너를 사용하여 RabbitMQ 연결의 기능을 검증합니다
+/// 공유 RabbitMQ 컨테이너를 사용하여 RabbitMQ 연결의 기능을 검증합니다
 /// </summary>
-public class RabbitMqConnectionTests : IAsyncLifetime
+public class RabbitMqConnectionTests : IClassFixture<ContainerFixture>
 {
     private readonly ITestOutputHelper _output;
-    private readonly RabbitMqContainer _rabbitMqContainer;
+    private readonly ContainerFixture _containerFixture;
     private readonly Mock<ILogger<RabbitMqConsumerService>> _mockLogger;
 
-    public RabbitMqConnectionTests(ITestOutputHelper output)
+    public RabbitMqConnectionTests(ITestOutputHelper output, ContainerFixture containerFixture)
     {
         _output = output;
+        _containerFixture = containerFixture;
         _mockLogger = new Mock<ILogger<RabbitMqConsumerService>>();
 
-        // RabbitMQ 테스트 컨테이너 설정
-        _rabbitMqContainer = new RabbitMqBuilder()
-            .WithImage("rabbitmq:4.1.4-management")
-            .WithPortBinding(5672, true)
-            .WithPortBinding(15672, true)
-            .Build();
+        _output.WriteLine($"Using shared RabbitMQ Container: {_containerFixture.RabbitMqConnectionString}");
     }
 
-    public async Task InitializeAsync()
-    {
-        await _rabbitMqContainer.StartAsync();
-        _output.WriteLine($"RabbitMQ Container Started: {_rabbitMqContainer.GetConnectionString()}");
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _rabbitMqContainer.StopAsync();
-    }
 
     private RabbitMqConfig CreateRabbitMqConfig()
     {
         return new RabbitMqConfig
         {
-            HostName = _rabbitMqContainer.Hostname,
-            Port = _rabbitMqContainer.GetMappedPublicPort(5672),
+            HostName = _containerFixture.RabbitMqContainer.Hostname,
+            Port = _containerFixture.RabbitMqContainer.GetMappedPublicPort(5672),
             UserName = "rabbitmq",
             Password = "rabbitmq",
             VirtualHost = "/",
