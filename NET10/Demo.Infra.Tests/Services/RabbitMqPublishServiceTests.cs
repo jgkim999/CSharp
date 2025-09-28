@@ -30,6 +30,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
     private readonly Mock<IMqMessageHandler> _mockMessageHandler;
     private readonly ConcurrentQueue<string> _receivedMessages;
     private readonly ConcurrentQueue<(object messageObject, Type messageType)> _receivedMessagePackObjects;
+    private readonly RabbitMqConnection _sharedConnection;
 
     public RabbitMqPublishServiceTests(ITestOutputHelper output, ContainerFixture containerFixture)
     {
@@ -65,11 +66,25 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
                 })
             .Returns(ValueTask.FromResult<object?>(null));
 
+        // 공유 connection 생성
+        var config = CreateRabbitMqConfig();
+        var tempLogger = new Mock<ILogger<RabbitMqConsumerService>>().Object;
+        _sharedConnection = new RabbitMqConnection(Options.Create(config), tempLogger);
+
         // DI 컨테이너 설정
         var services = new ServiceCollection();
         services.AddLogging(builder => builder.AddConsole());
         services.AddSingleton(_mockTelemetryService.Object);
         services.AddSingleton(_mockMessageHandler.Object);
+        services.AddSingleton(_sharedConnection);
+
+        // RabbitMqHandler를 DI 컨테이너에 등록 (RabbitMqConsumerService가 scope에서 요청함)
+        services.AddScoped<RabbitMqHandler>(provider =>
+            new RabbitMqHandler(
+                provider.GetRequiredService<RabbitMqConnection>(),
+                provider.GetRequiredService<IMqMessageHandler>(),
+                provider.GetRequiredService<ILogger<RabbitMqHandler>>(),
+                provider.GetRequiredService<ITelemetryService>()));
 
         _serviceProvider = services.BuildServiceProvider();
 
@@ -95,9 +110,12 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
         var config = CreateRabbitMqConfig();
         var logger = _serviceProvider.GetRequiredService<ILogger<RabbitMqConsumerService>>();
         var telemetryService = _serviceProvider.GetRequiredService<ITelemetryService>();
-        var messageHandler = _serviceProvider.GetRequiredService<IMqMessageHandler>();
 
-        var connection = new RabbitMqConnection(Options.Create(config), logger);
+        // 공유 connection 사용
+        var connection = _sharedConnection;
+
+        // PublishService용 RabbitMqHandler 생성 (기존 방식 유지)
+        var messageHandler = _serviceProvider.GetRequiredService<IMqMessageHandler>();
         var rabbitMqHandler = new RabbitMqHandler(connection, messageHandler,
             _serviceProvider.GetRequiredService<ILogger<RabbitMqHandler>>(), telemetryService);
 
@@ -105,7 +123,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
             rabbitMqHandler, telemetryService, _serviceProvider.GetRequiredService<ILogger<RabbitMqPublishService>>());
 
         var consumerService = new RabbitMqConsumerService(Options.Create(config), connection,
-            rabbitMqHandler, _serviceProvider.GetRequiredService<ILogger<RabbitMqConsumerService>>(), telemetryService);
+            _serviceProvider.GetRequiredService<IServiceScopeFactory>(), _serviceProvider.GetRequiredService<ILogger<RabbitMqConsumerService>>());
 
         return (connection, publishService, consumerService);
     }

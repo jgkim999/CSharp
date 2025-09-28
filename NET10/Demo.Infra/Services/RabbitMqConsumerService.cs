@@ -1,8 +1,8 @@
 using Demo.Infra.Configs;
-using Demo.Application.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Demo.Domain.Enums;
@@ -12,23 +12,20 @@ namespace Demo.Infra.Services;
 public class RabbitMqConsumerService : BackgroundService
 {
     private readonly RabbitMqConnection _connection;
-    private readonly ITelemetryService _telemetryService;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<RabbitMqConsumerService> _logger;
-    private readonly RabbitMqHandler _handler;
 
     public RabbitMqConsumerService(
         IOptions<RabbitMqConfig> config,
         RabbitMqConnection connection,
-        RabbitMqHandler handler,
-        ILogger<RabbitMqConsumerService> logger,
-        ITelemetryService telemetryService)
+        IServiceScopeFactory serviceScopeFactory,
+        ILogger<RabbitMqConsumerService> logger)
     {
-        ArgumentNullException.ThrowIfNull(telemetryService);
+        ArgumentNullException.ThrowIfNull(serviceScopeFactory);
         ArgumentNullException.ThrowIfNull(config);
         _logger = logger;
         _connection = connection;
-        _telemetryService = telemetryService;
-        _handler = handler;
+        _serviceScopeFactory = serviceScopeFactory;
 
         // Multi: fanout exchange - routing key 무시되므로 빈 문자열 사용
         _connection.Channel.ExchangeDeclareAsync(
@@ -117,7 +114,10 @@ public class RabbitMqConsumerService : BackgroundService
     {
         try
         {
-            await _handler.HandleAsync(queueType, ea, stoppingToken);
+            // 각 메시지 처리마다 새로운 서비스 scope 생성하여 메모리 누수 방지
+            using var scope = _serviceScopeFactory.CreateScope();
+            var handler = scope.ServiceProvider.GetRequiredService<RabbitMqHandler>();
+            await handler.HandleAsync(queueType, ea, stoppingToken);
         }
         catch (Exception ex)
         {
