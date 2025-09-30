@@ -85,7 +85,14 @@ try
     builder.Services
         .AddGraphQLServer()
         .AddQueryType<Demo.Web.GraphQL.QueryTypes.UserQueries>()
+        .AddQueryType<Demo.Web.GraphQL.QueryTypes.ServerTimeQueries>()
+        .AddQueryType<Demo.Web.GraphQL.QueryTypes.TestQueries>()
+        .AddQueryType<Demo.Web.GraphQL.QueryTypes.ProductQueries>()
+        .AddQueryType<Demo.Web.GraphQL.QueryTypes.CompanyQueries>()
         .AddMutationType<Demo.Web.GraphQL.MutationTypes.UserMutations>()
+        .AddMutationType<Demo.Web.GraphQL.MutationTypes.TestMutations>()
+        .AddMutationType<Demo.Web.GraphQL.MutationTypes.ProductMutations>()
+        .AddMutationType<Demo.Web.GraphQL.MutationTypes.CompanyMutations>()
         .AddAuthorization()        // 보안을 위해 필수
         .ModifyRequestOptions(opt =>
         {
