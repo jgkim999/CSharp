@@ -79,16 +79,36 @@ try
     builder.Services.AddFastEndpoints();
     builder.Services.SwaggerDocument();
     //builder.Services.AddOpenApi();
+
+    #region GraphQL
+    // HotChocolate 서비스 등록
+    builder.Services
+        .AddGraphQLServer()
+        .AddQueryType<Demo.Web.GraphQL.QueryTypes.UserQueries>()
+        .AddMutationType<Demo.Web.GraphQL.MutationTypes.UserMutations>()
+        .AddAuthorization();        // 보안을 위해 필수
+    #endregion
     
     // CORS 설정 추가
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("ReactApp", policy =>
         {
-            policy.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000", "http://192.168.0.60:3000")
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
+            if (builder.Environment.IsDevelopment())
+            {
+                // 개발 환경에서는 모든 origin 허용 (보안상 주의)
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            }
+            else
+            {
+                // 프로덕션 환경에서는 특정 origin만 허용
+                policy.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000", "http://192.168.0.60:3000")
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            }
         });
     });
 
@@ -137,6 +157,12 @@ try
     
     app.UseFastEndpointsInitialize();
 
+    #region GraphQL
+    // HotChocolate 미들웨어 매핑
+    app.MapGraphQL("/graphql")
+       .RequireCors("ReactApp"); // CORS 정책 적용
+    #endregion
+    
     app.UseOpenApi(options =>
     {
         options.Path = "/openapi/{documentName}.json";

@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using Demo.Domain.Entities;
 using Demo.Domain.Repositories;
 using FluentResults;
 using LiteBus.Commands.Abstractions;
 
 namespace Demo.Application.Commands;
 
-public record UserCreateCommandResult(Result Result);
+public record UserCreateCommandResult(Result<UserEntity> Result);
 
 public record UserCreateCommand(string Name, string Email, string Password) : ICommand<UserCreateCommandResult>;
 
@@ -49,7 +50,9 @@ public class UserCreateCommandHandler : ICommandHandler<UserCreateCommand, UserC
         var bytes = System.Text.Encoding.UTF8.GetBytes(command.Password);
         var hash = sha256.ComputeHash(bytes);
         string passwordSha256 = Convert.ToBase64String(hash);
+        
         var result = await _repository.CreateAsync(command.Name, command.Email, passwordSha256);
+        
         return new UserCreateCommandResult(result);
     }
 }

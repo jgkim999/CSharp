@@ -5,7 +5,9 @@ using FastEndpoints;
 using LiteBus.Commands.Abstractions;
 using Demo.Application.Extensions;
 using Demo.Application.Models;
+using Demo.Application.DTO.User;
 using Microsoft.Extensions.Options;
+using MapsterMapper;
 
 namespace Demo.Web.Endpoints.User;
 
@@ -42,6 +44,7 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
     private readonly ITelemetryService _telemetryService;
     private readonly ILogger<UserCreateEndpointV1> _logger;
     private readonly RateLimitConfig _rateLimitConfig;
+    private readonly MapsterMapper.IMapper _mapper;
 
     /// <summary>
     /// UserCreateEndpointV1의 새 인스턴스를 초기화합니다
@@ -51,16 +54,19 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
     /// <param name="telemetryService">OpenTelemetry 추적을 위한 ITelemetryService 인스턴스</param>
     /// <param name="logger">로깅을 위한 ILogger 인스턴스</param>
     /// <param name="rateLimitConfig">Rate Limiting 설정을 위한 RateLimitConfig</param>
+    /// <param name="mapper">객체 매핑을 위한 IMapper 인스턴스</param>
     public UserCreateEndpointV1(
         ICommandMediator commandMediator,
         ITelemetryService telemetryService,
         ILogger<UserCreateEndpointV1> logger,
-        IOptions<RateLimitConfig> rateLimitConfig)
+        IOptions<RateLimitConfig> rateLimitConfig,
+        MapsterMapper.IMapper mapper)
     {
         _commandMediator = commandMediator;
         _telemetryService = telemetryService;
         _logger = logger;
         _rateLimitConfig = rateLimitConfig.Value;
+        _mapper = mapper;
     }
 
     /// <summary>
@@ -106,11 +112,11 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
             if (ret.Result.IsFailed)
             {
                 // 실패 처리 - 구체적인 오류 메시지와 상태 코드 결정
-                var errorMessage = ret.Result.GetErrorMessageAll();
+                var errorMessage = string.Join("; ", ret.Result.Errors.Select(e => e.Message));
                 _logger.LogError("User creation command failed: {ErrorMessage}", errorMessage);
-                
+
                 var (statusCode, userFriendlyMessage) = GetErrorDetails(errorMessage);
-                
+
                 var errorResponse = new Demo.Application.Models.ErrorResponse
                 {
                     Message = userFriendlyMessage,
@@ -123,7 +129,10 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
             }
             else
             {
-                await Send.OkAsync(cancellation: ct);
+                // 성공 시 생성된 사용자 정보 반환
+                var createdUser = ret.Result.Value;
+                var userDto = _mapper.Map<UserDto>(createdUser);
+                await Send.OkAsync(userDto, ct);
             }
         }
         catch (Exception ex)

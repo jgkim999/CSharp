@@ -51,31 +51,32 @@ public class UserRepositoryPostgre : IUserRepository
     /// <param name="name">The user's name.</param>
     /// <param name="email">The user's email address.</param>
     /// <param name="passwordSha256">The SHA-256 hash of the user's password.</param>
-    /// <returns>A <see cref="Result"/> indicating success if the user was created, or failure with an error message if the operation did not succeed.</returns>
-    public async Task<Result> CreateAsync(string name, string email, string passwordSha256, CancellationToken ct = default)
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A <see cref="Result{UserEntity}"/> containing the created user entity if successful, or failure with an error message if the operation did not succeed.</returns>
+    public async Task<Result<UserEntity>> CreateAsync(string name, string email, string passwordSha256, CancellationToken ct = default)
     {
-      using var activity = _telemetryService.StartActivity(nameof(CreateAsync));
+      using var activity = _telemetryService.StartActivity("db.user.create");
       try
       {
           await using var connection = new NpgsqlConnection(_config.ConnectionString);
           await connection.OpenAsync(ct);
 
-          const string sqlQuery = "INSERT INTO users (name, email, password) VALUES (@name, @email, @password);";
+          const string sqlQuery = "INSERT INTO users (name, email, password) VALUES (@name, @email, @password) RETURNING id, name, email, created_at;";
 
           DynamicParameters dp = new();
           dp.Add("@name", name);
           dp.Add("@email", email);
           dp.Add("@password", passwordSha256);
 
-          var rowsAffected = await _retryPolicy.ExecuteAsync(() => connection.ExecuteAsync(sqlQuery, dp));
+          var createdUser = await _retryPolicy.ExecuteAsync(() => connection.QueryFirstOrDefaultAsync<UserEntity>(sqlQuery, dp));
 
-          if (rowsAffected == 1)
+          if (createdUser != null)
           {
-              return Result.Ok();
+              return Result.Ok(createdUser);
           }
 
           // 삽입 실패 처리
-          var errorMessage = "Insert failed - no rows affected";
+          var errorMessage = "Insert failed - no user returned";
           return Result.Fail(errorMessage);
       }
       catch (Exception ex)
@@ -140,6 +141,28 @@ public class UserRepositoryPostgre : IUserRepository
             _logger.LogError(ex, "{Method} failed with search term: {SearchTerm}, page: {Page}, pageSize: {PageSize}", 
                 nameof(GetPagedAsync), searchTerm, page, pageSize);
             return Result.Fail(ex.Message);
+        }
+    }
+
+    public async Task<Result<UserEntity?>> FindByIdAsync(long id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var dataQuery = $"SELECT id, name, email, created_at FROM users WHERE id = @id;";
+            
+            DynamicParameters dataParams = new();
+            dataParams.Add("@id", id);
+            
+            await using var connection = new NpgsqlConnection(_config.ConnectionString);
+            await connection.OpenAsync(cancellationToken);
+            
+            var user = await _retryPolicy.ExecuteAsync(() => connection.QueryFirstOrDefaultAsync<UserEntity>(dataQuery, dataParams));
+            return user;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "{Method} failed with id: {Id}", nameof(FindByIdAsync), id);
+            return Result.Fail(e.Message);
         }
     }
 }

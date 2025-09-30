@@ -11,8 +11,9 @@ public interface IUserRepository
     /// <param name="name">The user's name.</param>
     /// <param name="email">The user's email address.</param>
     /// <param name="passwordSha256">The user's password hashed using SHA-256.</param>
-    /// <returns>A task that represents the asynchronous operation, containing a result indicating success or failure.</returns>
-    Task<Result> CreateAsync(string name, string email, string passwordSha256, CancellationToken ct = default);
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A task that represents the asynchronous operation, containing a result with the created user entity or failure.</returns>
+    Task<Result<UserEntity>> CreateAsync(string name, string email, string passwordSha256, CancellationToken ct = default);
     
     /// <summary>
     /// Asynchronously retrieves users with pagination and optional search functionality.
@@ -23,4 +24,6 @@ public interface IUserRepository
     /// <param name="ct">Cancellation token.</param>
     /// <returns>A task that resolves to a result containing a tuple of users and total count.</returns>
     Task<Result<(IEnumerable<UserEntity> Users, int TotalCount)>> GetPagedAsync(string? searchTerm, int page, int pageSize, CancellationToken ct = default);
+
+    Task<Result<UserEntity?>> FindByIdAsync(long id, CancellationToken cancellationToken);
 }
