@@ -86,7 +86,14 @@ try
         .AddGraphQLServer()
         .AddQueryType<Demo.Web.GraphQL.QueryTypes.UserQueries>()
         .AddMutationType<Demo.Web.GraphQL.MutationTypes.UserMutations>()
-        .AddAuthorization();        // 보안을 위해 필수
+        .AddAuthorization()        // 보안을 위해 필수
+        .ModifyRequestOptions(opt =>
+        {
+            // GraphQL 실행 타임아웃 설정 (ClientAbortError 방지)
+            opt.ExecutionTimeout = TimeSpan.FromSeconds(30);
+            // 요청 크기 제한 (기본값: 20MB)
+            opt.IncludeExceptionDetails = builder.Environment.IsDevelopment();
+        });
     #endregion
     
     // CORS 설정 추가

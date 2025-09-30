@@ -1,4 +1,5 @@
 using Demo.Application.DTO.User;
+using Demo.Application.Services;
 using Demo.Domain.Repositories;
 using FluentResults;
 using LiteBus.Queries.Abstractions;
@@ -19,12 +20,15 @@ public class UserListQueryHandler : IQueryHandler<UserListQuery, Result<UserList
 {
     private readonly IUserRepository _userRepository;
     private readonly ILogger<UserListQueryHandler> _logger;
+    private readonly ITelemetryService _telemetryService;
 
     public UserListQueryHandler(
         IUserRepository userRepository,
+        ITelemetryService telemetryService,
         ILogger<UserListQueryHandler> logger)
     {
         _userRepository = userRepository;
+        _telemetryService = telemetryService;
         _logger = logger;
     }
 
@@ -32,6 +36,8 @@ public class UserListQueryHandler : IQueryHandler<UserListQuery, Result<UserList
     {
         try
         {
+            using var activity = _telemetryService.StartActivity("query.user.list");
+            
             var result = await _userRepository.GetPagedAsync(query.SearchTerm, query.Page, query.PageSize, cancellationToken);
 
             if (result.IsFailed)

@@ -1,5 +1,6 @@
 using Demo.Application.DTO.User;
 using Demo.Application.Queries;
+using Demo.Application.Services;
 using Demo.Domain.Entities;
 using Demo.Domain.Repositories;
 using FluentAssertions;
@@ -19,12 +20,14 @@ public class UserListQueryTests
     private readonly Mock<IUserRepository> _mockRepository;
     private readonly Mock<ILogger<UserListQueryHandler>> _mockLogger;
     private readonly UserListQueryHandler _handler;
+    private readonly Mock<ITelemetryService> _mockTelemetry;
 
     public UserListQueryTests()
     {
         _mockRepository = new Mock<IUserRepository>();
         _mockLogger = new Mock<ILogger<UserListQueryHandler>>();
-        _handler = new UserListQueryHandler(_mockRepository.Object, _mockLogger.Object);
+        _mockTelemetry = new Mock<ITelemetryService>();
+        _handler = new UserListQueryHandler(_mockRepository.Object, _mockTelemetry.Object, _mockLogger.Object);
 
         // Initialize Mapster configuration
         var config = new MapsterConfig();

@@ -96,7 +96,7 @@ public class UserRepositoryPostgre : IUserRepository
     /// <returns>A task that resolves to a result containing a tuple of users and total count.</returns>
     public async Task<Result<(IEnumerable<UserEntity> Users, int TotalCount)>> GetPagedAsync(string? searchTerm, int page, int pageSize, CancellationToken ct = default)
     {
-        using var activity = _telemetryService.StartActivity(nameof(GetPagedAsync));
+        using var activity = _telemetryService.StartActivity("db.user.get.paged");
 
         if (pageSize > 100)
             return Result.Fail($"Page size too large: {pageSize}");
@@ -148,6 +148,8 @@ public class UserRepositoryPostgre : IUserRepository
     {
         try
         {
+            using var activity = _telemetryService.StartActivity("db.user.find.by.id");
+            
             var dataQuery = $"SELECT id, name, email, created_at FROM users WHERE id = @id;";
             
             DynamicParameters dataParams = new();
