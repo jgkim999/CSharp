@@ -40,6 +40,9 @@ public class RabbitMqHandler
     // ProtoBuf deserialize 메서드 캐시 - 리플렉션 호출 성능 최적화
     private static readonly ConcurrentDictionary<Type, Func<ReadOnlyMemory<byte>, CancellationToken, object?>> ProtoBufDeserializeMethodCache = new();
 
+    // MemoryPack deserialize 메서드 캐시 - 리플렉션 호출 성능 최적화
+    private static readonly ConcurrentDictionary<Type, Func<ReadOnlyMemory<byte>, CancellationToken, object?>> MemoryPackDeserializeMethodCache = new();
+
     /// <summary>
     /// RabbitMqHandler의 새 인스턴스를 초기화합니다
     /// </summary>
@@ -195,6 +198,12 @@ public class RabbitMqHandler
                 // ProtoBuf 타입 객체를 직접 처리
                 ReadOnlyMemory<byte> bodyArray = ea.Body;
                 await ProcessProtoBufMessageAsync(bodyArray, ea.BasicProperties?.Headers, senderType, replyTo, correlationId, messageId, ct);
+            }
+            else if (binaryMessageType == BinaryMessageType.MemoryPack)
+            {
+                // MemoryPack 타입 객체를 직접 처리
+                ReadOnlyMemory<byte> bodyArray = ea.Body;
+                await ProcessMemoryPackMessageAsync(bodyArray, ea.BasicProperties?.Headers, senderType, replyTo, correlationId, messageId, ct);
             }
             else
             {
@@ -395,6 +404,56 @@ public class RabbitMqHandler
     }
 
     /// <summary>
+    /// MemoryPack deserialize 메서드를 컴파일된 델리게이트로 캐시합니다
+    /// 리플렉션 호출을 피하여 성능을 크게 향상시킵니다
+    /// </summary>
+    /// <param name="messageType">deserialize할 메시지 타입</param>
+    /// <returns>컴파일된 deserialize 델리게이트</returns>
+    private Func<ReadOnlyMemory<byte>, CancellationToken, object?> GetMemoryPackDeserializeMethod(Type messageType)
+    {
+        return MemoryPackDeserializeMethodCache.GetOrAdd(messageType, type =>
+        {
+            _logger.LogDebug("Creating MemoryPack deserialize method for type {TypeName} and adding to cache", type.FullName);
+
+            // MemoryPackSerializer.Deserialize<T>(ReadOnlySpan<byte>) 메서드 가져오기
+            var deserializeMethod = typeof(MemoryPack.MemoryPackSerializer)
+                .GetMethods()
+                .FirstOrDefault(m =>
+                    m.Name == "Deserialize" &&
+                    m.IsGenericMethodDefinition &&
+                    m.GetParameters().Length >= 1 &&
+                    m.GetParameters()[0].ParameterType == typeof(ReadOnlySpan<byte>))
+                ?.MakeGenericMethod(type);
+
+            if (deserializeMethod == null)
+            {
+                _logger.LogError("Could not find MemoryPackSerializer.Deserialize method for type {TypeName}", type.FullName);
+                throw new InvalidOperationException($"Could not find MemoryPackSerializer.Deserialize method for type {type.FullName}");
+            }
+
+            // Expression Tree를 사용하여 컴파일된 델리게이트 생성
+            var bytesParam = Expression.Parameter(typeof(ReadOnlyMemory<byte>), "bytes");
+            var cancellationTokenParam = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
+
+            // ReadOnlyMemory<byte>를 ReadOnlySpan<byte>으로 변환하기 위한 Span 속성 접근
+            var spanProperty = typeof(ReadOnlyMemory<byte>).GetProperty("Span");
+            var spanAccess = Expression.Property(bytesParam, spanProperty!);
+
+            // MemoryPackSerializer.Deserialize<T>(span) 호출
+            var methodCall = Expression.Call(deserializeMethod, spanAccess);
+            var convertToObject = Expression.Convert(methodCall, typeof(object));
+
+            var lambda = Expression.Lambda<Func<ReadOnlyMemory<byte>, CancellationToken, object?>>(
+                convertToObject, bytesParam, cancellationTokenParam);
+
+            var compiledDelegate = lambda.Compile();
+            _logger.LogDebug("Successfully compiled MemoryPack deserialize method for type {TypeName} and cached", type.FullName);
+
+            return compiledDelegate;
+        });
+    }
+
+    /// <summary>
     /// MessagePack 메시지를 처리하여 타입 객체로 deserialize하고 직접 핸들러에 전달합니다
     /// 타입 정보를 헤더에서 읽어와 해당 타입으로 deserialize한 후 핸들러에 전달합니다
     /// </summary>
@@ -579,6 +638,98 @@ public class RabbitMqHandler
     }
 
     /// <summary>
+    /// MemoryPack 메시지를 처리하여 타입 객체로 deserialize하고 직접 핸들러에 전달합니다
+    /// 타입 정보를 헤더에서 읽어와 해당 타입으로 deserialize한 후 핸들러에 전달합니다
+    /// </summary>
+    /// <param name="bodyArray">메시지 본문</param>
+    /// <param name="headers">메시지 헤더</param>
+    /// <param name="senderType">메시지 발송자 타입</param>
+    /// <param name="replyTo">메시지 발송자 식별자</param>
+    /// <param name="correlationId">메시지 상관 관계 ID</param>
+    /// <param name="messageId">메시지 고유 ID</param>
+    /// <param name="ct">작업 취소 토큰</param>
+    /// <returns>비동기 작업</returns>
+    private async Task ProcessMemoryPackMessageAsync(
+        ReadOnlyMemory<byte> bodyArray,
+        IDictionary<string, object?>? headers,
+        MqSenderType senderType,
+        string? replyTo,
+        string? correlationId,
+        string? messageId,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (headers == null)
+            {
+                _logger.LogWarning("MemoryPack message received but headers are null");
+                return;
+            }
+
+            var messageTypeName = GetHeaderValueAsString(headers.TryGetValue("message_type", out var messageTypeValue) ? messageTypeValue : null);
+
+            if (string.IsNullOrEmpty(messageTypeName))
+            {
+                _logger.LogWarning("MemoryPack message received but message_type header is missing");
+                return;
+            }
+
+            // 캐시에서 타입 가져오기 (어셈블리 순회 대신)
+            var messageType = GetTypeFromCache(messageTypeName);
+
+            if (messageType == null)
+            {
+                _logger.LogWarning("Could not resolve type {MessageType}. Available assemblies: {Assemblies}",
+                    messageTypeName,
+                    string.Join(", ", AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name)));
+                return;
+            }
+
+            // MemoryPack deserialize - 컴파일된 델리게이트 사용으로 성능 최적화
+            try
+            {
+                var deserializeFunc = GetMemoryPackDeserializeMethod(messageType);
+                var deserializedObject = deserializeFunc(bodyArray, ct);
+
+                if (deserializedObject == null)
+                {
+                    _logger.LogWarning("MemoryPack deserialization returned null for type {MessageType}", messageTypeName);
+                    return;
+                }
+
+                // 타입 객체를 직접 핸들러에 전달
+                _logger.LogDebug("Calling HandleMemoryPackAsync for type {MessageType}, replyTo: {ReplyTo}, correlationId: {CorrelationId}",
+                    messageType.FullName, replyTo, correlationId);
+
+                var response = await _mqMessageHandler.HandleBinaryMessageAsync(senderType, replyTo, correlationId, messageId, deserializedObject, messageType, ct);
+
+                _logger.LogDebug("HandleMemoryPackAsync returned response: {Response} (type: {ResponseType})",
+                    response, response?.GetType().FullName ?? "null");
+
+                // 응답이 있고 ReplyTo가 있는 경우 응답 전송
+                if (response != null && !string.IsNullOrEmpty(replyTo) && !string.IsNullOrEmpty(correlationId))
+                {
+                    _logger.LogInformation("Sending response to {ReplyTo} with correlationId {CorrelationId}", replyTo, correlationId);
+                    await SendBinaryMessageResponseAsync(BinaryMessageType.MemoryPack, replyTo, response, correlationId, ct);
+                }
+                else
+                {
+                    _logger.LogWarning("No response sent - Response: {Response}, ReplyTo: {ReplyTo}, CorrelationId: {CorrelationId}",
+                        response, replyTo, correlationId);
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Could not create deserialize method for type {MessageType}", messageTypeName);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing MemoryPack message");
+        }
+    }
+
+    /// <summary>
     /// 응답을 RabbitMQ를 통해 전송합니다
     /// </summary>
     /// <param name="binaryMessageType">바이너리 메시지 타입 (MessagePack, ProtoBuf 등)</param>
@@ -622,8 +773,7 @@ public class RabbitMqHandler
                         headers["content_type"] = ContentTypes.ProtoBuf;
                         break;
                     case BinaryMessageType.MemoryPack:
-                        // TODO: MemoryPack 직렬화 구현 예정
-                        // await MemoryPackSerializer.SerializeAsync(memoryStream, response, cancellationToken: ct);
+                        await MemoryPack.MemoryPackSerializer.SerializeAsync(memoryStream, response, cancellationToken: ct);
                         headers["content_type"] = ContentTypes.MemoryPack;
                         break;
                     default:

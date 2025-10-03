@@ -26,6 +26,11 @@
       <PackageReference Include="LiteBus.Queries.Extensions.MicrosoftDependencyInjection" Version="3.1.0" />
       <PackageReference Include="Mapster" Version="7.4.0" />
       <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
+      <PackageReference Include="MemoryPack" Version="1.21.4" />
+      <PackageReference Include="MemoryPack.Generator" Version="1.21.4">
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        <PrivateAssets>all</PrivateAssets>
+      </PackageReference>
       <PackageReference Include="MessagePack" Version="3.1.4" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />

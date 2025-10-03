@@ -18,6 +18,7 @@
       <PackageReference Include="Dapper.Extensions.PostgreSQL" Version="5.3.1" />
       <PackageReference Include="FluentResults" Version="4.0.0" />
       <PackageReference Include="IP2Location.IPGeolocation" Version="9.1.0" />
+      <PackageReference Include="MemoryPack" Version="1.21.4" />
       <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />

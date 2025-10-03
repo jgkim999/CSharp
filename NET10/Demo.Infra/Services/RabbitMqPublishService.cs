@@ -296,7 +296,22 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         var data = MakeDataWithType(serializedMemory, typeof(T), ContentTypes.ProtoBuf, correlationId);
         await PublishMultiAsync(exchangeName, data.Body, data.Properties, ct);
     }
-    
+
+    public async ValueTask PublishMemoryPackMultiAsync<T>(
+        string exchangeName, T memoryPack, CancellationToken ct = default, string? correlationId = null)
+        where T : class
+    {
+        await using var memoryStream = MemoryStreamManager.GetStream();
+        await MemoryPack.MemoryPackSerializer.SerializeAsync(memoryStream, memoryPack, cancellationToken: ct);
+
+        // ReadOnlyMemory로 직접 사용하여 불필요한 배열 복사 제거
+        var serializedMemory = memoryStream.GetReadOnlySequence().IsSingleSegment
+            ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
+            : memoryStream.ToArray().AsMemory();
+        var data = MakeDataWithType(serializedMemory, typeof(T), ContentTypes.MemoryPack, correlationId);
+        await PublishMultiAsync(exchangeName, data.Body, data.Properties, ct);
+    }
+
     private async ValueTask PublishMultiAsync(
         string exchangeName, ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
     {
@@ -462,6 +477,69 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             var response = ProtoBuf.Serializer.Deserialize<TResponse>(new ReadOnlyMemory<byte>(byteResponse));
 
             _logger.LogDebug("ProtoBuf response received and deserialized for correlation ID: {CorrelationId}", correlationId);
+            return response;
+        }
+        finally
+        {
+            _pendingRequests.TryRemove(correlationId, out _);
+        }
+    }
+
+    public async Task<TResponse> PublishMemoryPackAndWaitForResponseAsync<TRequest, TResponse>(string queueName, TRequest request, TimeSpan? timeout = null, CancellationToken ct = default)
+        where TRequest : class
+        where TResponse : class
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var correlationId = Ulid.NewUlid().ToString();
+        var timeoutSpan = timeout ?? TimeSpan.FromSeconds(30);
+
+        using var span = _telemetryService.StartActivity("rabbitmq.publish.unique.response.memorypack", ActivityKind.Client, Activity.Current?.Context);
+        span?.SetTag("correlation_id", correlationId);
+        span?.SetTag("target", queueName);
+        span?.SetTag("request_type", typeof(TRequest).Name);
+        span?.SetTag("response_type", typeof(TResponse).Name);
+        span?.SetTag("timeout_seconds", timeoutSpan.TotalSeconds);
+
+        var tcs = new TaskCompletionSource<(string?, byte[]?)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _pendingRequests[correlationId] = tcs;
+
+        try
+        {
+            // MemoryPack 직렬화
+            using var memoryStream = MemoryStreamManager.GetStream();
+            await MemoryPack.MemoryPackSerializer.SerializeAsync(memoryStream, request, cancellationToken: ct);
+            var requestBytes = memoryStream.ToArray();
+
+            // 요청 메시지 전송
+            await SendRequestMessageAsync(queueName, requestBytes, correlationId, ct, typeof(TRequest), ContentTypes.MemoryPack);
+
+            // 응답 대기 (타임아웃 지원)
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(timeoutSpan);
+
+            var responseTask = tcs.Task;
+            var timeoutTask = Task.Delay(timeoutSpan, timeoutCts.Token);
+
+            var completedTask = await Task.WhenAny(responseTask, timeoutTask);
+
+            if (completedTask == timeoutTask)
+            {
+                _logger.LogWarning("MemoryPack request timeout for correlation ID: {CorrelationId}, Target: {Target}", correlationId, queueName);
+                throw new TimeoutException($"MemoryPack request timeout after {timeoutSpan.TotalSeconds} seconds for queueName: {queueName}");
+            }
+
+            var (_, byteResponse) = await responseTask;
+
+            if (byteResponse == null)
+            {
+                throw new InvalidOperationException("Received null MemoryPack response");
+            }
+
+            // MemoryPack 역직렬화
+            var response = MemoryPack.MemoryPackSerializer.Deserialize<TResponse>(byteResponse.AsSpan());
+
+            _logger.LogDebug("MemoryPack response received and deserialized for correlation ID: {CorrelationId}", correlationId);
             return response;
         }
         finally

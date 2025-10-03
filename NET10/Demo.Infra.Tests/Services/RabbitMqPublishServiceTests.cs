@@ -1,4 +1,5 @@
 using Demo.Application.DTO;
+using Demo.Application.Models;
 using Demo.Application.Services;
 using Demo.Domain;
 using Demo.Domain.Enums;
@@ -562,6 +563,217 @@ public class RabbitMqPublishServiceTests
             () => publishService.PublishProtoBufMultiAsync(config.Value.MultiExchange, testProtoBuf).AsTask());
 
         await connection.DisposeAsync();
+    }
+
+    #endregion
+
+    #region MemoryPack Tests
+
+    [Fact]
+    public async Task PublishMemoryPackMultiAsync_StringMessage_ShouldSendWithoutError()
+    {
+        // Arrange
+        var (connection, publishService, _) = CreateServices();
+        var testMemoryPack = new MqPublishMemoryPackRequest { Message = "Test MemoryPack Message", Id = 123 };
+        var correlationId = Ulid.NewUlid().ToString();
+
+        try
+        {
+            // Act & Assert - MemoryPack 직렬화가 성공적으로 실행되면 예외 없이 완료
+            var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+            await publishService.PublishMemoryPackMultiAsync(config.Value.MultiExchange, testMemoryPack, correlationId: correlationId);
+
+            // 예외 없이 실행 완료되면 성공
+            Assert.True(true);
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task PublishMemoryPackMultiAsync_MemoryPackObject_ShouldSendWithoutError()
+    {
+        // Arrange
+        var (connection, publishService, _) = CreateServices();
+        var testMemoryPack = new MqPublishMemoryPackRequest
+        {
+            Message = "MemoryPack Complex Object Test",
+            Id = 456,
+            CreatedAt = DateTime.UtcNow
+        };
+        var correlationId = Ulid.NewUlid().ToString();
+
+        try
+        {
+            // Act & Assert - MemoryPack 직렬화가 성공적으로 실행되면 예외 없이 완료
+            var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+            await publishService.PublishMemoryPackMultiAsync(config.Value.MultiExchange, testMemoryPack, correlationId: correlationId);
+
+            // 예외 없이 실행 완료되면 성공
+            Assert.True(true);
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task PublishMemoryPackMultiAsync_ComplexMemoryPackObject_ShouldSendWithoutError()
+    {
+        // Arrange
+        var (connection, publishService, _) = CreateServices();
+        var testMemoryPack = new MqPublishMemoryPackRequest2
+        {
+            Name = "John Doe",
+            Email = "john@example.com",
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+        var correlationId = Ulid.NewUlid().ToString();
+
+        try
+        {
+            // Act & Assert - MemoryPack 직렬화가 성공적으로 실행되면 예외 없이 완료
+            var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+            await publishService.PublishMemoryPackMultiAsync(config.Value.MultiExchange, testMemoryPack, correlationId: correlationId);
+
+            // 예외 없이 실행 완료되면 성공
+            Assert.True(true);
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
+    }
+
+    [Theory]
+    [InlineData("Simple MemoryPack message")]
+    [InlineData("한글 MemoryPack 메시지")]
+    [InlineData("MemoryPack Special chars: !@#$%^&*()")]
+    [InlineData("")]
+    public async Task PublishMemoryPackMultiAsync_VariousStringInputs_ShouldHandleCorrectly(string message)
+    {
+        // Arrange
+        var (connection, publishService, _) = CreateServices();
+        var testMemoryPack = new MqPublishMemoryPackRequest { Message = message, Id = 999 };
+
+        try
+        {
+            // Act & Assert
+            var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+            await publishService.PublishMemoryPackMultiAsync(config.Value.MultiExchange, testMemoryPack);
+
+            Assert.True(true); // 예외 없이 실행 완료되면 성공
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task PublishMemoryPackMultiAsync_AfterDispose_ShouldThrowObjectDisposedException()
+    {
+        // Arrange
+        var (connection, publishService, _) = CreateServices();
+        var testMemoryPack = new MqPublishMemoryPackRequest { Message = "Test MemoryPack" };
+
+        // Act
+        publishService.Dispose();
+
+        // Assert
+        var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+        await Assert.ThrowsAsync<ObjectDisposedException>(
+            () => publishService.PublishMemoryPackMultiAsync(config.Value.MultiExchange, testMemoryPack).AsTask());
+
+        await connection.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task PublishMemoryPackAndWaitForResponseAsync_ValidRequestResponse_ShouldSerializeSuccessfully()
+    {
+        // Arrange
+        var (connection, publishService, _) = CreateServices();
+        var request = new MemoryPackRequest
+        {
+            Id = Ulid.NewUlid().ToString(),
+            Message = "Test Request",
+            Timestamp = DateTime.UtcNow,
+            Data = new Dictionary<string, string> { { "key1", "value1" } }
+        };
+
+        try
+        {
+            // Act & Assert - Request-Response는 Consumer가 없으면 타임아웃이 발생하는 것이 정상 동작
+            // 여기서는 직렬화가 성공적으로 이루어지는지만 검증
+            var serializeTask = Task.Run(async () =>
+            {
+                try
+                {
+                    await publishService.PublishMemoryPackAndWaitForResponseAsync<MemoryPackRequest, MemoryPackResponse>(
+                        "test-memorypack-rpc-queue",
+                        request,
+                        TimeSpan.FromMilliseconds(100)); // 짧은 타임아웃
+                }
+                catch (TimeoutException)
+                {
+                    // 타임아웃은 예상된 동작 (응답할 Consumer가 없음)
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // 타임아웃 외의 예외는 직렬화 문제를 의미
+                    _output.WriteLine($"Unexpected exception: {ex.Message}");
+                    return false;
+                }
+                return true;
+            });
+
+            var result = await serializeTask;
+            Assert.True(result, "MemoryPack serialization should succeed even if no consumer responds");
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task PublishMemoryPackAndWaitForResponseAsync_WithTimeout_ShouldThrowTimeoutException()
+    {
+        // Arrange
+        var (connection, publishService, _) = CreateServices();
+        var request = new MemoryPackRequest
+        {
+            Id = Ulid.NewUlid().ToString(),
+            Message = "Timeout Test",
+            Timestamp = DateTime.UtcNow
+        };
+
+        try
+        {
+            // Act & Assert - 존재하지 않는 큐에 메시지를 보내면 타임아웃 발생
+            await Assert.ThrowsAsync<TimeoutException>(async () =>
+            {
+                await publishService.PublishMemoryPackAndWaitForResponseAsync<MemoryPackRequest, MemoryPackResponse>(
+                    "non-existent-queue",
+                    request,
+                    TimeSpan.FromSeconds(2));
+            });
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
     }
 
     #endregion
