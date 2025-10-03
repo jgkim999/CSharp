@@ -25,112 +25,11 @@ public class ConsumerMessageHandler : IMqMessageHandler
         {
             { typeof(MqPublishRequest).FullName!, OnMqPublishRequestAsync },
             { typeof(MqPublishRequest2).FullName!, OnMqPublishRequest2Async },
-            { typeof(TestRequest).FullName!, OnTestRequestAsync }
+            { typeof(MessagePackRequest).FullName!, OnMessagePackRequestAsync },
+            { typeof(ProtobufRequest).FullName!, OnProtobufRequestAsync }
         }.ToFrozenDictionary();
     }
-
-    private ValueTask<object?> OnMqPublishRequest2Async(MqSenderType senderType,
-        string? sender,
-        string? correlationId,
-        string? messageId,
-        object messageObject,
-        Type messageType,
-        CancellationToken ct)
-    {
-        try
-        {
-            if (messageObject is not MqPublishRequest2 request)
-            {
-                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
-                    messageId, nameof(MqPublishRequest2), messageObject.GetType().Name);
-                return ValueTask.FromResult<object?>(null);
-            }
-            _logger.LogInformation("Message Processed. MessageId: {MessageId}, CreatedAt: {CreatedAt}", messageId, request.CreatedAt);
-            return ValueTask.FromResult<object?>(null);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing MqPublishRequest2. MessageId: {MessageId}", messageId);
-            return ValueTask.FromResult<object?>(null);
-        }
-    }
-
-    private ValueTask<object?> OnMqPublishRequestAsync(
-        MqSenderType senderType,
-        string? sender,
-        string? correlationId,
-        string? messageId,
-        object messageObject,
-        Type messageType,
-        CancellationToken ct)
-    {
-        try
-        {
-            if (messageObject is not MqPublishRequest request)
-            {
-                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
-                    messageId, nameof(MqPublishRequest), messageObject.GetType().Name);
-                return ValueTask.FromResult<object?>(null);
-            }
-            _logger.LogInformation("Message Processed. MessageId: {MessageId}, Message: {Message}", messageId, request.Message);
-            return ValueTask.FromResult<object?>(null);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing MqPublishRequest. MessageId: {MessageId}", messageId);
-            return ValueTask.FromResult<object?>(null);
-        }
-    }
-
-    private ValueTask<object?> OnTestRequestAsync(
-        MqSenderType senderType,
-        string? sender,
-        string? correlationId,
-        string? messageId,
-        object messageObject,
-        Type messageType,
-        CancellationToken ct)
-    {
-        try
-        {
-            _logger.LogInformation("TestRequest received. MessageId: {MessageId}, Type: {MessageType}", messageId, messageType.FullName);
-
-            if (messageObject is not TestRequest request)
-            {
-                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
-                    messageId, nameof(TestRequest), messageObject.GetType().Name);
-                return ValueTask.FromResult<object?>(null);
-            }
-
-            // TestResponse 생성
-            var response = new TestResponse
-            {
-                ResponseId = Ulid.NewUlid().ToString(),
-                OriginalRequestId = request.Id,
-                ResponseMessage = $"성공적으로 처리했습니다: {request.Message}",
-                ProcessedAt = DateTime.Now,
-                Success = true,
-                ResponseData = new Dictionary<string, object>
-                {
-                    { "서버", Environment.MachineName },
-                    { "처리시간", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") },
-                    { "원본메시지", request.Message },
-                    { "처리결과", "성공" }
-                }
-            };
-
-            _logger.LogInformation("TestRequest processed successfully. RequestId: {RequestId}, ResponseId: {ResponseId}",
-                request.Id, response.ResponseId);
-
-            return ValueTask.FromResult<object?>(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing TestRequest. MessageId: {MessageId}", messageId);
-            return ValueTask.FromResult<object?>(null);
-        }
-    }
-
+    
     /// <summary>
     /// 메시지 큐에서 수신된 메시지를 비동기적으로 처리합니다
     /// ReplyTo가 있는 경우 응답 메시지를 반환합니다
@@ -222,6 +121,157 @@ public class ConsumerMessageHandler : IMqMessageHandler
             _logger.LogError(ex, "Error processing MessagePack object. MessageId: {MessageId}, Type: {MessageType}",
                 messageId, messageType.FullName);
             return null;
+        }
+    }
+
+    private ValueTask<object?> OnMqPublishRequest2Async(MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (messageObject is not MqPublishRequest2 request)
+            {
+                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
+                    messageId, nameof(MqPublishRequest2), messageObject.GetType().Name);
+                return ValueTask.FromResult<object?>(null);
+            }
+            _logger.LogInformation("Message Processed. MessageId: {MessageId}, CreatedAt: {CreatedAt}", messageId, request.CreatedAt);
+            return ValueTask.FromResult<object?>(null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing MqPublishRequest2. MessageId: {MessageId}", messageId);
+            return ValueTask.FromResult<object?>(null);
+        }
+    }
+
+    private ValueTask<object?> OnMqPublishRequestAsync(
+        MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (messageObject is not MqPublishRequest request)
+            {
+                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
+                    messageId, nameof(MqPublishRequest), messageObject.GetType().Name);
+                return ValueTask.FromResult<object?>(null);
+            }
+            _logger.LogInformation("Message Processed. MessageId: {MessageId}, Message: {Message}", messageId, request.Message);
+            return ValueTask.FromResult<object?>(null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing MqPublishRequest. MessageId: {MessageId}", messageId);
+            return ValueTask.FromResult<object?>(null);
+        }
+    }
+
+    private ValueTask<object?> OnMessagePackRequestAsync(
+        MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct)
+    {
+        try
+        {
+            _logger.LogInformation("MessagePackRequest received. MessageId: {MessageId}, Type: {MessageType}", messageId, messageType.FullName);
+
+            if (messageObject is not MessagePackRequest request)
+            {
+                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
+                    messageId, nameof(MessagePackRequest), messageObject.GetType().Name);
+                return ValueTask.FromResult<object?>(null);
+            }
+
+            // TestResponse 생성
+            var response = new TestResponse
+            {
+                ResponseId = Ulid.NewUlid().ToString(),
+                OriginalRequestId = request.Id,
+                ResponseMessage = $"성공적으로 처리했습니다: {request.Message}",
+                ProcessedAt = DateTime.Now,
+                Success = true,
+                ResponseData = new Dictionary<string, object>
+                {
+                    { "서버", Environment.MachineName },
+                    { "처리시간", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") },
+                    { "원본메시지", request.Message },
+                    { "처리결과", "성공" }
+                }
+            };
+
+            _logger.LogInformation("MessagePackRequest processed successfully. RequestId: {RequestId}, ResponseId: {ResponseId}",
+                request.Id, response.ResponseId);
+
+            return ValueTask.FromResult<object?>(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing MessagePackRequest. MessageId: {MessageId}", messageId);
+            return ValueTask.FromResult<object?>(null);
+        }
+    }
+    
+    private ValueTask<object?> OnProtobufRequestAsync(
+        MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct)
+    {
+        try
+        {
+            _logger.LogInformation("ProtobufRequest received. MessageId: {MessageId}, Type: {MessageType}", messageId, messageType.FullName);
+
+            if (messageObject is not ProtobufRequest request)
+            {
+                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
+                    messageId, nameof(ProtobufRequest), messageObject.GetType().Name);
+                return ValueTask.FromResult<object?>(null);
+            }
+
+            // TestResponse 생성
+            var response = new ProtobufResponse
+            {
+                ResponseId = Ulid.NewUlid().ToString(),
+                OriginalRequestId = request.Id,
+                ResponseMessage = $"성공적으로 처리했습니다: {request.Message}",
+                ProcessedAt = DateTime.Now,
+                Success = true,
+                ResponseData = new Dictionary<string, string>
+                {
+                    { "서버", Environment.MachineName },
+                    { "처리시간", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") },
+                    { "원본메시지", request.Message },
+                    { "처리결과", "성공" }
+                }
+            };
+
+            _logger.LogInformation("ProtobufRequest processed successfully. RequestId: {RequestId}, ResponseId: {ResponseId}",
+                request.Id, response.ResponseId);
+
+            return ValueTask.FromResult<object?>(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing ProtobufRequest. MessageId: {MessageId}", messageId);
+            return ValueTask.FromResult<object?>(null);
         }
     }
 }

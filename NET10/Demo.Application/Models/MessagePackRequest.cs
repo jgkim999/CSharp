@@ -6,7 +6,7 @@ namespace Demo.Application.Models;
 /// MessagePack 테스트 요청 DTO
 /// </summary>
 [MessagePackObject]
-public class TestRequest
+public class MessagePackRequest
 {
     [Key(0)]
     public string Id { get; set; } = string.Empty;

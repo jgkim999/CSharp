@@ -63,7 +63,7 @@ public class RabbitMqConnectionTests : IClassFixture<ContainerFixture>
         // Assert
         connection.Should().NotBeNull();
         connection.Channel.Should().NotBeNull();
-        connection.MultiExchange.Should().Be("test-multi-exchange@M");
+        connection.MultiExchange.Should().Be("test-multi-exchange");
         connection.MultiQueue.Should().StartWith("test-multi-queue.");
         connection.AnyQueue.Should().Be("test-any-queue");
         connection.UniqueQueue.Should().StartWith("test-unique-queue.");
@@ -89,7 +89,7 @@ public class RabbitMqConnectionTests : IClassFixture<ContainerFixture>
         using var connection = new RabbitMqConnection(options, _mockLogger.Object);
 
         // Assert
-        connection.MultiExchange.Should().Be("my-exchange@M");
+        connection.MultiExchange.Should().Be("my-exchange");
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class RabbitMqConnectionTests : IClassFixture<ContainerFixture>
         using var connection = new RabbitMqConnection(options, _mockLogger.Object);
 
         // Assert
-        connection.MultiExchange.Should().Be($"{multiExchange}@M");
+        connection.MultiExchange.Should().Be($"{multiExchange}");
         connection.MultiQueue.Should().StartWith($"{multiQueue}.");
         connection.AnyQueue.Should().Be(anyQueue);
         connection.UniqueQueue.Should().StartWith($"{uniqueQueue}.");

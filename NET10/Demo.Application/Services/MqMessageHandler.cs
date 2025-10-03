@@ -30,7 +30,7 @@ public class MqMessageHandler : IMqMessageHandler
         {
             { typeof(MqPublishRequest).FullName!, OnMqPublishRequestAsync },
             { typeof(MqPublishRequest2).FullName!, OnMqPublishRequest2Async },
-            { typeof(TestRequest).FullName!, OnTestRequestAsync }
+            { typeof(MessagePackRequest).FullName!, OnTestRequestAsync }
         }.ToFrozenDictionary();
     }
 
@@ -98,12 +98,12 @@ public class MqMessageHandler : IMqMessageHandler
     {
         try
         {
-            _logger.LogInformation("TestRequest received. MessageId: {MessageId}, Type: {MessageType}", messageId, messageType.FullName);
+            _logger.LogInformation("MessagePackRequest received. MessageId: {MessageId}, Type: {MessageType}", messageId, messageType.FullName);
 
-            if (messageObject is not TestRequest request)
+            if (messageObject is not MessagePackRequest request)
             {
                 _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
-                    messageId, nameof(TestRequest), messageObject.GetType().Name);
+                    messageId, nameof(MessagePackRequest), messageObject.GetType().Name);
                 return ValueTask.FromResult<object?>(null);
             }
 
@@ -124,14 +124,14 @@ public class MqMessageHandler : IMqMessageHandler
                 }
             };
 
-            _logger.LogInformation("TestRequest processed successfully. RequestId: {RequestId}, ResponseId: {ResponseId}",
+            _logger.LogInformation("MessagePackRequest processed successfully. RequestId: {RequestId}, ResponseId: {ResponseId}",
                 request.Id, response.ResponseId);
 
             return ValueTask.FromResult<object?>(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing TestRequest. MessageId: {MessageId}", messageId);
+            _logger.LogError(ex, "Error processing MessagePackRequest. MessageId: {MessageId}", messageId);
             return ValueTask.FromResult<object?>(null);
         }
     }

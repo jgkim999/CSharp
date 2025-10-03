@@ -168,7 +168,7 @@ public class TestMutations
         {
             using var activity = telemetryService.StartActivity("test.mutations.publish.mq.request.response");
 
-            var request = new TestRequest
+            var request = new MessagePackRequest
             {
                 Id = Ulid.NewUlid().ToString(),
                 Message = input.Message ?? "MessagePack 요청-응답 테스트",
@@ -187,7 +187,7 @@ public class TestMutations
                 "MessagePack 요청-응답 테스트 시작. 대상: {Target}, 요청ID: {RequestId}",
                 target, request.Id);
 
-            var response = await mqPublishService.PublishMessagePackAndWaitForResponseAsync<TestRequest, TestResponse>(
+            var response = await mqPublishService.PublishMessagePackAndWaitForResponseAsync<MessagePackRequest, TestResponse>(
                 target,
                 request,
                 TimeSpan.FromSeconds(30),

@@ -178,7 +178,7 @@ public class MqMessageHandlerTests
     public async Task HandleMessagePackAsync_WithTestRequest_ShouldReturnTestResponse()
     {
         // Arrange
-        var request = new TestRequest
+        var request = new MessagePackRequest
         {
             Id = "test-id",
             Message = "Test message",
@@ -192,7 +192,7 @@ public class MqMessageHandlerTests
 
         // Act
         var result = await _messageHandler.HandleBinaryMessageAsync(
-            MqSenderType.Multi, sender, correlationId, messageId, request, typeof(TestRequest), cancellationToken);
+            MqSenderType.Multi, sender, correlationId, messageId, request, typeof(MessagePackRequest), cancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -315,7 +315,7 @@ public class MqMessageHandlerTests
     public async Task HandleMessagePackAsync_WithTestRequest_ShouldLogInformation()
     {
         // Arrange
-        var request = new TestRequest
+        var request = new MessagePackRequest
         {
             Id = "test-id",
             Message = "Test message"
@@ -325,14 +325,14 @@ public class MqMessageHandlerTests
 
         // Act
         await _messageHandler.HandleBinaryMessageAsync(
-            MqSenderType.Multi, "sender", "correlation", messageId, request, typeof(TestRequest), cancellationToken);
+            MqSenderType.Multi, "sender", "correlation", messageId, request, typeof(MessagePackRequest), cancellationToken);
 
         // Assert
         _mockLogger.Verify(
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("TestRequest received")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("MessagePackRequest received")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -341,7 +341,7 @@ public class MqMessageHandlerTests
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("TestRequest processed successfully")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("MessagePackRequest processed successfully")),
                 It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -394,14 +394,14 @@ public class MqMessageHandlerTests
     public async Task HandleMessagePackAsync_WithCancellationToken_ShouldRespectCancellation()
     {
         // Arrange
-        var request = new TestRequest { Id = "test-id", Message = "Test message" };
+        var request = new MessagePackRequest { Id = "test-id", Message = "Test message" };
         const string messageId = "test-message-id";
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
 
         // Act
         var result = await _messageHandler.HandleBinaryMessageAsync(
-            MqSenderType.Multi, "sender", "correlation", messageId, request, typeof(TestRequest), cancellationToken);
+            MqSenderType.Multi, "sender", "correlation", messageId, request, typeof(MessagePackRequest), cancellationToken);
 
         // Assert
         result.Should().NotBeNull();

@@ -180,7 +180,7 @@ public class RabbitMqHandler
             // MessagePack 타입 정보 확인
             var binaryMessageType = GetBinaryMessageType(ea.BasicProperties?.Headers);
 
-            _logger.LogDebug(
+            _logger.LogInformation(
                 "Received message from {QueueType} length: {Length}, Exchange: {Exchange}, RoutingKey: {RoutingKey}, ReplyTo: {ReplyTo}, CorrelationId: {CorrelationId}, BinaryMessageType: {BinaryMessageType}",
                 senderType, bodySpan.Length, exchange, routingKey, replyTo, correlationId, binaryMessageType);
 
