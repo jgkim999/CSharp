@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>Demo.Infra.SerializationBenchmarks.SerializationBenchmarks-20251004-000843</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.4, macOS 26.0.1 (25A362) [Darwin 25.0.0]
+Apple M4, 1 CPU, 10 logical and 10 physical cores
+.NET SDK 9.0.302
+  [Host]     : .NET 9.0.7 (9.0.7, 9.0.725.31616), Arm64 RyuJIT armv8.0-a
+  DefaultJob : .NET 9.0.7 (9.0.7, 9.0.725.31616), Arm64 RyuJIT armv8.0-a
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead>
+	<tr>
+		<th>Method           </th><th>Mean</th><th>Error</th><th>StdDev</th><th>Median</th><th>Gen0</th><th>Allocated</th>
+	</tr>
+</thead>
+	<tbody>
+		<tr>
+			<td>MemoryPack_Serialize</td><td>52.15 ns</td><td>0.912 ns</td><td>0.853 ns</td><td>52.22 ns</td><td>0.0067</td><td>56 B</td>
+		</tr>
+		<tr>
+			<td>MessagePack_Serialize</td><td>60.99 ns</td><td>0.215 ns</td><td>0.180 ns</td><td>61.00 ns</td><td>0.0057</td><td>48 B</td>
+		</tr>
+		<tr>
+			<td>ProtoBuf_Serialize</td><td>164.70 ns</td><td>3.118 ns</td><td>5.209 ns</td><td>162.31 ns</td><td>0.0467</td><td>392 B</td>
+		</tr>
+		<tr>
+			<td>MemoryPack_Deserialize</td><td>47.14 ns</td><td>0.841 ns</td><td>0.787 ns</td><td>47.01 ns</td><td>0.0086</td><td>72 B</td>
+		</tr>
+		<tr>
+			<td>MessagePack_Deserialize</td><td>85.31 ns</td><td>1.310 ns</td><td>1.161 ns</td><td>85.08 ns</td><td>0.0086</td><td>72 B</td>
+		</tr>
+		<tr>
+			<td>ProtoBuf_Deserialize</td><td>191.40 ns</td><td>2.918 ns</td><td>2.436 ns</td><td>192.07 ns</td><td>0.0191</td><td>160 B</td>
+		</tr>
+	</tbody>
+</table>
+</body>
+</html>
