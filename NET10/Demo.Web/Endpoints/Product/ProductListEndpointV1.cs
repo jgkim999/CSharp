@@ -51,6 +51,8 @@ public class ProductListEndpointV1 : Endpoint<ProductListRequest, ProductListRes
     {
         Post("/api/product/list");
         AllowAnonymous();
+        Group<ProductGroup>();
+        //Version(1);
         Summary(new ProductListSummary());
     }
 

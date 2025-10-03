@@ -1,13 +1,13 @@
 using FastEndpoints;
 
-namespace Demo.Web.Endpoints.User;
+namespace Demo.Web.Endpoints.Company;
 
-public class UserGroup : Group
+public class CompanyGroup : Group
 {
     /// <summary>
-    /// UserGroup의 새 인스턴스를 초기화하고 "admin" 그룹으로 구성합니다
+    /// Company group
     /// </summary>
-    public UserGroup()
+    public CompanyGroup()
     {
         Configure(
             "",
@@ -15,7 +15,7 @@ public class UserGroup : Group
             {
                 ep.Description(
                     x => x.Produces(401)
-                        .WithTags("User"));
+                        .WithTags("Company"));
             });
     }
 }

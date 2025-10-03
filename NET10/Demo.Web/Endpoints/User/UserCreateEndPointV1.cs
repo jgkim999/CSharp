@@ -77,6 +77,7 @@ public class UserCreateEndpointV1 : Endpoint<UserCreateRequest>
     {
         Post("/api/user/create");
         AllowAnonymous();
+        //Version(1);
         Group<UserGroup>();
         Summary(new UserCreateEndpointSummary());
         // Rate Limiting 적용: 설정 파일에서 읽어온 값 사용

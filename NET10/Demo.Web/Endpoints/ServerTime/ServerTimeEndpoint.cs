@@ -43,6 +43,8 @@ public class ServerTimeEndpoint : EndpointWithoutRequest
     {
         Get("/api/serverTime");
         AllowAnonymous();
+        //Version(1);
+        Group<ServerTimeGroup>();
         Summary(new ServerTimeSummary());
     }
 

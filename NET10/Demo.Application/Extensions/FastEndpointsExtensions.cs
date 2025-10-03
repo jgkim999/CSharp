@@ -20,7 +20,7 @@ public static class FastEndpointsExtensions
         app.UseDefaultExceptionHandler();
         app.UseFastEndpoints(c =>
         {
-            c.Versioning.Prefix = "v";
+            //c.Versioning.Prefix = "v";
             c.Errors.UseProblemDetails();
             /*
             c.Errors.ResponseBuilder = (failures, ctx, statusCode) =>

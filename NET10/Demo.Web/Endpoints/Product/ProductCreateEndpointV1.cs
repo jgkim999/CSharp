@@ -54,7 +54,9 @@ public class ProductCreateEndpointV1 : Endpoint<ProductCreateRequest, EmptyRespo
     {
         Post("/api/product/create");
         AllowAnonymous();
-        Summary(new ProductListSummary());
+        Group<ProductGroup>();
+        //Version(1);
+        Summary(new ProductCreateSummary());
     }
 
     /// <summary>

@@ -52,6 +52,7 @@ public class TestLoggingEndpoint : EndpointWithoutRequest
     {
         Get("/api/test/logging");
         AllowAnonymous();
+        //Version(1);
         Group<LoggingTest>();
         Summary(new TestLoggingSummary());
     }

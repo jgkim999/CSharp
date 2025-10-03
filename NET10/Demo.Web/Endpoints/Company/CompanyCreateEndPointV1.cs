@@ -54,6 +54,8 @@ public class CompanyCreateEndpointV1 : Endpoint<CompanyCreateRequest, EmptyRespo
         Post("/api/company/create");
         AllowAnonymous();
         Summary(new CompanyCreateSummary());
+        //Version(1);
+        Group<CompanyGroup>();
 
         // Rate Limiting 적용: 설정 파일에서 읽어온 값 사용
         if (_rateLimitConfig.UserCreateEndpoint.Enabled)

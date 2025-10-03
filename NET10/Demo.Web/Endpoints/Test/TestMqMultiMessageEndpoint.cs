@@ -65,6 +65,7 @@ public class TestMqMultiMessageEndpoint : Endpoint<MqPublishRequest>
     {
         Post("/api/test/mqmulti");
         AllowAnonymous();
+        //Version(1);
         Group<MqTest>();
         Summary(new TestMqMultiMessageSummary());
     }

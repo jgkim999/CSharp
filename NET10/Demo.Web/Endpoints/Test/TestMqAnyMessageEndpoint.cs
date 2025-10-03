@@ -65,6 +65,7 @@ public class TestMqAnyMessageEndpoint : Endpoint<MqPublishRequest>
     {
         Post("/api/test/mqany");
         AllowAnonymous();
+        //Version(1);
         Group<MqTest>();
         Summary(new TestMqAnyMessageSummary());
     }

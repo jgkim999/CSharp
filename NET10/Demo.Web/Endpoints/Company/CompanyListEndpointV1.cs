@@ -49,6 +49,8 @@ public class CompanyListEndpointV1 : Endpoint<CompanyListRequest, CompanyListRes
     {
         Post("/api/company/list");
         AllowAnonymous();
+        //Version(1);
+        Group<CompanyGroup>();
         Summary(new CompanyListSummary());
     }
 

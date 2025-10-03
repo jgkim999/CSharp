@@ -51,6 +51,7 @@ public class UserListEndpointV1 : Endpoint<UserListRequest, UserListResponse>
     {
         Post("/api/user/list");
         AllowAnonymous();
+        //Version(1);
         Group<UserGroup>();
         Summary(new UserListSummary());
     }
