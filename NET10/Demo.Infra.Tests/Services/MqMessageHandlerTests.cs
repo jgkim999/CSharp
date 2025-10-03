@@ -62,7 +62,7 @@ public class MqMessageHandlerTests
         var messageType = typeof(MqPublishRequest);
 
         // Act
-        await _messageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
+        await _messageHandler.HandleBinaryMessageAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
 
         // Assert
         _mockLogger.Verify(
@@ -96,7 +96,7 @@ public class MqMessageHandlerTests
         var messageType = typeof(MqPublishRequest2);
 
         // Act
-        await _messageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
+        await _messageHandler.HandleBinaryMessageAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
 
         // Assert
         _mockLogger.Verify(
@@ -130,7 +130,7 @@ public class MqMessageHandlerTests
         var messageType = messageObject.GetType();
 
         // Act
-        await _messageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
+        await _messageHandler.HandleBinaryMessageAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
 
         // Assert
         _mockLogger.Verify(
@@ -155,7 +155,7 @@ public class MqMessageHandlerTests
         var messageType = typeof(MqPublishRequest); // 잘못된 타입 매핑
 
         // Act
-        await _messageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
+        await _messageHandler.HandleBinaryMessageAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
 
         // Assert - 타입 불일치로 인한 처리는 핸들러 내부에서 처리됨
         _mockLogger.Verify(
@@ -233,7 +233,7 @@ public class MqMessageHandlerTests
         cts.Cancel(); // 즉시 취소
 
         // Act & Assert
-        await _messageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, messageObject, messageType, cts.Token);
+        await _messageHandler.HandleBinaryMessageAsync(senderType, sender, correlationId, messageId, messageObject, messageType, cts.Token);
 
         // 취소되었지만 동기적으로 처리되므로 완료되어야 함
         _mockLogger.Verify(
@@ -259,7 +259,7 @@ public class MqMessageHandlerTests
         var messageType = typeof(MqPublishRequest);
 
         // Act
-        await _messageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
+        await _messageHandler.HandleBinaryMessageAsync(senderType, sender, correlationId, messageId, messageObject, messageType, CancellationToken.None);
 
         // Assert
         _mockLogger.Verify(
@@ -292,7 +292,7 @@ public class MqMessageHandlerTests
         for (int i = 0; i < messageCount; i++)
         {
             var messageObject = new MqPublishRequest { Message = $"Concurrent message {i}" };
-            var task = _messageHandler.HandleMessagePackAsync(
+            var task = _messageHandler.HandleBinaryMessageAsync(
                 MqSenderType.Multi,
                 "concurrent-sender",
                 Guid.NewGuid().ToString(),

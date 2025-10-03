@@ -191,7 +191,7 @@ public class ConsumerMessageHandler : IMqMessageHandler
     /// <param name="messageType">메시지 객체의 타입</param>
     /// <param name="ct">작업 취소 토큰</param>
     /// <returns>응답 객체 (null이면 응답하지 않음)</returns>
-    public async ValueTask<object?> HandleMessagePackAsync(
+    public async ValueTask<object?> HandleBinaryMessageAsync(
         MqSenderType senderType,
         string? sender,
         string? correlationId,

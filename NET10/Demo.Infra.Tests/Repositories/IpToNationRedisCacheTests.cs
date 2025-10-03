@@ -12,11 +12,12 @@ using Testcontainers.Redis;
 namespace Demo.Infra.Tests.Repositories;
 
 /// <summary>
-/// 공유 Valkey 컨테이너를 사용한 IpToNationRedisCache 테스트
-/// 실제 Valkey 인스턴스와의 상호작용을 테스트
+/// IpToNationRedisCache 테스트
+/// Collection Fixture를 사용하여 모든 테스트가 하나의 컨테이너를 공유
 /// Valkey는 Redis와 완전 호환되는 오픈소스 포크입니다
 /// </summary>
-public class IpToNationRedisCacheTests : IClassFixture<ContainerFixture>
+[Collection("Container Collection")]
+public class IpToNationRedisCacheTests
 {
     private readonly ContainerFixture _containerFixture;
     private readonly Mock<ILogger<TestableIpToNationRedisCache>> _mockLogger;
@@ -183,9 +184,11 @@ public class IpToNationRedisCacheTests : IClassFixture<ContainerFixture>
 }
 
 /// <summary>
-/// 공유 Redis 컨테이너를 사용한 고성능 및 동시성 통합 테스트
+/// 고성능 및 동시성 통합 테스트
+/// Collection Fixture를 사용하여 모든 테스트가 하나의 컨테이너를 공유
 /// </summary>
-public class IpToNationRedisCacheIntegrationTests : IClassFixture<ContainerFixture>
+[Collection("Container Collection")]
+public class IpToNationRedisCacheIntegrationTests
 {
     private readonly ContainerFixture _containerFixture;
     private readonly Mock<ILogger<TestableIpToNationRedisCache>> _mockLogger;

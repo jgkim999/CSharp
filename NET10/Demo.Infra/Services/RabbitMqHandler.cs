@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text;
 using Demo.Application.Services;
 using Demo.Domain;
+using Demo.Domain.Constants;
 using Demo.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client.Events;
@@ -10,6 +11,14 @@ using System.Collections.Concurrent;
 using System.Linq.Expressions;
 
 namespace Demo.Infra.Services;
+
+public enum BinaryMessageType
+{
+    Unknown,
+    MessagePack,
+    ProtoBuf,
+    MemoryPack
+}
 
 /// <summary>
 /// RabbitMQ 메시지 처리를 담당하는 핸들러 클래스
@@ -26,7 +35,10 @@ public class RabbitMqHandler
     private static readonly ConcurrentDictionary<string, Type?> TypeCache = new();
 
     // MessagePack deserialize 메서드 캐시 - 리플렉션 호출 성능 최적화
-    private static readonly ConcurrentDictionary<Type, Func<ReadOnlyMemory<byte>, MessagePackSerializerOptions, CancellationToken, object?>> DeserializeMethodCache = new();
+    private static readonly ConcurrentDictionary<Type, Func<ReadOnlyMemory<byte>, MessagePackSerializerOptions, CancellationToken, object?>> MessagePackDeserializeMethodCache = new();
+    
+    // ProtoBuf deserialize 메서드 캐시 - 리플렉션 호출 성능 최적화
+    private static readonly ConcurrentDictionary<Type, Func<ReadOnlyMemory<byte>, CancellationToken, object?>> ProtoBufDeserializeMethodCache = new();
 
     /// <summary>
     /// RabbitMqHandler의 새 인스턴스를 초기화합니다
@@ -166,17 +178,23 @@ public class RabbitMqHandler
             ReadOnlySpan<byte> bodySpan = ea.Body.Span;
 
             // MessagePack 타입 정보 확인
-            var isMessagePack = IsMessagePackMessage(ea.BasicProperties?.Headers);
+            var binaryMessageType = GetBinaryMessageType(ea.BasicProperties?.Headers);
 
             _logger.LogDebug(
-                "Received message from {QueueType} length: {Length}, Exchange: {Exchange}, RoutingKey: {RoutingKey}, ReplyTo: {ReplyTo}, CorrelationId: {CorrelationId}, IsMessagePack: {IsMessagePack}",
-                senderType, bodySpan.Length, exchange, routingKey, replyTo, correlationId, isMessagePack);
+                "Received message from {QueueType} length: {Length}, Exchange: {Exchange}, RoutingKey: {RoutingKey}, ReplyTo: {ReplyTo}, CorrelationId: {CorrelationId}, BinaryMessageType: {BinaryMessageType}",
+                senderType, bodySpan.Length, exchange, routingKey, replyTo, correlationId, binaryMessageType);
 
-            if (isMessagePack)
+            if (binaryMessageType == BinaryMessageType.MessagePack)
             {
                 // MessagePack 타입 객체를 직접 처리
                 ReadOnlyMemory<byte> bodyArray = ea.Body;
                 await ProcessMessagePackMessageAsync(bodyArray, ea.BasicProperties?.Headers, senderType, replyTo, correlationId, messageId, ct);
+            }
+            else if (binaryMessageType == BinaryMessageType.ProtoBuf)
+            {
+                // ProtoBuf 타입 객체를 직접 처리
+                ReadOnlyMemory<byte> bodyArray = ea.Body;
+                await ProcessProtoBufMessageAsync(bodyArray, ea.BasicProperties?.Headers, senderType, replyTo, correlationId, messageId, ct);
             }
             else
             {
@@ -187,7 +205,7 @@ public class RabbitMqHandler
                 // 응답이 있고 ReplyTo가 있는 경우 응답 전송
                 if (!string.IsNullOrEmpty(response) && !string.IsNullOrEmpty(replyTo) && !string.IsNullOrEmpty(correlationId))
                 {
-                    await SendResponseAsync(replyTo, response, correlationId, ct);
+                    await SendBinaryMessageResponseAsync(BinaryMessageType.Unknown, replyTo, response, correlationId, ct);
                 }
             }
             // 성공적으로 처리된 경우 Ack 전송
@@ -202,7 +220,7 @@ public class RabbitMqHandler
             await _connection.Channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: true, cancellationToken: ct);
         }
     }
-
+    
     /// <summary>
     /// RabbitMQ 헤더 값을 안전하게 문자열로 변환합니다
     /// RabbitMQ는 헤더 값을 byte[]로 전송하므로 적절한 변환이 필요합니다
@@ -226,15 +244,21 @@ public class RabbitMqHandler
     /// </summary>
     /// <param name="headers">메시지 헤더</param>
     /// <returns>MessagePack 메시지 여부</returns>
-    private static bool IsMessagePackMessage(IDictionary<string, object?>? headers)
+    private static BinaryMessageType GetBinaryMessageType(IDictionary<string, object?>? headers)
     {
         if (headers == null)
-            return false;
+            return BinaryMessageType.Unknown;
 
         var contentType = GetHeaderValueAsString(headers.TryGetValue("content_type", out var contentTypeValue) ? contentTypeValue : null);
-        var messageType = GetHeaderValueAsString(headers.TryGetValue("message_type", out var messageTypeValue) ? messageTypeValue : null);
+        //var messageType = GetHeaderValueAsString(headers.TryGetValue("message_type", out var messageTypeValue) ? messageTypeValue : null);
 
-        return contentType == "application/x-msgpack" && !string.IsNullOrEmpty(messageType);
+        return contentType switch
+        {
+            ContentTypes.MessagePack => BinaryMessageType.MessagePack,
+            ContentTypes.ProtoBuf => BinaryMessageType.ProtoBuf,
+            ContentTypes.MemoryPack => BinaryMessageType.MemoryPack,
+            _ => BinaryMessageType.Unknown
+        };
     }
 
     /// <summary>
@@ -286,9 +310,9 @@ public class RabbitMqHandler
     /// </summary>
     /// <param name="messageType">deserialize할 메시지 타입</param>
     /// <returns>컴파일된 deserialize 델리게이트</returns>
-    private Func<ReadOnlyMemory<byte>, MessagePackSerializerOptions, CancellationToken, object?> GetDeserializeMethod(Type messageType)
+    private Func<ReadOnlyMemory<byte>, MessagePackSerializerOptions, CancellationToken, object?> GetMessagePackDeserializeMethod(Type messageType)
     {
-        return DeserializeMethodCache.GetOrAdd(messageType, type =>
+        return MessagePackDeserializeMethodCache.GetOrAdd(messageType, type =>
         {
             _logger.LogDebug("Creating deserialize method for type {TypeName} and adding to cache", type.FullName);
 
@@ -316,6 +340,55 @@ public class RabbitMqHandler
 
             var compiledDelegate = lambda.Compile();
             _logger.LogDebug("Successfully compiled deserialize method for type {TypeName} and cached", type.FullName);
+
+            return compiledDelegate;
+        });
+    }
+    
+    /// <summary>
+    /// ProtoBuf deserialize 메서드를 컴파일된 델리게이트로 캐시합니다
+    /// 리플렉션 호출을 피하여 성능을 크게 향상시킵니다
+    /// </summary>
+    /// <param name="messageType">deserialize할 메시지 타입</param>
+    /// <returns>컴파일된 deserialize 델리게이트</returns>
+    private Func<ReadOnlyMemory<byte>, CancellationToken, object?> GetProtoBufDeserializeMethod(Type messageType)
+    {
+        return ProtoBufDeserializeMethodCache.GetOrAdd(messageType, type =>
+        {
+            _logger.LogDebug("Creating ProtoBuf deserialize method for type {TypeName} and adding to cache", type.FullName);
+
+            // ProtoBuf.Serializer.Deserialize<T>(ReadOnlyMemory<byte> source) 메서드 가져오기
+            var deserializeMethod = typeof(ProtoBuf.Serializer)
+                .GetMethods()
+                .FirstOrDefault(m =>
+                    m.Name == "Deserialize" &&
+                    m.IsGenericMethodDefinition &&
+                    m.GetParameters().Length >= 1 &&
+                    m.GetParameters()[0].ParameterType == typeof(ReadOnlyMemory<byte>))
+                ?.MakeGenericMethod(type);
+
+            if (deserializeMethod == null)
+            {
+                _logger.LogError("Could not find ProtoBuf.Serializer.Deserialize method for type {TypeName}", type.FullName);
+                throw new InvalidOperationException($"Could not find ProtoBuf.Serializer.Deserialize method for type {type.FullName}");
+            }
+
+            // Expression Tree를 사용하여 컴파일된 델리게이트 생성
+            var bytesParam = Expression.Parameter(typeof(ReadOnlyMemory<byte>), "bytes");
+            var cancellationTokenParam = Expression.Parameter(typeof(CancellationToken), "cancellationToken");
+
+            // ProtoBuf.Serializer.Deserialize<T>(bytes, default(T), null) 호출
+            var defaultValueParam = Expression.Default(type);
+            var userStateParam = Expression.Constant(null, typeof(object));
+
+            var methodCall = Expression.Call(deserializeMethod, bytesParam, defaultValueParam, userStateParam);
+            var convertToObject = Expression.Convert(methodCall, typeof(object));
+
+            var lambda = Expression.Lambda<Func<ReadOnlyMemory<byte>, CancellationToken, object?>>(
+                convertToObject, bytesParam, cancellationTokenParam);
+
+            var compiledDelegate = lambda.Compile();
+            _logger.LogDebug("Successfully compiled ProtoBuf deserialize method for type {TypeName} and cached", type.FullName);
 
             return compiledDelegate;
         });
@@ -372,7 +445,7 @@ public class RabbitMqHandler
             // MessagePack deserialize - 컴파일된 델리게이트 사용으로 성능 최적화
             try
             {
-                var deserializeFunc = GetDeserializeMethod(messageType);
+                var deserializeFunc = GetMessagePackDeserializeMethod(messageType);
                 var deserializedObject = deserializeFunc(bodyArray, MessagePackSerializerOptions.Standard, ct);
 
                 if (deserializedObject == null)
@@ -382,19 +455,19 @@ public class RabbitMqHandler
                 }
 
                 // 타입 객체를 직접 핸들러에 전달
-                _logger.LogDebug("Calling HandleMessagePackAsync for type {MessageType}, sender: {Sender}, correlationId: {CorrelationId}",
+                _logger.LogDebug("Calling HandleBinaryMessageAsync for type {MessageType}, sender: {Sender}, correlationId: {CorrelationId}",
                     messageType.FullName, sender, correlationId);
 
-                var response = await _mqMessageHandler.HandleMessagePackAsync(senderType, sender, correlationId, messageId, deserializedObject, messageType, ct);
+                var response = await _mqMessageHandler.HandleBinaryMessageAsync(senderType, sender, correlationId, messageId, deserializedObject, messageType, ct);
 
-                _logger.LogDebug("HandleMessagePackAsync returned response: {Response} (type: {ResponseType})",
+                _logger.LogDebug("HandleBinaryMessageAsync returned response: {Response} (type: {ResponseType})",
                     response, response?.GetType().FullName ?? "null");
 
                 // 응답이 있고 ReplyTo가 있는 경우 응답 전송
                 if (response != null && !string.IsNullOrEmpty(sender) && !string.IsNullOrEmpty(correlationId))
                 {
                     _logger.LogInformation("Sending response to {Sender} with correlationId {CorrelationId}", sender, correlationId);
-                    await SendResponseAsync(sender, response, correlationId, ct);
+                    await SendBinaryMessageResponseAsync(BinaryMessageType.MessagePack, sender, response, correlationId, ct);
                 }
                 else
                 {
@@ -412,16 +485,110 @@ public class RabbitMqHandler
             _logger.LogError(ex, "Error processing MessagePack message");
         }
     }
+    
+    /// <summary>
+    /// ProtoBuf 메시지를 처리하여 타입 객체로 deserialize하고 직접 핸들러에 전달합니다
+    /// 타입 정보를 헤더에서 읽어와 해당 타입으로 deserialize한 후 핸들러에 전달합니다
+    /// </summary>
+    /// <param name="bodyArray">메시지 본문</param>
+    /// <param name="headers">메시지 헤더</param>
+    /// <param name="senderType">메시지 발송자 타입</param>
+    /// <param name="replyTo">메시지 발송자 식별자</param>
+    /// <param name="correlationId">메시지 상관 관계 ID</param>
+    /// <param name="messageId">메시지 고유 ID</param>
+    /// <param name="ct">작업 취소 토큰</param>
+    /// <returns>비동기 작업</returns>
+    private async Task ProcessProtoBufMessageAsync(
+        ReadOnlyMemory<byte> bodyArray,
+        IDictionary<string, object?>? headers,
+        MqSenderType senderType,
+        string? replyTo,
+        string? correlationId,
+        string? messageId,
+        CancellationToken ct)
+    {
+        try
+        {
+            if (headers == null)
+            {
+                _logger.LogWarning("ProtoBuf message received but headers are null");
+                return;
+            }
+
+            var messageTypeName = GetHeaderValueAsString(headers.TryGetValue("message_type", out var messageTypeValue) ? messageTypeValue : null);
+
+            if (string.IsNullOrEmpty(messageTypeName))
+            {
+                _logger.LogWarning("ProtoBuf message received but message_type header is missing");
+                return;
+            }
+
+            // 캐시에서 타입 가져오기 (어셈블리 순회 대신)
+            var messageType = GetTypeFromCache(messageTypeName);
+
+            if (messageType == null)
+            {
+                _logger.LogWarning("Could not resolve type {MessageType}. Available assemblies: {Assemblies}",
+                    messageTypeName,
+                    string.Join(", ", AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name)));
+                return;
+            }
+
+            // ProtoBuf deserialize - 컴파일된 델리게이트 사용으로 성능 최적화
+            try
+            {
+                var deserializeFunc = GetProtoBufDeserializeMethod(messageType);
+                var deserializedObject = deserializeFunc(bodyArray, ct);
+
+                if (deserializedObject == null)
+                {
+                    _logger.LogWarning("ProtoBuf deserialization returned null for type {MessageType}", messageTypeName);
+                    return;
+                }
+
+                // 타입 객체를 직접 핸들러에 전달
+                _logger.LogDebug("Calling HandleProtoBufAsync for type {MessageType}, replyTo: {ReplyTo}, correlationId: {CorrelationId}",
+                    messageType.FullName, replyTo, correlationId);
+
+                var response = await _mqMessageHandler.HandleBinaryMessageAsync(senderType, replyTo, correlationId, messageId, deserializedObject, messageType, ct);
+
+                _logger.LogDebug("HandleProtoBufAsync returned response: {Response} (type: {ResponseType})",
+                    response, response?.GetType().FullName ?? "null");
+
+                // 응답이 있고 ReplyTo가 있는 경우 응답 전송
+                if (response != null && !string.IsNullOrEmpty(replyTo) && !string.IsNullOrEmpty(correlationId))
+                {
+                    _logger.LogInformation("Sending response to {ReplyTo} with correlationId {CorrelationId}", replyTo, correlationId);
+                    await SendBinaryMessageResponseAsync(BinaryMessageType.ProtoBuf, replyTo, response, correlationId, ct);
+                }
+                else
+                {
+                    _logger.LogWarning("No response sent - Response: {Response}, ReplyTo: {ReplyTo}, CorrelationId: {CorrelationId}",
+                        response, replyTo, correlationId);
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Could not create deserialize method for type {MessageType}", messageTypeName);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing ProtoBuf message");
+        }
+    }
 
     /// <summary>
     /// 응답을 RabbitMQ를 통해 전송합니다
     /// </summary>
+    /// <param name="binaryMessageType">바이너리 메시지 타입 (MessagePack, ProtoBuf 등)</param>
     /// <param name="replyTo">응답을 보낼 큐 이름</param>
     /// <param name="response">응답 객체 (문자열 또는 객체)</param>
     /// <param name="correlationId">상관 관계 ID</param>
     /// <param name="ct">작업 취소 토큰</param>
     /// <returns>비동기 작업</returns>
-    private async ValueTask SendResponseAsync(string replyTo, object response, string correlationId, CancellationToken ct)
+    private async ValueTask SendBinaryMessageResponseAsync(
+        BinaryMessageType binaryMessageType, string replyTo, object response, string correlationId, CancellationToken ct)
     {
         try
         {
@@ -441,18 +608,38 @@ public class RabbitMqHandler
             }
             else
             {
-                // 객체 응답 (MessagePack 직렬화)
+                // 객체 응답 - BinaryMessageType에 따라 직렬화
                 using var memoryStream = new MemoryStream();
-                await MessagePackSerializer.SerializeAsync(memoryStream, response, cancellationToken: ct);
+
+                switch (binaryMessageType)
+                {
+                    case BinaryMessageType.MessagePack:
+                        await MessagePackSerializer.SerializeAsync(memoryStream, response, cancellationToken: ct);
+                        headers["content_type"] = ContentTypes.MessagePack;
+                        break;
+                    case BinaryMessageType.ProtoBuf:
+                        ProtoBuf.Serializer.Serialize(memoryStream, response);
+                        headers["content_type"] = ContentTypes.ProtoBuf;
+                        break;
+                    case BinaryMessageType.MemoryPack:
+                        // TODO: MemoryPack 직렬화 구현 예정
+                        // await MemoryPackSerializer.SerializeAsync(memoryStream, response, cancellationToken: ct);
+                        headers["content_type"] = ContentTypes.MemoryPack;
+                        break;
+                    default:
+                        // 기본값은 MessagePack
+                        await MessagePackSerializer.SerializeAsync(memoryStream, response, cancellationToken: ct);
+                        headers["content_type"] = ContentTypes.MessagePack;
+                        break;
+                }
+
                 responseBody = memoryStream.ToArray();
 
-                // MessagePack 헤더 추가
-                headers["content_type"] = "application/x-msgpack";
                 headers["message_type"] = response.GetType().FullName ?? response.GetType().Name;
                 headers["message_assembly"] = response.GetType().Assembly.GetName().Name ?? string.Empty;
 
-                _logger.LogDebug("Sending MessagePack response to {ReplyTo}, Type: {Type}, Length: {Length}",
-                    replyTo, response.GetType().Name, responseBody.Length);
+                _logger.LogDebug("Sending {BinaryMessageType} response to {ReplyTo}, Type: {Type}, Length: {Length}",
+                    binaryMessageType, replyTo, response.GetType().Name, responseBody.Length);
             }
 
             // 응답 속성 설정

@@ -1,5 +1,6 @@
 using System.Text;
 using Demo.Domain;
+using Demo.Domain.Constants;
 using Demo.Infra.Configs;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
@@ -12,6 +13,7 @@ using Demo.Domain.Enums;
 using System.Buffers;
 using MessagePack;
 using Microsoft.IO;
+using YamlDotNet.Serialization;
 
 namespace Demo.Infra.Services;
 
@@ -158,30 +160,22 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         }
     }
 
-    private (ReadOnlyMemory<byte> Body, BasicProperties Properties) MakeData(string message, string? correlationId = null)
-    {
-        // ArrayPool을 사용한 메모리 최적화
-        var maxByteCount = Encoding.UTF8.GetMaxByteCount(message.Length);
-        var rental = ArrayPool<byte>.Shared.Rent(maxByteCount);
-        try
-        {
-            var actualLength = Encoding.UTF8.GetBytes(message, rental);
-            var body = new byte[actualLength];
-            Array.Copy(rental, body, actualLength);
-            return MakeData(body.AsMemory(), correlationId);
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(rental);
-        }
-    }
-    
-    private (ReadOnlyMemory<byte> Body, BasicProperties Properties) MakeData(ReadOnlyMemory<byte> body, string? correlationId = null)
-    {
-        return MakeDataWithType(body, null, correlationId);
-    }
-
-    private (ReadOnlyMemory<byte> Body, BasicProperties Properties) MakeDataWithType(ReadOnlyMemory<byte> body, Type? messageType, string? correlationId = null)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="body"></param>
+    /// <param name="messageType"></param>
+    /// <param name="contentType">
+    /// MessagePack = "application/x-msgpack"
+    /// Protocol Buffers = "application/x-protobuf"
+    /// </param>
+    /// <param name="correlationId"></param>
+    /// <returns></returns>
+    private (ReadOnlyMemory<byte> Body, BasicProperties Properties) MakeDataWithType(
+        ReadOnlyMemory<byte> body,
+        Type? messageType,
+        string contentType,
+        string? correlationId = null)
     {
         // 헤더는 매번 새로 생성 (RabbitMQ 메시지와 함께 전송되므로 풀링 불가)
         var headers = new Dictionary<string, object>(8);
@@ -191,7 +185,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         {
             headers["message_type"] = messageType.FullName ?? messageType.Name;
             headers["message_assembly"] = messageType.Assembly.GetName().Name ?? string.Empty;
-            headers["content_type"] = "application/x-msgpack";
+            headers["content_type"] = contentType;
         }
 
         var properties = new BasicProperties
@@ -240,8 +234,8 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
 
         return (body, properties);
     }
-
-    public async ValueTask PublishUniqueAsync<T>(string queueName, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
+    
+    public async ValueTask PublishMessagePackUniqueAsync<T>(string queueName, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         // RecyclableMemoryStream을 사용한 메모리 최적화
@@ -252,10 +246,10 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         var serializedMemory = memoryStream.GetReadOnlySequence().IsSingleSegment
             ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
             : memoryStream.ToArray().AsMemory();
-        var data = MakeDataWithType(serializedMemory, typeof(T), correlationId);
+        var data = MakeDataWithType(serializedMemory, typeof(T), ContentTypes.MessagePack, correlationId);
         await PublishUniqueAsync(queueName, data.Body, data.Properties, ct);
     }
-    
+
     private async ValueTask PublishUniqueAsync(
         string queueName, ReadOnlyMemory<byte> body, BasicProperties properties, CancellationToken ct = default)
     {
@@ -272,20 +266,34 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             "Unique Message sent. Target: {Target}, CorrelationId: {CorrelationId}",
             queueName, properties.CorrelationId);
     }
-    
-    public async ValueTask PublishMultiAsync<T>(
+
+    public async ValueTask PublishMessagePackMultiAsync<T>(
         string exchangeName, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         // RecyclableMemoryStream을 사용한 메모리 최적화
-        using var memoryStream = MemoryStreamManager.GetStream();
+        await using var memoryStream = MemoryStreamManager.GetStream();
         await MessagePackSerializer.SerializeAsync(memoryStream, messagePack, cancellationToken: ct);
 
         // ReadOnlyMemory로 직접 사용하여 불필요한 배열 복사 제거
         var serializedMemory = memoryStream.GetReadOnlySequence().IsSingleSegment
             ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
             : memoryStream.ToArray().AsMemory();
-        var data = MakeDataWithType(serializedMemory, typeof(T), correlationId);
+        var data = MakeDataWithType(serializedMemory, typeof(T), ContentTypes.MessagePack, correlationId);
+        await PublishMultiAsync(exchangeName, data.Body, data.Properties, ct);
+    }
+
+    public async ValueTask PublishProtoBufMultiAsync<T>(
+        string exchangeName, T protoBuf, CancellationToken ct = default, string? correlationId = null)
+        where T : class
+    {
+        await using var memoryStream = MemoryStreamManager.GetStream();
+        ProtoBuf.Serializer.Serialize<T>(memoryStream, protoBuf);
+        // ReadOnlyMemory로 직접 사용하여 불필요한 배열 복사 제거
+        var serializedMemory = memoryStream.GetReadOnlySequence().IsSingleSegment
+            ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
+            : memoryStream.ToArray().AsMemory();
+        var data = MakeDataWithType(serializedMemory, typeof(T), ContentTypes.ProtoBuf, correlationId);
         await PublishMultiAsync(exchangeName, data.Body, data.Properties, ct);
     }
     
@@ -303,7 +311,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         _logger.LogDebug("Multi message sent: CorrelationId: {CorrelationId}", properties.CorrelationId);
     }
 
-    public async ValueTask PublishAnyAsync<T>(
+    public async ValueTask PublishMessagePackAnyAsync<T>(
         string queueName, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -315,7 +323,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         var serializedMemory = memoryStream.GetReadOnlySequence().IsSingleSegment
             ? memoryStream.GetReadOnlySequence().FirstSpan.ToArray().AsMemory()
             : memoryStream.ToArray().AsMemory();
-        var data = MakeDataWithType(serializedMemory, typeof(T), correlationId);
+        var data = MakeDataWithType(serializedMemory, typeof(T), ContentTypes.MessagePack, correlationId);
         await PublishAnyAsync(queueName, data.Body, data.Properties, ct);
     }
     
@@ -336,7 +344,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             properties.CorrelationId);
     }
 
-    public async Task<TResponse> PublishAndWaitForResponseAsync<TRequest, TResponse>(string queueName, TRequest request, TimeSpan? timeout = null, CancellationToken ct = default)
+    public async Task<TResponse> PublishMessagePackAndWaitForResponseAsync<TRequest, TResponse>(string queueName, TRequest request, TimeSpan? timeout = null, CancellationToken ct = default)
         where TRequest : class
         where TResponse : class
     {
@@ -363,7 +371,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             var requestBytes = memoryStream.ToArray();
 
             // 요청 메시지 전송
-            await SendRequestMessageAsync(queueName, requestBytes, correlationId, ct, typeof(TRequest));
+            await SendRequestMessageAsync(queueName, requestBytes, correlationId, ct, typeof(TRequest), ContentTypes.MessagePack);
 
             // 응답 대기 (타임아웃 지원)
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -399,16 +407,79 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         }
     }
 
-    private async Task SendRequestMessageAsync(string target, byte[] body, string correlationId, CancellationToken ct, Type? messageType = null)
+    public async Task<TResponse> PublishProtoBufAndWaitForResponseAsync<TRequest, TResponse>(string queueName, TRequest request, TimeSpan? timeout = null, CancellationToken ct = default)
+        where TRequest : class
+        where TResponse : class
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var correlationId = Ulid.NewUlid().ToString();
+        var timeoutSpan = timeout ?? TimeSpan.FromSeconds(30);
+
+        using var span = _telemetryService.StartActivity("rabbitmq.publish.unique.response.protobuf", ActivityKind.Client, Activity.Current?.Context);
+        span?.SetTag("correlation_id", correlationId);
+        span?.SetTag("target", queueName);
+        span?.SetTag("request_type", typeof(TRequest).Name);
+        span?.SetTag("response_type", typeof(TResponse).Name);
+        span?.SetTag("timeout_seconds", timeoutSpan.TotalSeconds);
+
+        var tcs = new TaskCompletionSource<(string?, byte[]?)>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _pendingRequests[correlationId] = tcs;
+
+        try
+        {
+            // ProtoBuf 직렬화
+            using var memoryStream = MemoryStreamManager.GetStream();
+            ProtoBuf.Serializer.Serialize(memoryStream, request);
+            var requestBytes = memoryStream.ToArray();
+
+            // 요청 메시지 전송
+            await SendRequestMessageAsync(queueName, requestBytes, correlationId, ct, typeof(TRequest), ContentTypes.ProtoBuf);
+
+            // 응답 대기 (타임아웃 지원)
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            timeoutCts.CancelAfter(timeoutSpan);
+
+            var responseTask = tcs.Task;
+            var timeoutTask = Task.Delay(timeoutSpan, timeoutCts.Token);
+
+            var completedTask = await Task.WhenAny(responseTask, timeoutTask);
+
+            if (completedTask == timeoutTask)
+            {
+                _logger.LogWarning("ProtoBuf request timeout for correlation ID: {CorrelationId}, Target: {Target}", correlationId, queueName);
+                throw new TimeoutException($"ProtoBuf request timeout after {timeoutSpan.TotalSeconds} seconds for queueName: {queueName}");
+            }
+
+            var (_, byteResponse) = await responseTask;
+
+            if (byteResponse == null)
+            {
+                throw new InvalidOperationException("Received null ProtoBuf response");
+            }
+
+            // ProtoBuf 역직렬화
+            var response = ProtoBuf.Serializer.Deserialize<TResponse>(new ReadOnlyMemory<byte>(byteResponse));
+
+            _logger.LogDebug("ProtoBuf response received and deserialized for correlation ID: {CorrelationId}", correlationId);
+            return response;
+        }
+        finally
+        {
+            _pendingRequests.TryRemove(correlationId, out _);
+        }
+    }
+
+    private async Task SendRequestMessageAsync(string target, byte[] body, string correlationId, CancellationToken ct, Type? messageType = null, string contentType = ContentTypes.MessagePack)
     {
         var headers = new Dictionary<string, object>();
 
-        // MessagePack 타입 정보를 헤더에 추가 (필요한 경우)
+        // 타입 정보를 헤더에 추가 (필요한 경우)
         if (messageType != null)
         {
             headers["message_type"] = messageType.FullName ?? messageType.Name;
             headers["message_assembly"] = messageType.Assembly.GetName().Name ?? string.Empty;
-            headers["content_type"] = "application/x-msgpack";
+            headers["content_type"] = contentType;
         }
 
         var properties = new BasicProperties
@@ -441,8 +512,8 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             cancellationToken: ct);
 
         _logger.LogDebug(
-            "Request sent to target: {Target}, CorrelationId: {CorrelationId}, ReplyTo: {ReplyTo}",
-            target, correlationId, _uniqueQueue);
+            "Request sent to target: {Target}, CorrelationId: {CorrelationId}, ReplyTo: {ReplyTo}, ContentType: {ContentType}",
+            target, correlationId, _uniqueQueue, contentType);
     }
     
     private async Task OnUniqueReceived(object sender, BasicDeliverEventArgs ea)
@@ -458,7 +529,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
             if (!string.IsNullOrEmpty(correlationId) && _pendingRequests.TryGetValue(correlationId, out var tcs))
             {
                 // 응답 타입 확인 (헤더 기반) - RabbitMQ 헤더는 byte[]로 전송됨
-                var isMessagePack = false;
+                var isBinaryMessage = false;
                 if (ea.BasicProperties.Headers?.TryGetValue("content_type", out var contentTypeObj) == true)
                 {
                     var contentType = contentTypeObj switch
@@ -467,17 +538,20 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
                         byte[] bytes => Encoding.UTF8.GetString(bytes),
                         _ => contentTypeObj?.ToString()
                     };
-                    isMessagePack = contentType == "application/x-msgpack";
+                    // MessagePack, ProtoBuf, MemoryPack 응답 모두 바이너리로 처리
+                    isBinaryMessage = contentType == ContentTypes.MessagePack
+                        || contentType == ContentTypes.ProtoBuf
+                        || contentType == ContentTypes.MemoryPack;
 
-                    _logger.LogDebug("Response content type: {ContentType}, IsMessagePack: {IsMessagePack}",
-                        contentType, isMessagePack);
+                    _logger.LogDebug("Response content type: {ContentType}, IsBinaryMessage: {IsBinaryMessage}",
+                        contentType, isBinaryMessage);
                 }
 
-                if (isMessagePack)
+                if (isBinaryMessage)
                 {
-                    // MessagePack 응답 처리
+                    // 바이너리 응답 처리 (MessagePack 또는 ProtoBuf)
                     var responseBytes = ea.Body.ToArray();
-                    _logger.LogDebug("Processing MessagePack response, bytes length: {Length}", responseBytes.Length);
+                    _logger.LogDebug("Processing binary response, bytes length: {Length}", responseBytes.Length);
                     tcs.TrySetResult((null, responseBytes));
                 }
                 else

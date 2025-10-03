@@ -142,7 +142,7 @@ public class UserCreateCommandTests
 
             // Assert
             result.Should().NotBeNull();
-            result.Result.Should().Be(expectedResult);
+            result.Result.IsSuccess.Should().BeTrue();
             _mockRepository.Verify(x => x.CreateAsync(name, email, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -253,8 +253,9 @@ public class UserCreateCommandTests
 
             // Assert
             result.Should().NotBeNull();
-            result.Result.Should().Be(expectedResult);
             result.Result.IsFailed.Should().BeTrue();
+            result.Result.Errors.Should().HaveCount(1);
+            result.Result.Errors[0].Message.Should().Be("Database error");
         }
 
         [Fact]
@@ -354,7 +355,8 @@ public class UserCreateCommandTests
 
             // Assert
             result.Should().NotBeNull();
-            result.Result.Should().Be(expectedResult);
+            result.Result.IsSuccess.Should().BeTrue();
+            _mockRepository.Verify(x => x.CreateAsync(name, email, It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]

@@ -5,11 +5,11 @@ using FastEndpoints;
 
 namespace Demo.Web.Endpoints.Test;
 
-class TestMqRequestResponseMessagePackSummary : EndpointSummary
+class MqRequestResponseMessagePackSummary : EndpointSummary
 {
-    public TestMqRequestResponseMessagePackSummary()
+    public MqRequestResponseMessagePackSummary()
     {
-        Summary = "RabbitMQ MessagePack 요청-응답 패턴 테스트";
+        Summary = "MQ MessagePack Request-Response";
         Description = "MessagePack 직렬화를 사용하여 RabbitMQ 요청-응답 패턴을 테스트합니다.";
         Responses[200] = "MessagePack 요청-응답 테스트 성공";
         Responses[408] = "응답 타임아웃";
@@ -20,16 +20,16 @@ class TestMqRequestResponseMessagePackSummary : EndpointSummary
 /// <summary>
 /// RabbitMQ MessagePack 요청-응답 패턴 테스트 엔드포인트
 /// </summary>
-public class TestMqRequestResponseMessagePackEndpoint : EndpointWithoutRequest<TestMqRequestResponseMessagePackResponse>
+public class MqRequestResponseMessagePackEndpoint : EndpointWithoutRequest<TestMqRequestResponseMessagePackResponse>
 {
     private readonly IMqPublishService _mqPublishService;
-    private readonly ILogger<TestMqRequestResponseMessagePackEndpoint> _logger;
+    private readonly ILogger<MqRequestResponseMessagePackEndpoint> _logger;
     private readonly ITelemetryService _telemetryService;
 
-    public TestMqRequestResponseMessagePackEndpoint(
+    public MqRequestResponseMessagePackEndpoint(
         IMqPublishService mqPublishService,
         ITelemetryService telemetryService,
-        ILogger<TestMqRequestResponseMessagePackEndpoint> logger)
+        ILogger<MqRequestResponseMessagePackEndpoint> logger)
     {
         _mqPublishService = mqPublishService;
         _telemetryService = telemetryService;
@@ -41,14 +41,14 @@ public class TestMqRequestResponseMessagePackEndpoint : EndpointWithoutRequest<T
         Post("/api/test/mq/request-response-messagepack");
         AllowAnonymous();
         Group<MqTest>();
-        Summary(new TestMqRequestResponseMessagePackSummary());
+        Summary(new MqRequestResponseMessagePackSummary());
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
         try
         {
-            using var span = _telemetryService.StartActivity(nameof(TestMqRequestResponseMessagePackEndpoint));
+            using var span = _telemetryService.StartActivity(nameof(MqRequestResponseMessagePackEndpoint));
             
             var request = new TestRequest
             {
@@ -70,7 +70,7 @@ public class TestMqRequestResponseMessagePackEndpoint : EndpointWithoutRequest<T
                 target, request.Id);
 
             // 30초 타임아웃으로 MessagePack 요청-응답 실행
-            var response = await _mqPublishService.PublishAndWaitForResponseAsync<TestRequest, TestResponse>(
+            var response = await _mqPublishService.PublishMessagePackAndWaitForResponseAsync<TestRequest, TestResponse>(
                 target,
                 request,
                 TimeSpan.FromSeconds(30),

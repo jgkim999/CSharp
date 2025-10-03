@@ -91,7 +91,7 @@ public class RabbitMqConnection : IDisposable, IAsyncDisposable
             return Task.CompletedTask;
         };
         
-        _multiExchange = _config.MultiExchange + "@M";
+        _multiExchange = _config.MultiExchange;
         
         _multiQueue = _config.MultiQueue + "." + Ulid.NewUlid();
 

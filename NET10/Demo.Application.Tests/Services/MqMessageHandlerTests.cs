@@ -149,7 +149,7 @@ public class MqMessageHandlerTests
         var cancellationToken = CancellationToken.None;
 
         // Act
-        var result = await _messageHandler.HandleMessagePackAsync(
+        var result = await _messageHandler.HandleBinaryMessageAsync(
             MqSenderType.Multi, sender, correlationId, messageId, request, typeof(MqPublishRequest), cancellationToken);
 
         // Assert
@@ -167,7 +167,7 @@ public class MqMessageHandlerTests
         var cancellationToken = CancellationToken.None;
 
         // Act
-        var result = await _messageHandler.HandleMessagePackAsync(
+        var result = await _messageHandler.HandleBinaryMessageAsync(
             MqSenderType.Multi, sender, correlationId, messageId, request, typeof(MqPublishRequest2), cancellationToken);
 
         // Assert
@@ -191,7 +191,7 @@ public class MqMessageHandlerTests
         var cancellationToken = CancellationToken.None;
 
         // Act
-        var result = await _messageHandler.HandleMessagePackAsync(
+        var result = await _messageHandler.HandleBinaryMessageAsync(
             MqSenderType.Multi, sender, correlationId, messageId, request, typeof(TestRequest), cancellationToken);
 
         // Assert
@@ -220,7 +220,7 @@ public class MqMessageHandlerTests
         var cancellationToken = CancellationToken.None;
 
         // Act
-        var result = await _messageHandler.HandleMessagePackAsync(
+        var result = await _messageHandler.HandleBinaryMessageAsync(
             MqSenderType.Multi, sender, correlationId, messageId, unknownMessage, unknownMessage.GetType(), cancellationToken);
 
         // Assert
@@ -238,7 +238,7 @@ public class MqMessageHandlerTests
         var cancellationToken = CancellationToken.None;
 
         // Act
-        var result = await _messageHandler.HandleMessagePackAsync(
+        var result = await _messageHandler.HandleBinaryMessageAsync(
             MqSenderType.Multi, sender, correlationId, messageId, wrongMessage, typeof(MqPublishRequest), cancellationToken);
 
         // Assert
@@ -279,7 +279,7 @@ public class MqMessageHandlerTests
         var cancellationToken = CancellationToken.None;
 
         // Act
-        var result = await _messageHandler.HandleMessagePackAsync(
+        var result = await _messageHandler.HandleBinaryMessageAsync(
             MqSenderType.Multi, sender, correlationId, messageId, request, typeof(MqPublishRequest), cancellationToken);
 
         // Assert
@@ -324,7 +324,7 @@ public class MqMessageHandlerTests
         var cancellationToken = CancellationToken.None;
 
         // Act
-        await _messageHandler.HandleMessagePackAsync(
+        await _messageHandler.HandleBinaryMessageAsync(
             MqSenderType.Multi, "sender", "correlation", messageId, request, typeof(TestRequest), cancellationToken);
 
         // Assert
@@ -356,7 +356,7 @@ public class MqMessageHandlerTests
         var cancellationToken = CancellationToken.None;
 
         // Act
-        await _messageHandler.HandleMessagePackAsync(
+        await _messageHandler.HandleBinaryMessageAsync(
             MqSenderType.Multi, "sender", "correlation", messageId, unknownMessage, unknownMessage.GetType(), cancellationToken);
 
         // Assert
@@ -400,7 +400,7 @@ public class MqMessageHandlerTests
         var cancellationToken = cancellationTokenSource.Token;
 
         // Act
-        var result = await _messageHandler.HandleMessagePackAsync(
+        var result = await _messageHandler.HandleBinaryMessageAsync(
             MqSenderType.Multi, "sender", "correlation", messageId, request, typeof(TestRequest), cancellationToken);
 
         // Assert

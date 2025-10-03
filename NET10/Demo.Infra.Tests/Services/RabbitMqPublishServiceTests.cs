@@ -19,9 +19,10 @@ namespace Demo.Infra.Tests.Services;
 
 /// <summary>
 /// RabbitMQ 전송/수신 통합 테스트
-/// IClassFixture를 사용하여 공유 컨테이너에서 테스트
+/// Collection을 사용하여 모든 테스트가 하나의 컨테이너를 공유
 /// </summary>
-public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
+[Collection("Container Collection")]
+public class RabbitMqPublishServiceTests
 {
     private readonly ITestOutputHelper _output;
     private readonly ContainerFixture _containerFixture;
@@ -57,7 +58,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
             .Returns(ValueTask.FromResult<string?>(null));
 
         _mockMessageHandler
-            .Setup(x => x.HandleMessagePackAsync(It.IsAny<MqSenderType>(), It.IsAny<string?>(),
+            .Setup(x => x.HandleBinaryMessageAsync(It.IsAny<MqSenderType>(), It.IsAny<string?>(),
                 It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<object>(), It.IsAny<Type>(), It.IsAny<CancellationToken>()))
             .Callback((MqSenderType senderType, string? sender, string? correlationId, string? messageId, object messageObject, Type messageType, CancellationToken ct) =>
                 {
@@ -145,7 +146,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
             await Task.Delay(1000); // Consumer 준비 시간
 
             // Act
-            await publishService.PublishMultiAsync(
+            await publishService.PublishMessagePackMultiAsync(
                 connection.MultiExchange, testMessage, CancellationToken.None, correlationId);
             await Task.Delay(2000); // 메시지 처리 시간
 
@@ -159,7 +160,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
             var receivedMessage = (string)messageObject;
             receivedMessage.Should().Be(testMessage);
 
-            _mockMessageHandler.Verify(x => x.HandleMessagePackAsync(
+            _mockMessageHandler.Verify(x => x.HandleBinaryMessageAsync(
                 MqSenderType.Multi,
                 It.IsAny<string?>(),
                 correlationId,
@@ -192,7 +193,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
             await Task.Delay(1000); // Consumer 준비 시간
 
             // Act
-            await publishService.PublishMultiAsync(
+            await publishService.PublishMessagePackMultiAsync(
                 connection.MultiExchange, testMessagePack, CancellationToken.None, correlationId);
             await Task.Delay(2000); // 메시지 처리 시간
 
@@ -206,7 +207,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
             var receivedMessage = (MqPublishRequest)messageObject;
             receivedMessage.Message.Should().Be(testMessagePack.Message);
 
-            _mockMessageHandler.Verify(x => x.HandleMessagePackAsync(
+            _mockMessageHandler.Verify(x => x.HandleBinaryMessageAsync(
                 MqSenderType.Multi,
                 It.IsAny<string?>(),
                 correlationId,
@@ -239,7 +240,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
             await Task.Delay(1000); // Consumer 준비 시간
 
             // Act
-            await publishService.PublishAnyAsync(
+            await publishService.PublishMessagePackAnyAsync(
                 connection.AnyQueue, testMessagePack, CancellationToken.None, correlationId);
             await Task.Delay(2000); // 메시지 처리 시간
 
@@ -253,7 +254,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
             var receivedMessage = (MqPublishRequest2)messageObject;
             receivedMessage.CreatedAt.Should().BeCloseTo(testMessagePack.CreatedAt, TimeSpan.FromSeconds(1));
 
-            _mockMessageHandler.Verify(x => x.HandleMessagePackAsync(
+            _mockMessageHandler.Verify(x => x.HandleBinaryMessageAsync(
                 MqSenderType.Any,
                 It.IsAny<string?>(),
                 correlationId,
@@ -281,7 +282,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
         try
         {
             // Act & Assert - 예외가 발생하지 않으면 성공
-            await publishService.PublishUniqueAsync(targetQueue, testMessage, CancellationToken.None, correlationId);
+            await publishService.PublishMessagePackUniqueAsync(targetQueue, testMessage, CancellationToken.None, correlationId);
 
             // Unique 메시지는 특정 대상으로 전송되므로 Consumer 없이도 전송은 성공해야 함
             Assert.True(true); // 예외 없이 실행 완료되면 성공
@@ -305,7 +306,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
         try
         {
             // Act & Assert
-            await publishService.PublishUniqueAsync(targetQueue, testMessagePack, CancellationToken.None, correlationId);
+            await publishService.PublishMessagePackUniqueAsync(targetQueue, testMessagePack, CancellationToken.None, correlationId);
 
             Assert.True(true); // 예외 없이 실행 완료되면 성공
         }
@@ -329,7 +330,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
         // Assert
         var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
         await Assert.ThrowsAsync<ObjectDisposedException>(
-            () => publishService.PublishMultiAsync(config.Value.MultiExchange, testMessage).AsTask());
+            () => publishService.PublishMessagePackMultiAsync(config.Value.MultiExchange, testMessage).AsTask());
 
         await connection.DisposeAsync();
     }
@@ -349,7 +350,7 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
         {
             // Act & Assert
             var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
-            await publishService.PublishMultiAsync(config.Value.MultiExchange, message);
+            await publishService.PublishMessagePackMultiAsync(config.Value.MultiExchange, message);
 
             Assert.True(true); // 예외 없이 실행 완료되면 성공
         }
@@ -359,4 +360,209 @@ public class RabbitMqPublishServiceTests : IClassFixture<ContainerFixture>
             await connection.DisposeAsync();
         }
     }
+
+    #region ProtoBuf Tests
+
+    [Fact]
+    public async Task PublishProtoBufMultiAsync_StringMessage_ShouldSendAndReceiveMessage()
+    {
+        // Arrange - 이전 테스트의 메시지 초기화
+        while (_receivedMessagePackObjects.TryDequeue(out _)) { }
+
+        var (connection, publishService, consumerService) = CreateServices();
+        var testMessage = "Hello RabbitMQ ProtoBuf!";
+        var correlationId = Guid.NewGuid().ToString();
+
+        try
+        {
+            // Consumer 시작
+            _ = consumerService.StartAsync(CancellationToken.None);
+            await Task.Delay(1000); // Consumer 준비 시간
+
+            // Act
+            await publishService.PublishProtoBufMultiAsync(
+                connection.MultiExchange, testMessage, CancellationToken.None, correlationId);
+            await Task.Delay(2000); // 메시지 처리 시간
+
+            // Assert
+            _receivedMessagePackObjects.Should().NotBeEmpty();
+            var (messageObject, messageType) = _receivedMessagePackObjects.First();
+
+            messageObject.Should().BeOfType<string>();
+            messageType.Should().Be<string>();
+
+            var receivedMessage = (string)messageObject;
+            receivedMessage.Should().Be(testMessage);
+
+            _mockMessageHandler.Verify(x => x.HandleBinaryMessageAsync(
+                MqSenderType.Multi,
+                It.IsAny<string?>(),
+                correlationId,
+                It.IsAny<string?>(),
+                It.IsAny<string>(),
+                typeof(string),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task PublishProtoBufMultiAsync_ProtoBufObject_ShouldSendAndReceiveTypedMessage()
+    {
+        // Arrange - 이전 테스트의 메시지 초기화
+        while (_receivedMessagePackObjects.TryDequeue(out _)) { }
+
+        var (connection, publishService, consumerService) = CreateServices();
+        var testProtoBuf = new MqPublishProtoBufRequest
+        {
+            Message = "Hello ProtoBuf!",
+            Id = 12345,
+            CreatedAt = DateTime.UtcNow
+        };
+        var correlationId = Guid.NewGuid().ToString();
+
+        try
+        {
+            // Consumer 시작
+            _ = consumerService.StartAsync(CancellationToken.None);
+            await Task.Delay(1000); // Consumer 준비 시간
+
+            // Act
+            await publishService.PublishProtoBufMultiAsync(
+                connection.MultiExchange, testProtoBuf, CancellationToken.None, correlationId);
+            await Task.Delay(2000); // 메시지 처리 시간
+
+            // Assert
+            _receivedMessagePackObjects.Should().NotBeEmpty();
+            var (messageObject, messageType) = _receivedMessagePackObjects.First();
+
+            messageObject.Should().BeOfType<MqPublishProtoBufRequest>();
+            messageType.Should().Be<MqPublishProtoBufRequest>();
+
+            var receivedMessage = (MqPublishProtoBufRequest)messageObject;
+            receivedMessage.Message.Should().Be(testProtoBuf.Message);
+            receivedMessage.Id.Should().Be(testProtoBuf.Id);
+            receivedMessage.CreatedAt.Should().BeCloseTo(testProtoBuf.CreatedAt, TimeSpan.FromSeconds(1));
+
+            _mockMessageHandler.Verify(x => x.HandleBinaryMessageAsync(
+                MqSenderType.Multi,
+                It.IsAny<string?>(),
+                correlationId,
+                It.IsAny<string?>(),
+                It.IsAny<MqPublishProtoBufRequest>(),
+                typeof(MqPublishProtoBufRequest),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task PublishProtoBufMultiAsync_ComplexProtoBufObject_ShouldSendAndReceiveWithAllFields()
+    {
+        // Arrange - 이전 테스트의 메시지 초기화
+        while (_receivedMessagePackObjects.TryDequeue(out _)) { }
+
+        var (connection, publishService, consumerService) = CreateServices();
+        var testProtoBuf = new MqPublishProtoBufRequest2
+        {
+            Name = "홍길동",
+            Email = "hong@example.com",
+            CreatedAt = DateTime.UtcNow,
+            IsActive = true
+        };
+        var correlationId = Guid.NewGuid().ToString();
+
+        try
+        {
+            // Consumer 시작
+            _ = consumerService.StartAsync(CancellationToken.None);
+            await Task.Delay(1000); // Consumer 준비 시간
+
+            // Act
+            await publishService.PublishProtoBufMultiAsync(
+                connection.MultiExchange, testProtoBuf, CancellationToken.None, correlationId);
+            await Task.Delay(2000); // 메시지 처리 시간
+
+            // Assert
+            _receivedMessagePackObjects.Should().NotBeEmpty();
+            var (messageObject, messageType) = _receivedMessagePackObjects.First();
+
+            messageObject.Should().BeOfType<MqPublishProtoBufRequest2>();
+            messageType.Should().Be<MqPublishProtoBufRequest2>();
+
+            var receivedMessage = (MqPublishProtoBufRequest2)messageObject;
+            receivedMessage.Name.Should().Be(testProtoBuf.Name);
+            receivedMessage.Email.Should().Be(testProtoBuf.Email);
+            receivedMessage.IsActive.Should().Be(testProtoBuf.IsActive);
+            receivedMessage.CreatedAt.Should().BeCloseTo(testProtoBuf.CreatedAt, TimeSpan.FromSeconds(1));
+
+            _mockMessageHandler.Verify(x => x.HandleBinaryMessageAsync(
+                MqSenderType.Multi,
+                It.IsAny<string?>(),
+                correlationId,
+                It.IsAny<string?>(),
+                It.IsAny<MqPublishProtoBufRequest2>(),
+                typeof(MqPublishProtoBufRequest2),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
+    }
+
+    [Theory]
+    [InlineData("Simple ProtoBuf message")]
+    [InlineData("한글 ProtoBuf 메시지")]
+    [InlineData("ProtoBuf Special chars: !@#$%^&*()")]
+    [InlineData("")]
+    public async Task PublishProtoBufMultiAsync_VariousStringInputs_ShouldHandleCorrectly(string message)
+    {
+        // Arrange
+        var (connection, publishService, _) = CreateServices();
+        var testProtoBuf = new MqPublishProtoBufRequest { Message = message, Id = 999 };
+
+        try
+        {
+            // Act & Assert
+            var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+            await publishService.PublishProtoBufMultiAsync(config.Value.MultiExchange, testProtoBuf);
+
+            Assert.True(true); // 예외 없이 실행 완료되면 성공
+        }
+        finally
+        {
+            publishService.Dispose();
+            await connection.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public async Task PublishProtoBufMultiAsync_AfterDispose_ShouldThrowObjectDisposedException()
+    {
+        // Arrange
+        var (connection, publishService, _) = CreateServices();
+        var testProtoBuf = new MqPublishProtoBufRequest { Message = "Test ProtoBuf" };
+
+        // Act
+        publishService.Dispose();
+
+        // Assert
+        var config = _serviceProvider.GetRequiredService<IOptions<RabbitMqConfig>>();
+        await Assert.ThrowsAsync<ObjectDisposedException>(
+            () => publishService.PublishProtoBufMultiAsync(config.Value.MultiExchange, testProtoBuf).AsTask());
+
+        await connection.DisposeAsync();
+    }
+
+    #endregion
 }

@@ -35,7 +35,7 @@ public class TestMutations
         try
         {
             using var activity = telemetryService.StartActivity("test.mutations.publish.mq.any");
-            await mqPublishService.PublishAnyAsync("consumer-any-queue", input.Message, cancellationToken);
+            await mqPublishService.PublishMessagePackAnyAsync("consumer-any-queue", input.Message, cancellationToken);
 
             return new TestMqPayload(
                 "MQ 테스트가 완료되었습니다. 콘솔 로그를 확인해주세요.",
@@ -77,7 +77,7 @@ public class TestMutations
         try
         {
             using var activity = telemetryService.StartActivity("test.mutations.publish.mq.multi");
-            await mqPublishService.PublishMultiAsync("consumer-multi-exchange", input.Message, cancellationToken);
+            await mqPublishService.PublishMessagePackMultiAsync("consumer-multi-exchange", input.Message, cancellationToken);
 
             return new TestMqPayload(
                 "MQ 테스트가 완료되었습니다.",
@@ -122,7 +122,7 @@ public class TestMutations
             using var activity = telemetryService.StartActivity("test.mutations.publish.mq.messagepack");
 
             var request = new { Message = input.Message };
-            await mqPublishService.PublishMultiAsync("consumer-multi-exchange", request, cancellationToken);
+            await mqPublishService.PublishMessagePackMultiAsync("consumer-multi-exchange", request, cancellationToken);
 
             return new TestMqMessagePackPayload(
                 "MessagePack MQ 테스트가 완료되었습니다. 콘솔 로그를 확인해주세요.",
@@ -187,7 +187,7 @@ public class TestMutations
                 "MessagePack 요청-응답 테스트 시작. 대상: {Target}, 요청ID: {RequestId}",
                 target, request.Id);
 
-            var response = await mqPublishService.PublishAndWaitForResponseAsync<TestRequest, TestResponse>(
+            var response = await mqPublishService.PublishMessagePackAndWaitForResponseAsync<TestRequest, TestResponse>(
                 target,
                 request,
                 TimeSpan.FromSeconds(30),
