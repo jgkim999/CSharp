@@ -13,7 +13,7 @@
   <Project Path="Demo.AppHost/Demo.AppHost.csproj" />
   <Project Path="Demo.Application.Tests/Demo.Application.Tests.csproj" />
   <Project Path="Demo.Application/Demo.Application.csproj" />
-  <Project Path="Demo.Consumer\Demo.Consumer.csproj" Type="C#">
+  <Project Path="Demo.Consumer\Demo.Consumer.csproj">
     <Configuration Solution="Debug|x64" Project="Debug|Any CPU" />
     <Configuration Solution="Debug|x86" Project="Debug|Any CPU" />
     <Configuration Solution="Release|x64" Project="Release|Any CPU" />
@@ -23,8 +23,6 @@
   <Project Path="Demo.Domain/Demo.Domain.csproj" />
   <Project Path="Demo.Infra.Tests/Demo.Infra.Tests.csproj" />
   <Project Path="Demo.Infra/Demo.Infra.csproj" />
-  <Project Path="Demo.ServiceDefaults/Demo.ServiceDefaults.csproj" />
   <Project Path="Demo.Web/Demo.Web.csproj" />
-  <Project Path="GamePulse.Test/GamePulse.Test.csproj" />
   <Project Path="GamePulse/GamePulse.csproj" />
 </Solution>
