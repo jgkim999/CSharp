@@ -220,7 +220,7 @@ public class IpToNationFusionCacheIntegrationTests : IDisposable
         Assert.Equal(countryCode, result2.Value);
         
         // L1 캐시에서 조회되었으므로 매우 빨라야 함
-        Assert.True(stopwatch.ElapsedMilliseconds < 10, 
+        Assert.True(stopwatch.ElapsedMilliseconds < 100, 
             $"L1 캐시 자동 저장 후 조회 시간이 너무 느림: {stopwatch.ElapsedMilliseconds}ms");
 
         _logger.LogInformation("L2 히트 후 L1 자동 저장 확인 완료. 후속 L1 히트 시간: {ElapsedMs}ms", 

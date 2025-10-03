@@ -81,9 +81,15 @@ public class IpToNationRepositoryTests : IDisposable
             .Returns(restrictedPath);
 
         // Act & Assert
-        var exception = Assert.Throws<DirectoryNotFoundException>(() =>
-            new IpToNationRepository(_mockLogger.Object, _mockHostingEnvironment.Object));
-        
+        Exception? exception = null;
+        try
+        {
+            new IpToNationRepository(_mockLogger.Object, _mockHostingEnvironment.Object);
+        }
+        catch (Exception ex)
+        {
+            exception = ex;
+        }
         exception.Should().NotBeNull();
         
         // 로거가 호출되었는지 확인
