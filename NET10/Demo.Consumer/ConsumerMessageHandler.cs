@@ -26,7 +26,8 @@ public class ConsumerMessageHandler : IMqMessageHandler
             { typeof(MqPublishRequest).FullName!, OnMqPublishRequestAsync },
             { typeof(MqPublishRequest2).FullName!, OnMqPublishRequest2Async },
             { typeof(MessagePackRequest).FullName!, OnMessagePackRequestAsync },
-            { typeof(ProtobufRequest).FullName!, OnProtobufRequestAsync }
+            { typeof(ProtobufRequest).FullName!, OnProtobufRequestAsync },
+            { typeof(MemoryPackRequest).FullName!, OnMemoryPackRequestAsync}
         }.ToFrozenDictionary();
     }
     
@@ -271,6 +272,55 @@ public class ConsumerMessageHandler : IMqMessageHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing ProtobufRequest. MessageId: {MessageId}", messageId);
+            return ValueTask.FromResult<object?>(null);
+        }
+    }
+    
+    private ValueTask<object?> OnMemoryPackRequestAsync(
+        MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct)
+    {
+        try
+        {
+            _logger.LogInformation("MemoryPackRequest received. MessageId: {MessageId}, Type: {MessageType}", messageId, messageType.FullName);
+
+            if (messageObject is not MemoryPackRequest request)
+            {
+                _logger.LogError("Message casting error. MessageId: {MessageId}, ExpectedType: {ExpectedType}, ActualType: {ActualType}",
+                    messageId, nameof(MemoryPackRequest), messageObject.GetType().Name);
+                return ValueTask.FromResult<object?>(null);
+            }
+
+            // TestResponse 생성
+            var response = new MemoryPackResponse
+            {
+                ResponseId = Ulid.NewUlid().ToString(),
+                OriginalRequestId = request.Id,
+                ResponseMessage = $"성공적으로 처리했습니다: {request.Message}",
+                ProcessedAt = DateTime.Now,
+                Success = true,
+                ResponseData = new Dictionary<string, string>
+                {
+                    { "서버", Environment.MachineName },
+                    { "처리시간", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") },
+                    { "원본메시지", request.Message },
+                    { "처리결과", "성공" }
+                }
+            };
+
+            _logger.LogInformation("MemoryPackRequest processed successfully. RequestId: {RequestId}, ResponseId: {ResponseId}",
+                request.Id, response.ResponseId);
+
+            return ValueTask.FromResult<object?>(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing MemoryPackRequest. MessageId: {MessageId}", messageId);
             return ValueTask.FromResult<object?>(null);
         }
     }
