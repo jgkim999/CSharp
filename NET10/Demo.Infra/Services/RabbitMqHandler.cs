@@ -63,6 +63,118 @@ public class RabbitMqHandler
         _mqMessageHandler = mqMessageHandler;
         _logger = logger;
         _telemetryService = telemetryService;
+
+        // 초기화 시점에 알려진 타입들을 미리 등록하여 첫 메시지 처리 성능 향상
+        PreloadKnownTypes();
+    }
+
+    /// <summary>
+    /// 알려진 메시지 타입들을 초기화 시점에 미리 등록합니다
+    /// 이를 통해 첫 메시지 처리 시 발생하는 리플렉션 오버헤드를 제거합니다
+    /// </summary>
+    private void PreloadKnownTypes()
+    {
+        try
+        {
+            // MessagePackFormatterAttribute나 특정 인터페이스를 가진 타입들을 자동으로 찾아서 등록
+            var messagingAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+            var knownTypes = new List<Type>();
+
+            foreach (var assembly in messagingAssemblies)
+            {
+                try
+                {
+                    var types = assembly.GetTypes()
+                        .Where(t => t.IsClass && !t.IsAbstract &&
+                                  (HasMessagePackAttribute(t) || HasProtoBufAttribute(t) || HasMemoryPackAttribute(t)))
+                        .ToList();
+
+                    knownTypes.AddRange(types);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load types from assembly {AssemblyName}", assembly.GetName().Name);
+                }
+            }
+
+            _logger.LogInformation("Found {Count} known message types to preload", knownTypes.Count);
+
+            // 타입 캐시 미리 등록
+            foreach (var type in knownTypes)
+            {
+                if (type.FullName != null)
+                {
+                    TypeCache.TryAdd(type.FullName, type);
+                }
+            }
+
+            // Deserialize/Serialize 메서드 미리 컴파일
+            foreach (var type in knownTypes)
+            {
+                try
+                {
+                    if (HasMessagePackAttribute(type))
+                    {
+                        GetMessagePackDeserializeMethod(type);
+                        _logger.LogInformation("Preloaded MessagePack deserializer for {TypeName}", type.FullName);
+                    }
+
+                    if (HasProtoBufAttribute(type))
+                    {
+                        GetProtoBufDeserializeMethod(type);
+                        _logger.LogInformation("Preloaded ProtoBuf deserializer for {TypeName}", type.FullName);
+                    }
+
+                    if (HasMemoryPackAttribute(type))
+                    {
+                        GetMemoryPackDeserializeMethod(type);
+                        GetMemoryPackSerializeMethod(type);
+                        _logger.LogInformation("Preloaded MemoryPack serializer/deserializer for {TypeName}", type.FullName);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to preload serializers for type {TypeName}", type.FullName);
+                }
+            }
+
+            _logger.LogInformation("Successfully preloaded {TypeCount} types, {MessagePackCount} MessagePack, {ProtoBufCount} ProtoBuf, {MemoryPackCount} MemoryPack deserializers",
+                TypeCache.Count,
+                MessagePackDeserializeMethodCache.Count,
+                ProtoBufDeserializeMethodCache.Count,
+                MemoryPackDeserializeMethodCache.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error preloading known types");
+        }
+    }
+
+    /// <summary>
+    /// 타입이 MessagePack 직렬화 속성을 가지고 있는지 확인합니다
+    /// </summary>
+    private static bool HasMessagePackAttribute(Type type)
+    {
+        return type.GetCustomAttributes(typeof(MessagePackObjectAttribute), inherit: false).Length > 0;
+    }
+
+    /// <summary>
+    /// 타입이 ProtoBuf 직렬화 속성을 가지고 있는지 확인합니다
+    /// </summary>
+    private static bool HasProtoBufAttribute(Type type)
+    {
+        return type.GetCustomAttributes(false)
+            .Any(attr => attr.GetType().Name == "ProtoContractAttribute");
+    }
+
+    /// <summary>
+    /// 타입이 MemoryPack 직렬화 속성을 가지고 있는지 확인합니다
+    /// </summary>
+    private static bool HasMemoryPackAttribute(Type type)
+    {
+        return type.GetCustomAttributes(false)
+            .Any(attr => attr.GetType().Name == "MemoryPackableAttribute");
     }
 
     /// <summary>
