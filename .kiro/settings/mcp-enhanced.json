@@ -1,0 +1,103 @@
+{
+  "mcpServers": {
+    "aws-diagram": {
+      "command": "uvx",
+      "args": [
+        "awslabs.aws-diagram-mcp-server@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "generate_diagram"
+      ]
+    },
+    "aws-eks": {
+      "command": "uvx",
+      "args": [
+        "awslabs.eks-mcp-server@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "terraform": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "hashicorp/terraform-mcp-server"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git"]
+    },
+    "awslabs.ecs-mcp-server": {
+      "command": "uvx",
+      "args": ["--from", "awslabs-ecs-mcp-server", "ecs-mcp-server"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "FASTMCP_LOG_FILE": "/path/to/ecs-mcp-server.log",
+        "ALLOW_WRITE": "false",
+        "ALLOW_SENSITIVE_DATA": "false"
+      }
+    },
+    "filesystem": {
+      "command": "uvx",
+      "args": ["mcp-server-filesystem"],
+      "env": {
+        "ALLOWED_DIRECTORIES": "/Volumes/d/github/CSharp"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "docker": {
+      "command": "uvx",
+      "args": ["mcp-server-docker"],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "database": {
+      "command": "uvx",
+      "args": ["mcp-server-sqlite"],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "web-search": {
+      "command": "uvx",
+      "args": ["mcp-server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "your-brave-api-key-here"
+      },
+      "disabled": true,
+      "autoApprove": []
+    },
+    "github": {
+      "command": "uvx",
+      "args": ["mcp-server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "your-github-token-here"
+      },
+      "disabled": true,
+      "autoApprove": []
+    }
+  }
+}
