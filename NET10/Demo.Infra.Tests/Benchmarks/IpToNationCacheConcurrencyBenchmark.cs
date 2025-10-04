@@ -7,6 +7,7 @@ using Demo.Domain.Repositories;
 using Demo.Infra.Configs;
 using Demo.Infra.Repositories;
 using Demo.Infra.Services;
+using Demo.Infra.Tests.Fixtures;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,19 +67,14 @@ public class IpToNationCacheConcurrencyBenchmark : IAsyncDisposable
 
     /// <summary>
     /// 벤치마크 테스트 환경을 설정합니다
+    /// 공유 Valkey 컨테이너를 사용하고 캐시 구현체들을 초기화합니다
     /// </summary>
     [GlobalSetup]
     public async Task GlobalSetup()
     {
-        // Valkey 컨테이너 시작 (Redis 호환)
-        _redisContainer = new RedisBuilder()
-            .WithImage("valkey/valkey:8.1.3-alpine")
-            .WithPortBinding(6379, true)
-            .Build();
-        
-        await _redisContainer.StartAsync();
-        
-        var connectionString = _redisContainer.GetConnectionString();
+        // 공유 Redis 컨테이너 사용
+        _redisContainer = await BenchmarkContainerFixture.GetRedisContainerAsync();
+        var connectionString = BenchmarkContainerFixture.GetRedisConnectionString();
         
         // 서비스 컬렉션 설정
         var services = new ServiceCollection();
@@ -462,12 +458,10 @@ public class IpToNationCacheConcurrencyBenchmark : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         _connectionMultiplexer?.Dispose();
-        
-        if (_redisContainer != null)
-        {
-            await _redisContainer.DisposeAsync();
-        }
-        
+
+        // 공유 컨테이너 참조 해제 (실제 정리는 모든 벤치마크가 종료된 후)
+        await BenchmarkContainerFixture.ReleaseAsync();
+
         GC.SuppressFinalize(this);
     }
 }

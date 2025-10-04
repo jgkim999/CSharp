@@ -10,7 +10,6 @@
     <Configuration Solution="Release|x64" Project="Release|Any CPU" />
     <Configuration Solution="Release|x86" Project="Release|Any CPU" />
   </Project>
-  <Project Path="Demo.AppHost/Demo.AppHost.csproj" />
   <Project Path="Demo.Application.Tests/Demo.Application.Tests.csproj" />
   <Project Path="Demo.Application/Demo.Application.csproj" />
   <Project Path="Demo.Consumer\Demo.Consumer.csproj">
