@@ -48,13 +48,34 @@ public class RabbitMqConnection : IDisposable, IAsyncDisposable
             AutomaticRecoveryEnabled = _config.AutomaticRecoveryEnabled,
             NetworkRecoveryInterval = TimeSpan.FromSeconds(_config.NetworkRecoveryInterval),
             TopologyRecoveryEnabled = _config.TopologyRecoveryEnabled,
-            ConsumerDispatchConcurrency = _config.ConsumerDispatchConcurrency, // 1개씩만 처리하고 나머지는 큐에 넣어두고 처리한다.
+            ConsumerDispatchConcurrency = _config.ConsumerDispatchConcurrency, // 동시 처리 개수
         };
         _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
 
         _channel = _connection.CreateChannelAsync().GetAwaiter().GetResult();
+
+        // QoS (Quality of Service) 설정 - Prefetch Count
+        // Consumer가 한 번에 받을 수 있는 미확인 메시지 개수 제한
+        // 메모리 관리 및 메시지 분산 처리를 위해 필수 설정
+        if (_config.PrefetchCount > 0)
+        {
+            _channel.BasicQosAsync(
+                prefetchSize: 0,                     // 0 = 메시지 크기 제한 없음
+                prefetchCount: _config.PrefetchCount, // 한 번에 받을 메시지 개수
+                global: false                        // false = 각 Consumer마다 적용, true = Channel 전체 적용
+            ).ConfigureAwait(false).GetAwaiter().GetResult();
+
+            _logger.LogInformation(
+                "BasicQos configured - PrefetchCount: {PrefetchCount}, ConsumerDispatchConcurrency: {Concurrency}",
+                _config.PrefetchCount, _config.ConsumerDispatchConcurrency);
+        }
+        else
+        {
+            _logger.LogWarning("PrefetchCount is 0 (unlimited) - This may cause memory issues with large message queues!");
+        }
+
         // Note: RabbitMQ.Client 7.x에서는 publisher confirms가 기본적으로 활성화됨
-        
+
         _channel.BasicAcksAsync += (sender, args) =>
         {
             _logger.LogDebug("Message acked");

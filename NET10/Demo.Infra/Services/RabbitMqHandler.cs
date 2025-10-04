@@ -9,6 +9,7 @@ using RabbitMQ.Client.Events;
 using MessagePack;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using Microsoft.IO;
 
 namespace Demo.Infra.Services;
 
@@ -45,6 +46,12 @@ public class RabbitMqHandler
 
     // MemoryPack serialize 메서드 캐시 - 리플렉션 호출 성능 최적화
     private static readonly ConcurrentDictionary<Type, Func<Stream, object, CancellationToken, ValueTask>> MemoryPackSerializeMethodCache = new();
+
+    // RecyclableMemoryStreamManager - MemoryStream 풀링을 통한 메모리 최적화
+    private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
+
+    // 헤더 문자열 캐시 - byte[] 헤더 값을 문자열로 변환할 때 메모리 할당 최소화
+    private static readonly ConcurrentDictionary<string, string> HeaderStringCache = new();
 
     /// <summary>
     /// RabbitMqHandler의 새 인스턴스를 초기화합니다
@@ -348,6 +355,7 @@ public class RabbitMqHandler
     /// <summary>
     /// RabbitMQ 헤더 값을 안전하게 문자열로 변환합니다
     /// RabbitMQ는 헤더 값을 byte[]로 전송하므로 적절한 변환이 필요합니다
+    /// 문자열 캐싱을 통해 동일한 헤더 값에 대한 반복 할당을 방지합니다
     /// </summary>
     /// <param name="headerValue">헤더 값</param>
     /// <returns>변환된 문자열 또는 null</returns>
@@ -357,9 +365,24 @@ public class RabbitMqHandler
         {
             null => null,
             string str => str,
-            byte[] bytes => Encoding.UTF8.GetString(bytes),
+            byte[] bytes => GetCachedStringFromBytes(bytes),
             _ => headerValue.ToString()
         };
+    }
+
+    /// <summary>
+    /// byte 배열을 문자열로 변환하고 결과를 캐시합니다
+    /// 동일한 헤더 값(message_type, content_type 등)이 반복적으로 나타날 때 메모리 할당 감소
+    /// </summary>
+    /// <param name="bytes">변환할 byte 배열</param>
+    /// <returns>캐시된 문자열</returns>
+    private static string GetCachedStringFromBytes(byte[] bytes)
+    {
+        // Base64 인코딩을 사용하여 byte 배열을 고유 키로 변환
+        // 짧은 문자열(헤더 값)의 경우 Base64가 효율적
+        var key = Convert.ToBase64String(bytes);
+
+        return HeaderStringCache.GetOrAdd(key, _ => Encoding.UTF8.GetString(bytes));
     }
 
     /// <summary>
@@ -933,7 +956,8 @@ public class RabbitMqHandler
             else
             {
                 // 객체 응답 - BinaryMessageType에 따라 직렬화
-                using var memoryStream = new MemoryStream();
+                // RecyclableMemoryStream을 사용하여 메모리 풀링 적용
+                using var memoryStream = MemoryStreamManager.GetStream();
                 var responseType = response.GetType();
 
                 switch (binaryMessageType)
@@ -959,7 +983,8 @@ public class RabbitMqHandler
                         break;
                 }
 
-                responseBody = memoryStream.ToArray();
+                // ToArray() 대신 GetBuffer()와 Length 사용하여 불필요한 메모리 할당 방지
+                responseBody = memoryStream.GetBuffer().AsSpan(0, (int)memoryStream.Length).ToArray();
 
                 headers["message_type"] = responseType.FullName ?? responseType.Name;
                 headers["message_assembly"] = responseType.Assembly.GetName().Name ?? string.Empty;
