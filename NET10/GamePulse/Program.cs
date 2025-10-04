@@ -21,9 +21,6 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Aspire ServiceDefaults 추가
-builder.AddServiceDefaults();
-
 // 환경별 설정 파일 추가
 var environment = builder.Environment.EnvironmentName;
 builder.Configuration
@@ -174,7 +171,10 @@ try
     //}
     #endregion
 
-    app.MapDefaultEndpoints();
+    // Install the following NuGet packages:
+    // dotnet add package Microsoft.AspNetCore.Http.Abstractions
+    // dotnet add package Microsoft.AspNetCore.Routing
+    //app.MapDefaultEndpoints();
 
     app.Run();
 }

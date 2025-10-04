@@ -22,9 +22,6 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Aspire ServiceDefaults 추가
-builder.AddServiceDefaults();
-
 // 환경별 설정 파일 추가
 var environment = builder.Environment.EnvironmentName;
 var environmentFromEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -191,7 +188,7 @@ try
             .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
     });
     
-    app.MapDefaultEndpoints();
+    //app.MapDefaultEndpoints();
     
     app.Run();
 }

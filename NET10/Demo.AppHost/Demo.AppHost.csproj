@@ -25,7 +25,6 @@
     <ProjectReference Include="..\Demo.Admin\Demo.Admin.csproj" />
     <ProjectReference Include="..\Demo.Web\Demo.Web.csproj" />
     <ProjectReference Include="..\GamePulse\GamePulse.csproj" />
-    <ProjectReference Include="..\Demo.ServiceDefaults\Demo.ServiceDefaults.csproj" IsAspireProjectResource="false" />
   </ItemGroup>
 
 </Project>
