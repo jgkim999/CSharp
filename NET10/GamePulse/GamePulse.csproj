@@ -17,7 +17,7 @@
     <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="IP2Location.IPGeolocation" Version="9.1.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
-    <PackageReference Include="OpenTelemetry" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.13.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.12.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
