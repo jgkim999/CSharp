@@ -12,6 +12,7 @@ using Demo.Infra.Extensions;
 using Demo.Infra.Repositories;
 using Demo.Infra.Services;
 using Demo.SimpleSocket;
+using Demo.SimpleSocket.SuperSocket;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using FluentValidation;
@@ -21,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
 using SuperSocket;
+using SuperSocket.Kestrel;
 using SuperSocket.Server.Host;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -147,24 +149,27 @@ try
 
     #region SuperSocket
 
+    builder.Services.AddSingleton<SessionManager>();
+
     // SuperSocket을 ASP.NET Core 호스트에 통합
     builder.Host
         .AsSuperSocketHostBuilder<SuperSocket.ProtoBase.TextPackageInfo, SuperSocket.ProtoBase.LinePipelineFilter>()
-        .UsePackageHandler(async (session, package) =>
-        {
-            var logger = session.Server.ServiceProvider.GetService<ILogger<Program>>();
-            if (logger != null)
+        .UseSessionHandler(async (session) =>
             {
-                logger.LogInformation(
-                    "메시지 수신 - SessionId: {SessionId}, Text: {Text}",
-                    session.SessionID,
-                    package.Text);
-            }
-
-            // ECHO: 받은 메시지를 그대로 돌려보냄
-            var response = "ECHO: " + package.Text + "\r\n";
-            await session.SendAsync(Encoding.UTF8.GetBytes(response));
-        })
+                var sessionManager = session.Server.ServiceProvider.GetService<SessionManager>();
+                await sessionManager?.OnConnectAsync(session)!;
+            }, async (session, closeReason) =>
+            {
+                var sessionManager = session.Server.ServiceProvider.GetService<SessionManager>();
+                await sessionManager?.OnDisconnectAsync(session, closeReason)!;
+            })
+        .UsePackageHandler(async (session, package) =>
+            {
+                var sessionManager = session.Server.ServiceProvider.GetService<SessionManager>();
+                await sessionManager?.OnMessageAsync(session, package)!;
+            })
+        .UseSession<DemoSession>()
+        .UseKestrelPipeConnection()
         .AsMinimalApiHostBuilder()
         .ConfigureHostBuilder();
     #endregion
@@ -172,13 +177,13 @@ try
     builder.Services.AddHostedService<RabbitMqConsumerService>();
 
     var app = builder.Build();
-    
+
     // CORS 미들웨어 등록 (가장 먼저 등록)
     app.UseCors("DefaultPolicy");
-    
+
     // Rate Limit 미들웨어 등록 (FastEndpoints보다 먼저 등록)
     app.UseMiddleware<RateLimitMiddleware>();
-    
+
     app.UseFastEndpointsInitialize();
 
     app.UseOpenApi(options =>
@@ -194,9 +199,9 @@ try
             .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
             .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
     });
-    
+
     //app.MapDefaultEndpoints();
-    
+
     app.Run();
 }
 catch (Exception ex)
@@ -209,6 +214,6 @@ finally
 }
 
 /// <summary>
-/// 테스트에서 접근할 수 있도록 Program 클래스를 public으로 선언 
+/// 테스트에서 접근할 수 있도록 Program 클래스를 public으로 선언
 /// </summary>
 public partial class Program { }
