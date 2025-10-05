@@ -153,7 +153,7 @@ try
 
     // SuperSocket을 ASP.NET Core 호스트에 통합
     builder.Host
-        .AsSuperSocketHostBuilder<SuperSocket.ProtoBase.TextPackageInfo, SuperSocket.ProtoBase.LinePipelineFilter>()
+        .AsSuperSocketHostBuilder<BinaryPackageInfo, FixedHeaderPipelineFilter>()
         .UseSessionHandler(async (session) =>
             {
                 var sessionManager = session.Server.ServiceProvider.GetService<SessionManager>();
