@@ -1,3 +1,4 @@
+using System.Text;
 using Demo.Application.Configs;
 using Demo.Application.DTO.User;
 using Demo.Application.Extensions;
@@ -15,9 +16,12 @@ using FastEndpoints;
 using FastEndpoints.Swagger;
 using FluentValidation;
 using Mapster;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
+using SuperSocket;
+using SuperSocket.Server.Host;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,13 +43,13 @@ try
 {
     //builder.AddSerilogApplication();
     builder.Host.UseSerilog();
-    
+
     builder.Services.AddSerilog((services, lc) =>
     {
         lc.ReadFrom.Configuration(builder.Configuration);
         lc.ReadFrom.Services(services);
     });
-    
+
     Log.Information("Starting Simple Socket");
 
     // OpenTelemetry 서비스 등록
@@ -65,21 +69,25 @@ try
     #endregion
 
     #region RateLimit
+
     // RateLimit 설정을 DI 컨테이너에 등록
     builder.Services.Configure<RateLimitConfig>(builder.Configuration.GetSection("RateLimit"));
+
     #endregion
-        
+
     #region Redis
+
     var redisConfig = builder.Configuration.GetSection("Redis").Get<RedisConfig>();
     if (redisConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("Redis"));
+
     #endregion
-    
+
     builder.Services.AddFastEndpoints();
     builder.Services.SwaggerDocument();
     //builder.Services.AddOpenApi();
-    
+
     // CORS 설정 추가
     builder.Services.AddCors(options =>
     {
@@ -89,53 +97,80 @@ try
             {
                 // 개발 환경에서는 모든 origin 허용 (보안상 주의)
                 policy.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
             }
             else
             {
                 // 프로덕션 환경에서는 특정 origin만 허용
                 policy.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000", "http://192.168.0.60:3000")
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
             }
         });
     });
-    
+
     builder.AddLiteBusApplication();
-    
+
     #region Mapster
+
     builder.Services.AddMapster();
     var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
     typeAdapterConfig.Scan(typeof(MapsterConfig).Assembly);
+
     #endregion
 
     #region Infra
+
     var postgresConfig = builder.Configuration.GetSection("Postgres").Get<PostgresConfig>();
     if (postgresConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<PostgresConfig>(builder.Configuration.GetSection("Postgres"));
-    
+
     // DbContextFactory 등록
     builder.Services.AddDbContextFactory<DemoDbContext>(options =>
         options.UseNpgsql(postgresConfig.ConnectionString, npgsqlOptions =>
         {
             npgsqlOptions.CommandTimeout(10); // 명령 타임아웃 10초로 제한
         }));
-    
+
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
     builder.Services.AddTransient<IUserRepository, UserRepositoryPostgre>();
     builder.Services.AddTransient<ICompanyRepository, CompanyRepositoryPostgre>();
     builder.Services.AddTransient<IProductRepository, ProductRepositoryPostgre>();
-    
+
     // FusionCache 설정 추가
     builder.Services.AddIpToNationFusionCache(builder.Configuration);
-    
+
     #endregion
-    
+
+    #region SuperSocket
+
+    // SuperSocket을 ASP.NET Core 호스트에 통합
+    builder.Host
+        .AsSuperSocketHostBuilder<SuperSocket.ProtoBase.TextPackageInfo, SuperSocket.ProtoBase.LinePipelineFilter>()
+        .UsePackageHandler(async (session, package) =>
+        {
+            var logger = session.Server.ServiceProvider.GetService<ILogger<Program>>();
+            if (logger != null)
+            {
+                logger.LogInformation(
+                    "메시지 수신 - SessionId: {SessionId}, Text: {Text}",
+                    session.SessionID,
+                    package.Text);
+            }
+
+            // ECHO: 받은 메시지를 그대로 돌려보냄
+            var response = "ECHO: " + package.Text + "\r\n";
+            await session.SendAsync(Encoding.UTF8.GetBytes(response));
+        })
+        .AsMinimalApiHostBuilder()
+        .ConfigureHostBuilder();
+    #endregion
+
     builder.Services.AddHostedService<RabbitMqConsumerService>();
-    
+
     var app = builder.Build();
     
     // CORS 미들웨어 등록 (가장 먼저 등록)
