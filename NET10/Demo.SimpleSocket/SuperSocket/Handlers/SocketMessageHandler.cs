@@ -13,6 +13,7 @@ public class SocketMessageHandler
     public SocketMessageHandler(ILogger<SocketMessageHandler> logger)
     {
         _logger = logger;
+        RegisterHandler(1, OnSocketMsgPackReqAsync);
     }
 
     /// <summary>
@@ -97,4 +98,45 @@ public class SocketMessageHandler
     /// 등록된 핸들러 개수
     /// </summary>
     public int HandlerCount => _handlers.Count;
+    
+    private async Task OnSocketMsgPackReqAsync(BinaryPackageInfo package, DemoSession session)
+    {
+        if (package.BodyLength == 0)
+        {
+            _logger.LogWarning("SocketMsgPackReq received but BodyLength is 0. SessionID: {SessionID}", session.SessionID);
+            return;
+        }
+
+        try
+        {
+            // MessagePack 역직렬화
+            var request = MessagePack.MessagePackSerializer.Deserialize<Application.DTO.SocketMsgPackReq>(package.Body.AsMemory(0, package.BodyLength));
+            _logger.LogInformation("SocketMsgPackReq 수신. Name: {Name}, Message: {Message}", request.Name, request.Message);
+
+            // SocketMsgPackRes 생성
+            var response = new Demo.Application.DTO.SocketMsgPackRes
+            {
+                Msg = $"서버에서 받은 메시지: {request.Message} (보낸이: {request.Name})",
+                ProcessDt = DateTime.Now
+            };
+
+            // MessagePack 직렬화
+            var responseBody = MessagePack.MessagePackSerializer.Serialize(response);
+            var responsePacket = new byte[4 + responseBody.Length];
+            var responseSpan = responsePacket.AsSpan();
+
+            // MessageType 2번으로 응답
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(0, 2), 2);
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(2, 2), (ushort)responseBody.Length);
+            responseBody.CopyTo(responseSpan.Slice(4));
+
+            await session.SendAsync(responsePacket, CancellationToken.None);
+
+            _logger.LogInformation("SocketMsgPackRes 전송 완료. Msg: {Msg}", response.Msg);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "MessagePack 처리 중 오류 발생. SessionID: {SessionID}", session.SessionID);
+        }
+    }
 }

@@ -13,6 +13,7 @@ using Demo.Infra.Repositories;
 using Demo.Infra.Services;
 using Demo.SimpleSocket;
 using Demo.SimpleSocket.SuperSocket;
+using Demo.SimpleSocket.SuperSocket.Handlers;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using FluentValidation;
@@ -150,7 +151,8 @@ try
     #region SuperSocket
 
     builder.Services.AddSingleton<SessionManager>();
-
+    builder.Services.AddSingleton<SocketMessageHandler>();
+    
     // SuperSocket을 ASP.NET Core 호스트에 통합
     builder.Host
         .AsSuperSocketHostBuilder<BinaryPackageInfo, FixedHeaderPipelineFilter>()

@@ -17,13 +17,10 @@ public class DemoSession : AppSession, IDisposable
     private Task? _processTask;
     private bool _disposed;
 
-    public DemoSession(ILogger<DemoSession> logger, ILogger<SocketMessageHandler> messageHandlerLogger)
+    public DemoSession(ILogger<DemoSession> logger, SocketMessageHandler messageHandler)
     {
         _logger = logger;
-        _messageHandler = new SocketMessageHandler(messageHandlerLogger);
-
-        // 메시지 핸들러 등록
-        RegisterMessageHandlers();
+        _messageHandler = messageHandler;
     }
 
     /// <summary>
@@ -152,7 +149,7 @@ public class DemoSession : AppSession, IDisposable
                     // 핸들러가 없으면 기본 ECHO 처리
                     if (!handled)
                     {
-                        await HandleEchoAsync(package, this);
+                        await HandleEchoAsync(package);
                     }
                 }
             }
@@ -175,67 +172,9 @@ public class DemoSession : AppSession, IDisposable
     }
 
     /// <summary>
-    /// 메시지 핸들러 등록
-    /// </summary>
-    private void RegisterMessageHandlers()
-    {
-        // MessageType 1: SocketMsgPackReq 처리
-        _messageHandler.RegisterHandler(1, HandleSocketMsgPackReqAsync);
-
-        // 기타 MessageType은 기본 ECHO 핸들러로 처리
-        // 필요시 추가 핸들러 등록
-    }
-
-    /// <summary>
-    /// MessageType 1 핸들러: SocketMsgPackReq 처리
-    /// </summary>
-    private async Task HandleSocketMsgPackReqAsync(BinaryPackageInfo package, DemoSession session)
-    {
-        if (package.BodyLength == 0)
-        {
-            _logger.LogWarning("SocketMsgPackReq received but BodyLength is 0. SessionID: {SessionID}", SessionID);
-            return;
-        }
-
-        try
-        {
-            // MessagePack 역직렬화
-            var request = MessagePackSerializer.Deserialize<SocketMsgPackReq>(package.Body.AsMemory(0, package.BodyLength));
-            _logger.LogInformation(
-                "SocketMsgPackReq 수신. Name: {Name}, Message: {Message}",
-                request.Name, request.Message);
-
-            // SocketMsgPackRes 생성
-            var response = new SocketMsgPackRes
-            {
-                Msg = $"서버에서 받은 메시지: {request.Message} (보낸이: {request.Name})",
-                ProcessDt = DateTime.Now
-            };
-
-            // MessagePack 직렬화
-            var responseBody = MessagePackSerializer.Serialize(response);
-            var responsePacket = new byte[4 + responseBody.Length];
-            var responseSpan = responsePacket.AsSpan();
-
-            // MessageType 2번으로 응답
-            BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(0, 2), 2);
-            BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(2, 2), (ushort)responseBody.Length);
-            responseBody.CopyTo(responseSpan.Slice(4));
-
-            await SendAsync(responsePacket, _cts.Token);
-
-            _logger.LogInformation("SocketMsgPackRes 전송 완료. Msg: {Msg}", response.Msg);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "MessagePack 처리 중 오류 발생. SessionID: {SessionID}", SessionID);
-        }
-    }
-
-    /// <summary>
     /// 기본 ECHO 핸들러: 받은 패킷을 그대로 돌려보냄
     /// </summary>
-    private async Task HandleEchoAsync(BinaryPackageInfo package, DemoSession session)
+    private async Task HandleEchoAsync(BinaryPackageInfo package)
     {
         byte[] response = new byte[4 + package.BodyLength];
         var responseSpan = response.AsSpan();
