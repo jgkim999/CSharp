@@ -165,8 +165,17 @@ try
             })
         .UsePackageHandler(async (session, package) =>
             {
-                var sessionManager = session.Server.ServiceProvider.GetService<SessionManager>();
-                await sessionManager?.OnMessageAsync(session, package)!;
+                // DemoSession의 OnReceiveAsync를 통해 Channel에 메시지 추가
+                if (session is DemoSession demoSession)
+                {
+                    await demoSession.OnReceiveAsync(package);
+                }
+                else
+                {
+                    // Fallback: SessionManager 직접 호출
+                    var sessionManager = session.Server.ServiceProvider.GetService<SessionManager>();
+                    await sessionManager?.OnMessageAsync(session, package)!;
+                }
             })
         .UseSession<DemoSession>()
         .UseKestrelPipeConnection()

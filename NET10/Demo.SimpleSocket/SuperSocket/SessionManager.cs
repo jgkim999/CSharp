@@ -63,77 +63,35 @@ public class SessionManager
 
         _logger.LogInformation("#4 SessionManager OnDisconnectAsync. SessionId: {SessionId}, CloseReason: {CloseReason}", session.SessionID, closeReason);
 
-        _sessions.TryRemove(session.SessionID, out _);
+        // 세션 딕셔너리에서 제거
+        _sessions.TryRemove(session.SessionID, out var removedSession);
+
+        // 리소스 정리: IDisposable 패턴 호출
+        if (removedSession != null)
+        {
+            try
+            {
+                removedSession.Dispose();
+                _logger.LogInformation("DemoSession resources disposed. SessionId: {SessionId}", session.SessionID);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error disposing DemoSession. SessionId: {SessionId}", session.SessionID);
+            }
+        }
 
         await ValueTask.CompletedTask;
     }
 
     public async Task OnMessageAsync(IAppSession session, BinaryPackageInfo package)
     {
-        // using을 사용하여 자동으로 ArrayPool 반환
-        using (package)
+        if (_sessions.TryGetValue(session.SessionID, out DemoSession? demoSession))
         {
-            _logger.LogInformation(
-                "SessionManager OnMessageAsync. SessionId: {SessionId}, MessageType: {MessageType}, BodyLength: {BodyLength}",
-                session.SessionID, package.MessageType, package.BodyLength);
-
-            // MessageType 1번: SocketMsgPackReq 처리
-            if (package.MessageType == 1 && package.BodyLength > 0)
-            {
-                try
-                {
-                    // MessagePack 역직렬화
-                    var request = MessagePackSerializer.Deserialize<SocketMsgPackReq>(package.Body.AsMemory(0, package.BodyLength));
-                    _logger.LogInformation(
-                        "SocketMsgPackReq 수신. Name: {Name}, Message: {Message}",
-                        request.Name, request.Message);
-
-                    // SocketMsgPackRes 생성
-                    var response = new SocketMsgPackRes
-                    {
-                        Msg = $"서버에서 받은 메시지: {request.Message} (보낸이: {request.Name})",
-                        ProcessDt = DateTime.Now
-                    };
-
-                    // MessagePack 직렬화
-                    var responseBody = MessagePackSerializer.Serialize(response);
-                    var responsePacket = new byte[4 + responseBody.Length];
-                    var responseSpan = responsePacket.AsSpan();
-
-                    // MessageType 2번으로 응답
-                    BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(0, 2), 2);
-                    BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(2, 2), (ushort)responseBody.Length);
-                    responseBody.CopyTo(responseSpan.Slice(4));
-
-                    await session.SendAsync(responsePacket, _cancellationToken);
-
-                    _logger.LogInformation("SocketMsgPackRes 전송 완료. Msg: {Msg}", response.Msg);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "MessagePack 처리 중 오류 발생");
-                }
-            }
-            else
-            {
-                // 기본 ECHO: 받은 패킷을 그대로 돌려보냄
-                byte[] response = new byte[4 + package.BodyLength];
-                var responseSpan = response.AsSpan();
-
-                // MessageType을 BigEndian으로 쓰기
-                BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(0, 2), package.MessageType);
-
-                // BodyLength를 BigEndian으로 쓰기
-                BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(2, 2), package.BodyLength);
-
-                // Body 복사 - BodySpan을 사용하여 실제 유효한 부분만 복사
-                if (package.BodyLength > 0)
-                {
-                    package.BodySpan.CopyTo(responseSpan.Slice(4));
-                }
-
-                await session.SendAsync(response, _cancellationToken);
-            }
+            await demoSession.OnReceiveAsync(package);
+        }
+        else
+        {
+            _logger.LogInformation("Received package but session not found. SessionId: {SessionId}", session.SessionID);
         }
     }
 }
