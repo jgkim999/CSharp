@@ -29,5 +29,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Demo.Application\Demo.Application.csproj" />
+    <ProjectReference Include="..\Demo.SimpleSocket\Demo.SimpleSocket.csproj" />
   </ItemGroup>
 </Project>

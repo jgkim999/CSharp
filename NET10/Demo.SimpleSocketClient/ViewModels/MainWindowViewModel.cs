@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
-using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Demo.Application.DTO;
+using Demo.SimpleSocket.SuperSocket;
 using Demo.SimpleSocketClient.Services;
 
 namespace Demo.SimpleSocketClient.ViewModels;
@@ -12,6 +12,7 @@ namespace Demo.SimpleSocketClient.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
     private readonly SocketClient _socketClient;
+    private readonly ClientMessageHandler _messageHandler;
 
     [ObservableProperty]
     private string _serverIp = "127.0.0.1";
@@ -45,6 +46,55 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _socketClient.MessageReceived += OnMessageReceived;
         _socketClient.Disconnected += OnDisconnected;
         _socketClient.ErrorOccurred += OnErrorOccurred;
+
+        _messageHandler = new ClientMessageHandler();
+        RegisterMessageHandlers();
+    }
+
+    /// <summary>
+    /// MessageType별 핸들러 등록
+    /// </summary>
+    private void RegisterMessageHandlers()
+    {
+        // MsgPackResponse 핸들러
+        _messageHandler.RegisterHandler(SocketMessageType.MsgPackResponse, OnMsgPackResponse);
+
+        // ConnectionSuccess 핸들러
+        _messageHandler.RegisterHandler(SocketMessageType.ConnectionSuccess, OnConnectionSuccessNfy);
+    }
+    
+    private string OnConnectionSuccessNfy(MessageReceivedEventArgs arg)
+    {
+        try
+        {
+            var response = arg.DeserializeMessagePack<SocketMsgConnectionSuccessNfy>();
+            if (response != null)
+            {
+                return $"[수신 MsgPack] Type:{arg.MessageType}, Msg: {response.ConnectionId} {response.ServerUtcTime}";
+            }
+            return $"[수신 오류] Type:{arg.MessageType}, 역직렬화 실패";
+        }
+        catch (Exception ex)
+        {
+            return $"[수신 오류] Type:{arg.MessageType}, 역직렬화 실패: {ex.Message}";
+        }
+    }
+
+    private string OnMsgPackResponse(MessageReceivedEventArgs arg)
+    {
+        try
+        {
+            var response = arg.DeserializeMessagePack<SocketMsgPackRes>();
+            if (response != null)
+            {
+                return $"[수신 MsgPack] Type:{arg.MessageType}, Msg: {response.Msg}, ProcessDt: {response.ProcessDt:yyyy-MM-dd HH:mm:ss}";
+            }
+            return $"[수신] Type:{arg.MessageType}, Message: {arg.BodyText}";
+        }
+        catch (Exception ex)
+        {
+            return $"[수신 오류] Type:{arg.MessageType}, 역직렬화 실패: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -120,8 +170,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
                 Message = MsgPackMessage
             };
 
-            await _socketClient.SendMessagePackAsync(1, request);
-            AddReceivedMessage($"[전송 MsgPack] Type:1, Name: {MsgPackName}, Message: {MsgPackMessage}");
+            await _socketClient.SendMessagePackAsync(SocketMessageType.MsgPackRequest, request);
+            AddReceivedMessage($"[전송 MsgPack] Type:{SocketMessageType.MsgPackRequest}, Name: {MsgPackName}, Message: {MsgPackMessage}");
             MsgPackName = string.Empty;
             MsgPackMessage = string.Empty;
         }
@@ -131,35 +181,9 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private void OnMessageReceived(object? sender, MessageReceivedEventArgs e)
+    private async void OnMessageReceived(object? sender, MessageReceivedEventArgs e)
     {
-        string message;
-
-        // MsgType 2번은 SocketMsgPackRes로 처리
-        if (e.MessageType == 2)
-        {
-            try
-            {
-                var response = e.DeserializeMessagePack<SocketMsgPackRes>();
-                if (response != null)
-                {
-                    message = $"[수신 MsgPack] Type:{e.MessageType}, Msg: {response.Msg}, ProcessDt: {response.ProcessDt:yyyy-MM-dd HH:mm:ss}";
-                }
-                else
-                {
-                    message = $"[수신] Type:{e.MessageType}, Message: {e.BodyText}";
-                }
-            }
-            catch (Exception ex)
-            {
-                message = $"[수신 오류] Type:{e.MessageType}, 역직렬화 실패: {ex.Message}";
-            }
-        }
-        else
-        {
-            message = $"[수신] Type:{e.MessageType}, Message: {e.BodyText}";
-        }
-
+        var message = await _messageHandler.HandleAsync(e);
         AddReceivedMessage(message);
     }
 

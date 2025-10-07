@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Demo.SimpleSocket.SuperSocket;
 using MessagePack;
 
 namespace Demo.SimpleSocketClient.Services;
@@ -96,7 +97,15 @@ public class SocketClient : IDisposable
     }
 
     /// <summary>
-    /// 메시지 전송
+    /// 메시지 전송 (enum 버전)
+    /// </summary>
+    public Task SendMessageAsync(SocketMessageType messageType, byte[] body, CancellationToken cancellationToken = default)
+    {
+        return SendMessageAsync((ushort)messageType, body, cancellationToken);
+    }
+
+    /// <summary>
+    /// 메시지 전송 (ushort 버전)
     /// </summary>
     public async Task SendMessageAsync(ushort messageType, byte[] body, CancellationToken cancellationToken = default)
     {
@@ -119,7 +128,15 @@ public class SocketClient : IDisposable
     }
 
     /// <summary>
-    /// 텍스트 메시지 전송 (UTF-8)
+    /// 텍스트 메시지 전송 (UTF-8, enum 버전)
+    /// </summary>
+    public Task SendTextMessageAsync(SocketMessageType messageType, string text, CancellationToken cancellationToken = default)
+    {
+        return SendTextMessageAsync((ushort)messageType, text, cancellationToken);
+    }
+
+    /// <summary>
+    /// 텍스트 메시지 전송 (UTF-8, ushort 버전)
     /// </summary>
     public Task SendTextMessageAsync(ushort messageType, string text, CancellationToken cancellationToken = default)
     {
@@ -128,7 +145,15 @@ public class SocketClient : IDisposable
     }
 
     /// <summary>
-    /// MessagePack 객체 전송
+    /// MessagePack 객체 전송 (enum 버전)
+    /// </summary>
+    public Task SendMessagePackAsync<T>(SocketMessageType messageType, T obj, CancellationToken cancellationToken = default)
+    {
+        return SendMessagePackAsync((ushort)messageType, obj, cancellationToken);
+    }
+
+    /// <summary>
+    /// MessagePack 객체 전송 (ushort 버전)
     /// </summary>
     public Task SendMessagePackAsync<T>(ushort messageType, T obj, CancellationToken cancellationToken = default)
     {

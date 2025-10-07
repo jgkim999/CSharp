@@ -1,23 +1,35 @@
+using System.Buffers;
 using System.Collections.Concurrent;
+using Demo.Application.DTO;
 
 namespace Demo.SimpleSocket.SuperSocket.Handlers;
 
 /// <summary>
 /// MessageType별로 메시지 처리 핸들러를 등록하고 실행하는 클래스
 /// </summary>
-public class SocketMessageHandler
+public class ClientSocketMessageHandler
 {
     private readonly ConcurrentDictionary<ushort, Func<BinaryPackageInfo, DemoSession, Task>> _handlers = new();
-    private readonly ILogger<SocketMessageHandler> _logger;
+    private readonly ILogger<ClientSocketMessageHandler> _logger;
 
-    public SocketMessageHandler(ILogger<SocketMessageHandler> logger)
+    public ClientSocketMessageHandler(ILogger<ClientSocketMessageHandler> logger)
     {
         _logger = logger;
-        RegisterHandler(1, OnSocketMsgPackReqAsync);
+        RegisterHandler(SocketMessageType.MsgPackRequest, OnSocketMsgPackReqAsync);
     }
 
     /// <summary>
     /// MessageType에 대한 핸들러 등록
+    /// </summary>
+    /// <param name="messageType">메시지 타입</param>
+    /// <param name="handler">처리 함수 (BinaryPackageInfo, DemoSession) => Task</param>
+    public void RegisterHandler(SocketMessageType messageType, Func<BinaryPackageInfo, DemoSession, Task> handler)
+    {
+        RegisterHandler((ushort)messageType, handler);
+    }
+
+    /// <summary>
+    /// MessageType에 대한 핸들러 등록 (ushort 오버로드)
     /// </summary>
     /// <param name="messageType">메시지 타입</param>
     /// <param name="handler">처리 함수 (BinaryPackageInfo, DemoSession) => Task</param>
@@ -109,29 +121,21 @@ public class SocketMessageHandler
 
         try
         {
-            // MessagePack 역직렬화
-            var request = MessagePack.MessagePackSerializer.Deserialize<Application.DTO.SocketMsgPackReq>(package.Body.AsMemory(0, package.BodyLength));
-            _logger.LogInformation("SocketMsgPackReq 수신. Name: {Name}, Message: {Message}", request.Name, request.Message);
+            // MessagePack 역직렬화 - package.Body는 이미 ArrayPool을 사용하므로 추가 할당 없음
+            var request = MessagePack.MessagePackSerializer.Deserialize<Application.DTO.SocketMsgPackReq>(
+                package.Body.AsMemory(0, package.BodyLength));
+
+            _logger.LogInformation("SocketMsgPackReq 수신. Name: {Name}, Message: {Message}",
+                request.Name, request.Message);
 
             // SocketMsgPackRes 생성
-            var response = new Demo.Application.DTO.SocketMsgPackRes
+            var response = new SocketMsgPackRes
             {
                 Msg = $"서버에서 받은 메시지: {request.Message} (보낸이: {request.Name})",
                 ProcessDt = DateTime.Now
             };
 
-            // MessagePack 직렬화
-            var responseBody = MessagePack.MessagePackSerializer.Serialize(response);
-            var responsePacket = new byte[4 + responseBody.Length];
-            var responseSpan = responsePacket.AsSpan();
-
-            // MessageType 2번으로 응답
-            System.Buffers.Binary.BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(0, 2), 2);
-            System.Buffers.Binary.BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(2, 2), (ushort)responseBody.Length);
-            responseBody.CopyTo(responseSpan.Slice(4));
-
-            await session.SendAsync(responsePacket, CancellationToken.None);
-
+            await session.SendMessagePackAsync(SocketMessageType.MsgPackResponse, response);
             _logger.LogInformation("SocketMsgPackRes 전송 완료. Msg: {Msg}", response.Msg);
         }
         catch (Exception ex)

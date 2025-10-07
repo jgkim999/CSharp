@@ -1,9 +1,12 @@
+using System.Buffers;
 using System.Buffers.Binary;
+using System.IO.Pipelines;
 using System.Threading.Channels;
 using Demo.Application.DTO;
 using Demo.SimpleSocket.SuperSocket.Handlers;
 using MessagePack;
 using SuperSocket.Connection;
+using SuperSocket.ProtoBase;
 using SuperSocket.Server;
 
 namespace Demo.SimpleSocket.SuperSocket;
@@ -11,13 +14,13 @@ namespace Demo.SimpleSocket.SuperSocket;
 public class DemoSession : AppSession, IDisposable
 {
     private readonly ILogger<DemoSession> _logger;
-    private readonly SocketMessageHandler _messageHandler;
+    private readonly ClientSocketMessageHandler _messageHandler;
     private readonly CancellationTokenSource _cts = new();
     private readonly Channel<BinaryPackageInfo> _receiveChannel = Channel.CreateUnbounded<BinaryPackageInfo>();
     private Task? _processTask;
     private bool _disposed;
 
-    public DemoSession(ILogger<DemoSession> logger, SocketMessageHandler messageHandler)
+    public DemoSession(ILogger<DemoSession> logger, ClientSocketMessageHandler messageHandler)
     {
         _logger = logger;
         _messageHandler = messageHandler;
@@ -73,6 +76,27 @@ public class DemoSession : AppSession, IDisposable
         await ValueTask.CompletedTask;
     }
 
+    public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack)
+    {
+        ArrayBufferWriter<byte> bufferWriter = new();
+        MessagePackSerializer.Serialize(bufferWriter, msgPack);
+        ReadOnlyMemory<byte> bodyMemory = bufferWriter.WrittenMemory;
+        ushort bodyLength = (ushort)bodyMemory.Length;
+        await Connection.SendAsync(
+            (writer) =>
+            {
+                var headerSpan = writer.GetSpan(4);
+                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(0, 2), (ushort)messageType);
+                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(2, 2), bodyLength);
+                writer.Advance(4);
+                
+                // 바디 작성 - 직접 PipeWriter에 쓰기 (복사 1번만)
+                var bodySpan = writer.GetSpan(bodyLength);
+                bodyMemory.Span.CopyTo(bodySpan);
+                writer.Advance(bodyMemory.Length);
+            }, _cts.Token);
+    }
+
     /// <summary>Sends binary data to the client asynchronously.</summary>
     /// <param name="data">The binary data to send.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
@@ -80,6 +104,24 @@ public class DemoSession : AppSession, IDisposable
     public async ValueTask SendAsync(ReadOnlyMemory<byte> data, CancellationToken cancellationToken)
     {
         await Connection.SendAsync(data, cancellationToken);
+    }
+
+    public async ValueTask SendAsync(ReadOnlySequence<byte> data, CancellationToken cancellationToken)
+    {
+        await Connection.SendAsync(data, cancellationToken);
+    }
+
+    public async ValueTask SendAsync<TPackage>(
+        IPackageEncoder<TPackage> packageEncoder,
+        TPackage package,
+        CancellationToken cancellationToken = default(CancellationToken))
+    {
+        await Connection.SendAsync(packageEncoder, package, cancellationToken);
+    }
+
+    public async ValueTask SendAsync(Action<PipeWriter> write, CancellationToken cancellationToken)
+    {
+        await Connection.SendAsync(write, cancellationToken);
     }
 
     /// <summary>
@@ -173,25 +215,33 @@ public class DemoSession : AppSession, IDisposable
 
     /// <summary>
     /// 기본 ECHO 핸들러: 받은 패킷을 그대로 돌려보냄
+    /// PipeWriter를 사용하여 메모리 할당 최소화 (제로 카피)
     /// </summary>
     private async Task HandleEchoAsync(BinaryPackageInfo package)
     {
-        byte[] response = new byte[4 + package.BodyLength];
-        var responseSpan = response.AsSpan();
+        // package.Body는 ArrayPool에서 관리되므로 Memory로 캡처
+        var bodyMemory = package.Body.AsMemory(0, package.BodyLength);
+        var messageType = package.MessageType;
+        var bodyLength = package.BodyLength;
 
-        // MessageType을 BigEndian으로 쓰기
-        BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(0, 2), package.MessageType);
-
-        // BodyLength를 BigEndian으로 쓰기
-        BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(2, 2), package.BodyLength);
-
-        // Body 복사 - BodySpan을 사용하여 실제 유효한 부분만 복사
-        if (package.BodyLength > 0)
+        // PipeWriter를 사용하여 직접 전송 - 추가 메모리 할당 없음!
+        await SendAsync(writer =>
         {
-            package.BodySpan.CopyTo(responseSpan.Slice(4));
-        }
+            // 헤더 작성 (4바이트)
+            var headerSpan = writer.GetSpan(4);
+            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(0, 2), messageType);
+            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(2, 2), bodyLength);
+            writer.Advance(4);
 
-        await SendAsync(response, _cts.Token);
+            // Body 복사 - PipeWriter에 직접 쓰기 (복사 1번만)
+            if (bodyLength > 0)
+            {
+                var bodySpan = writer.GetSpan(bodyLength);
+                bodyMemory.Span.CopyTo(bodySpan);
+                writer.Advance(bodyLength);
+            }
+
+        }, _cts.Token);
     }
 
     /// <summary>

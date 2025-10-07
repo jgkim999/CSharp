@@ -35,15 +35,13 @@ public class SessionManager
 
         _sessions.TryAdd(session.SessionID, demoSession);
 
-        // ECHO: 연결 성공 메시지를 클라이언트에게 바이너리 패킷 형식으로 전송
-        // MessageType: 0xFFFF (연결 성공), BodyLength: 0
-        byte[] response = new byte[4];
-        response[0] = 0xFF; // MessageType 상위 바이트
-        response[1] = 0xFF; // MessageType 하위 바이트
-        response[2] = 0x00; // BodyLength 상위 바이트
-        response[3] = 0x00; // BodyLength 하위 바이트
-
-        await session.SendAsync(response, _cancellationToken);
+        SocketMsgConnectionSuccessNfy message = new()
+        {
+            ConnectionId = session.SessionID,
+            ServerUtcTime = DateTime.UtcNow
+        };
+        
+        await demoSession.SendMessagePackAsync(SocketMessageType.ConnectionSuccess, message);
     }
 
     /// <summary>
