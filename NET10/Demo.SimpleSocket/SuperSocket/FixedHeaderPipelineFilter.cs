@@ -28,7 +28,13 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
     /// <returns>바디 길이</returns>
     protected override int GetBodyLengthFromHeader(ref ReadOnlySequence<byte> buffer)
     {
-        // 헤더의 3~4번째 바이트(인덱스 2~3)에서 바디 길이를 읽음
+        // 단일 세그먼트인 경우 fast path 사용 (대부분의 경우)
+        if (buffer.IsSingleSegment)
+        {
+            return BinaryPrimitives.ReadUInt16BigEndian(buffer.FirstSpan.Slice(2, 2));
+        }
+
+        // 여러 세그먼트인 경우 (드문 경우)
         var reader = new SequenceReader<byte>(buffer);
 
         // 처음 2바이트(메시지 타입)는 건너뜀

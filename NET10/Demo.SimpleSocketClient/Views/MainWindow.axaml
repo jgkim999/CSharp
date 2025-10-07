@@ -1,0 +1,215 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Demo.SimpleSocketClient.ViewModels"
+        xmlns:converters="using:Demo.SimpleSocketClient.Converters"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="600"
+        x:Class="Demo.SimpleSocketClient.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="SimpleSocket 클라이언트"
+        Width="900" Height="600"
+        MinWidth="700" MinHeight="500">
+
+    <Window.Resources>
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+    </Window.Resources>
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid Margin="20" RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- 연결 설정 영역 -->
+        <Border Grid.Row="0"
+                BorderBrush="{DynamicResource SystemAccentColor}"
+                BorderThickness="1"
+                CornerRadius="5"
+                Padding="15"
+                Margin="0,0,0,15">
+            <Grid ColumnDefinitions="Auto,*,Auto,*,Auto,Auto" RowDefinitions="Auto,Auto">
+
+                <!-- 타이틀 -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="6"
+                           Text="서버 연결 설정"
+                           FontSize="16" FontWeight="Bold"
+                           Margin="0,0,0,15"/>
+
+                <!-- IP 입력 -->
+                <TextBlock Grid.Row="1" Grid.Column="0"
+                           Text="서버 IP:"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+                <TextBox Grid.Row="1" Grid.Column="1"
+                         Text="{Binding ServerIp}"
+                         IsEnabled="{Binding !IsConnected}"
+                         Width="150"
+                         Watermark="127.0.0.1"/>
+
+                <!-- Port 입력 -->
+                <TextBlock Grid.Row="1" Grid.Column="2"
+                           Text="포트:"
+                           VerticalAlignment="Center"
+                           Margin="20,0,10,0"/>
+                <TextBox Grid.Row="1" Grid.Column="3"
+                         Text="{Binding ServerPort}"
+                         IsEnabled="{Binding !IsConnected}"
+                         Width="100"
+                         Watermark="4040"/>
+
+                <!-- 연결/해제 버튼 -->
+                <Button Grid.Row="1" Grid.Column="4"
+                        Content="연결"
+                        Command="{Binding ConnectCommand}"
+                        IsEnabled="{Binding !IsConnected}"
+                        Margin="20,0,10,0"
+                        Width="100"
+                        Classes="accent"/>
+
+                <Button Grid.Row="1" Grid.Column="5"
+                        Content="연결 해제"
+                        Command="{Binding DisconnectCommand}"
+                        IsEnabled="{Binding IsConnected}"
+                        Width="100"/>
+            </Grid>
+        </Border>
+
+        <!-- 상태 표시 -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource SystemControlBackgroundBaseLowBrush}"
+                CornerRadius="5"
+                Padding="10"
+                Margin="0,0,0,15">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Ellipse Width="12" Height="12"
+                         VerticalAlignment="Center">
+                    <Ellipse.Fill>
+                        <SolidColorBrush Color="{Binding IsConnected, Converter={StaticResource BoolToColorConverter}}"/>
+                    </Ellipse.Fill>
+                </Ellipse>
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontWeight="Medium"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 메시지 영역 -->
+        <Grid Grid.Row="2" RowDefinitions="Auto,*">
+
+            <!-- 수신 메시지 -->
+            <TextBlock Grid.Row="0"
+                       Text="수신/전송 로그"
+                       FontSize="14" FontWeight="SemiBold"
+                       Margin="0,0,0,10"/>
+
+            <Border Grid.Row="1"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    BorderThickness="1"
+                    CornerRadius="5"
+                    Padding="10">
+                <ListBox ItemsSource="{Binding ReceivedMessages}"
+                         Background="Transparent"
+                         BorderThickness="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}"
+                                       TextWrapping="Wrap"
+                                       FontFamily="Consolas,Courier New,monospace"
+                                       FontSize="12"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </Grid>
+
+        <!-- 메시지 전송 영역 -->
+        <Border Grid.Row="3"
+                BorderBrush="{DynamicResource SystemAccentColor}"
+                BorderThickness="1"
+                CornerRadius="5"
+                Padding="15"
+                Margin="0,15,0,0">
+            <Grid RowDefinitions="Auto,10,Auto">
+
+                <!-- 텍스트 메시지 전송 -->
+                <Grid Grid.Row="0" ColumnDefinitions="Auto,100,Auto,*,Auto">
+                    <!-- 메시지 타입 -->
+                    <TextBlock Grid.Column="0"
+                               Text="메시지 타입:"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0"/>
+                    <TextBox Grid.Column="1"
+                             Text="{Binding MessageType}"
+                             IsEnabled="{Binding IsConnected}"
+                             Watermark="1"/>
+
+                    <!-- 메시지 입력 -->
+                    <TextBlock Grid.Column="2"
+                               Text="메시지:"
+                               VerticalAlignment="Center"
+                               Margin="20,0,10,0"/>
+                    <TextBox Grid.Column="3"
+                             Text="{Binding MessageToSend}"
+                             IsEnabled="{Binding IsConnected}"
+                             Watermark="전송할 메시지를 입력하세요..."
+                             AcceptsReturn="False">
+                        <TextBox.KeyBindings>
+                            <KeyBinding Gesture="Enter" Command="{Binding SendMessageCommand}"/>
+                        </TextBox.KeyBindings>
+                    </TextBox>
+
+                    <!-- 전송 버튼 -->
+                    <Button Grid.Column="4"
+                            Content="전송"
+                            Command="{Binding SendMessageCommand}"
+                            IsEnabled="{Binding IsConnected}"
+                            Margin="10,0,0,0"
+                            Width="100"
+                            Classes="accent"/>
+                </Grid>
+
+                <!-- MessagePack 전송 -->
+                <Grid Grid.Row="2" ColumnDefinitions="Auto,150,Auto,*,Auto">
+                    <!-- Name 입력 -->
+                    <TextBlock Grid.Column="0"
+                               Text="MsgPack Name:"
+                               VerticalAlignment="Center"
+                               Margin="0,0,10,0"/>
+                    <TextBox Grid.Column="1"
+                             Text="{Binding MsgPackName}"
+                             IsEnabled="{Binding IsConnected}"
+                             Watermark="이름 입력"/>
+
+                    <!-- Message 입력 -->
+                    <TextBlock Grid.Column="2"
+                               Text="Message:"
+                               VerticalAlignment="Center"
+                               Margin="20,0,10,0"/>
+                    <TextBox Grid.Column="3"
+                             Text="{Binding MsgPackMessage}"
+                             IsEnabled="{Binding IsConnected}"
+                             Watermark="MsgPack 메시지를 입력하세요..."
+                             AcceptsReturn="False">
+                        <TextBox.KeyBindings>
+                            <KeyBinding Gesture="Enter" Command="{Binding SendMsgPackCommand}"/>
+                        </TextBox.KeyBindings>
+                    </TextBox>
+
+                    <!-- MsgPack 전송 버튼 -->
+                    <Button Grid.Column="4"
+                            Content="MsgPack 전송"
+                            Command="{Binding SendMsgPackCommand}"
+                            IsEnabled="{Binding IsConnected}"
+                            Margin="10,0,0,0"
+                            Width="120"
+                            Classes="accent"/>
+                </Grid>
+
+            </Grid>
+        </Border>
+
+    </Grid>
+
+</Window>

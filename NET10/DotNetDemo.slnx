@@ -22,7 +22,13 @@
   <Project Path="Demo.Domain/Demo.Domain.csproj" />
   <Project Path="Demo.Infra.Tests/Demo.Infra.Tests.csproj" />
   <Project Path="Demo.Infra/Demo.Infra.csproj" />
-  <Project Path="Demo.SimpleSocket\Demo.SimpleSocket.csproj" Type="Classic C#">
+  <Project Path="Demo.SimpleSocketClient\Demo.SimpleSocketClient.csproj" Type="C#">
+    <Configuration Solution="Debug|x64" Project="Debug|Any CPU" />
+    <Configuration Solution="Debug|x86" Project="Debug|Any CPU" />
+    <Configuration Solution="Release|x64" Project="Release|Any CPU" />
+    <Configuration Solution="Release|x86" Project="Release|Any CPU" />
+  </Project>
+  <Project Path="Demo.SimpleSocket\Demo.SimpleSocket.csproj" Type="C#">
     <Configuration Solution="Debug|x64" Project="Debug|Any CPU" />
     <Configuration Solution="Debug|x86" Project="Debug|Any CPU" />
     <Configuration Solution="Release|x64" Project="Release|Any CPU" />

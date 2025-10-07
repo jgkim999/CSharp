@@ -1,5 +1,7 @@
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
-using System.Text;
+using Demo.Application.DTO;
+using MessagePack;
 using SuperSocket.Connection;
 using SuperSocket.Server.Abstractions.Session;
 
@@ -75,25 +77,63 @@ public class SessionManager
                 "SessionManager OnMessageAsync. SessionId: {SessionId}, MessageType: {MessageType}, BodyLength: {BodyLength}",
                 session.SessionID, package.MessageType, package.BodyLength);
 
-            // ECHO: 받은 패킷을 그대로 돌려보냄
-            // 응답 패킷 구성: MessageType(2) + BodyLength(2) + Body
-            byte[] response = new byte[4 + package.BodyLength];
-
-            // MessageType을 BigEndian으로 쓰기
-            response[0] = (byte)(package.MessageType >> 8);
-            response[1] = (byte)(package.MessageType & 0xFF);
-
-            // BodyLength를 BigEndian으로 쓰기
-            response[2] = (byte)(package.BodyLength >> 8);
-            response[3] = (byte)(package.BodyLength & 0xFF);
-
-            // Body 복사 - BodySpan을 사용하여 실제 유효한 부분만 복사
-            if (package.BodyLength > 0)
+            // MessageType 1번: SocketMsgPackReq 처리
+            if (package.MessageType == 1 && package.BodyLength > 0)
             {
-                package.BodySpan.CopyTo(response.AsSpan(4));
-            }
+                try
+                {
+                    // MessagePack 역직렬화
+                    var request = MessagePackSerializer.Deserialize<SocketMsgPackReq>(package.Body.AsMemory(0, package.BodyLength));
+                    _logger.LogInformation(
+                        "SocketMsgPackReq 수신. Name: {Name}, Message: {Message}",
+                        request.Name, request.Message);
 
-            await session.SendAsync(response, _cancellationToken);
+                    // SocketMsgPackRes 생성
+                    var response = new SocketMsgPackRes
+                    {
+                        Msg = $"서버에서 받은 메시지: {request.Message} (보낸이: {request.Name})",
+                        ProcessDt = DateTime.Now
+                    };
+
+                    // MessagePack 직렬화
+                    var responseBody = MessagePackSerializer.Serialize(response);
+                    var responsePacket = new byte[4 + responseBody.Length];
+                    var responseSpan = responsePacket.AsSpan();
+
+                    // MessageType 2번으로 응답
+                    BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(0, 2), 2);
+                    BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(2, 2), (ushort)responseBody.Length);
+                    responseBody.CopyTo(responseSpan.Slice(4));
+
+                    await session.SendAsync(responsePacket, _cancellationToken);
+
+                    _logger.LogInformation("SocketMsgPackRes 전송 완료. Msg: {Msg}", response.Msg);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "MessagePack 처리 중 오류 발생");
+                }
+            }
+            else
+            {
+                // 기본 ECHO: 받은 패킷을 그대로 돌려보냄
+                byte[] response = new byte[4 + package.BodyLength];
+                var responseSpan = response.AsSpan();
+
+                // MessageType을 BigEndian으로 쓰기
+                BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(0, 2), package.MessageType);
+
+                // BodyLength를 BigEndian으로 쓰기
+                BinaryPrimitives.WriteUInt16BigEndian(responseSpan.Slice(2, 2), package.BodyLength);
+
+                // Body 복사 - BodySpan을 사용하여 실제 유효한 부분만 복사
+                if (package.BodyLength > 0)
+                {
+                    package.BodySpan.CopyTo(responseSpan.Slice(4));
+                }
+
+                await session.SendAsync(response, _cancellationToken);
+            }
         }
     }
 }
