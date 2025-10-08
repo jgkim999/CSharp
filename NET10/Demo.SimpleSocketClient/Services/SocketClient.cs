@@ -121,9 +121,12 @@ public class SocketClient : IDisposable
 
         if (body.Length > 512)
         {
-            compressedBuffer = CompressData(body.Span);
-            processedBody = compressedBuffer;
+            var originalSize = body.Length;
+            (compressedBuffer, var compressedSize) = CompressData(body.Span);
+            processedBody = compressedBuffer.AsMemory(0, compressedSize);
             flags |= PacketFlags.Compressed;  // 압축 플래그 설정
+
+            Console.WriteLine($"[클라이언트 압축] 원본: {originalSize} 바이트 → 압축: {compressedSize} 바이트 ({compressedSize * 100.0 / originalSize:F1}%)");
         }
 
         try
@@ -171,7 +174,8 @@ public class SocketClient : IDisposable
     /// GZip을 사용하여 데이터 압축
     /// RecyclableMemoryStream을 사용하여 메모리 할당 최소화
     /// </summary>
-    private byte[] CompressData(ReadOnlySpan<byte> data)
+    /// <returns>(압축된 버퍼, 실제 압축 데이터 길이)</returns>
+    private (byte[] Buffer, int Length) CompressData(ReadOnlySpan<byte> data)
     {
         using var output = _memoryStreamManager.GetStream("SocketClient-Compress");
         using (var gzip = new GZipStream(output, CompressionLevel.Fastest, leaveOpen: true))
@@ -184,7 +188,7 @@ public class SocketClient : IDisposable
         var result = _arrayPool.Rent(compressedLength);
         output.Position = 0;
         output.ReadExactly(result.AsSpan(0, compressedLength));
-        return result;
+        return (result, compressedLength);
     }
 
     /// <summary>
@@ -193,12 +197,18 @@ public class SocketClient : IDisposable
     /// </summary>
     private byte[] DecompressData(ReadOnlySpan<byte> compressedData)
     {
+        var compressedSize = compressedData.Length;
+
         using var input = _memoryStreamManager.GetStream("SocketClient-Decompress-Input", compressedData);
         using var gzip = new GZipStream(input, CompressionMode.Decompress);
         using var output = _memoryStreamManager.GetStream("SocketClient-Decompress-Output");
 
         gzip.CopyTo(output);
-        return output.ToArray();
+        var decompressed = output.ToArray();
+
+        Console.WriteLine($"[압축 해제] 압축: {compressedSize} 바이트 → 원본: {decompressed.Length} 바이트 ({compressedSize * 100.0 / decompressed.Length:F1}%)");
+
+        return decompressed;
     }
 
     /// <summary>

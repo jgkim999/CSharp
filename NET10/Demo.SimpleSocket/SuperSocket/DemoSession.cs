@@ -140,9 +140,13 @@ public class DemoSession : AppSession, IDisposable
         int compressedLength = 0;
         if (bodyMemory.Length > 512)
         {
+            var originalSize = bodyMemory.Length;
             (compressedBuffer, compressedLength) = CompressData(bodyMemory.Span);
             bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
             flags |= PacketFlags.Compressed;  // 압축 플래그 설정
+
+            _logger.LogInformation("[서버 압축] 원본: {OriginalSize} 바이트 → 압축: {CompressedSize} 바이트 ({Ratio:F1}%)",
+                originalSize, compressedLength, compressedLength * 100.0 / originalSize);
         }
 
         try
@@ -491,13 +495,20 @@ public class DemoSession : AppSession, IDisposable
     /// GZip으로 압축된 데이터 압축 해제
     /// RecyclableMemoryStream을 사용하여 메모리 할당 최소화
     /// </summary>
-    private static byte[] DecompressData(ReadOnlySpan<byte> compressedData)
+    public byte[] DecompressData(ReadOnlySpan<byte> compressedData)
     {
+        var compressedSize = compressedData.Length;
+
         using var input = _memoryStreamManager.GetStream("DemoSession-Decompress-Input", compressedData);
         using var gzip = new GZipStream(input, CompressionMode.Decompress);
         using var output = _memoryStreamManager.GetStream("DemoSession-Decompress-Output");
 
         gzip.CopyTo(output);
-        return output.ToArray();
+        var decompressed = output.ToArray();
+
+        _logger.LogInformation("[서버 압축 해제] 압축: {CompressedSize} 바이트 → 원본: {OriginalSize} 바이트 ({Ratio:F1}%)",
+            compressedSize, decompressed.Length, compressedSize * 100.0 / decompressed.Length);
+
+        return decompressed;
     }
 }

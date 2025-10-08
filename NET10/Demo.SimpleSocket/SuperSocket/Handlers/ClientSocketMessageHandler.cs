@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Bogus;
 using Demo.Application.DTO.Socket;
 using LiteBus.Commands.Abstractions;
 
@@ -19,6 +20,7 @@ public class ClientSocketMessageHandler
         _mediator = mediator;
         RegisterHandler(SocketMessageType.Pong, OnPongAsync);
         RegisterHandler(SocketMessageType.MsgPackRequest, OnSocketMsgPackReqAsync);
+        RegisterHandler(SocketMessageType.VeryLongReq, OnVeryLongReqAsync);
     }
 
 
@@ -125,8 +127,30 @@ public class ClientSocketMessageHandler
 
         try
         {
-            // MessagePack 역직렬화 - package.Body는 이미 ArrayPool을 사용하므로 추가 할당 없음
-            return MessagePack.MessagePackSerializer.Deserialize<T>(package.Body.AsMemory(0, package.BodyLength));
+            // 압축된 데이터인 경우 먼저 압축 해제
+            ReadOnlyMemory<byte> bodyMemory;
+            byte[]? decompressedData = null;
+
+            if (package.Flags.HasFlag(PacketFlags.Compressed))
+            {
+                decompressedData = session.DecompressData(package.Body.AsSpan(0, package.BodyLength));
+                bodyMemory = decompressedData.AsMemory();
+            }
+            else
+            {
+                bodyMemory = package.Body.AsMemory(0, package.BodyLength);
+            }
+
+            try
+            {
+                // MessagePack 역직렬화
+                return MessagePack.MessagePackSerializer.Deserialize<T>(bodyMemory);
+            }
+            finally
+            {
+                // 압축 해제된 데이터가 있으면 해제 (GC에 맡김, 작은 배열이므로 ArrayPool 불필요)
+                decompressedData = null;
+            }
         }
         catch (Exception ex)
         {
@@ -153,5 +177,38 @@ public class ClientSocketMessageHandler
         session.SetLastPong(utcNow, rtt);
         _logger.LogInformation("Pong 수신. {MilliSeconds}ms", rtt);
         await Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// VeryLongReq 메시지 처리 핸들러
+    /// 압축 테스트를 위해 매우 긴 텍스트를 응답으로 전송
+    /// </summary>
+    private async Task OnVeryLongReqAsync(BinaryPackageInfo package, DemoSession session)
+    {
+        var request = CheckPackage<VeryLongReq>(package, session);
+        if (request == null)
+            return;
+
+        _logger.LogInformation("VeryLongReq 수신. SessionID: {SessionID}, DataLength: {DataLength}, Compressed: {Compressed}",
+            session.SessionID, request.Data?.Length ?? 0, package.Flags.HasFlag(PacketFlags.Compressed));
+
+        // Bogus를 사용하여 매우 긴 응답 데이터 생성 (약 2000~3000자)
+        var faker = new Faker("ko");
+        var longText = string.Join("\n", new[]
+        {
+            faker.Lorem.Paragraphs(10),  // 10개 문단
+            faker.Lorem.Paragraphs(10),  // 10개 문단
+            faker.Lorem.Paragraphs(10),  // 10개 문단
+        });
+
+        var response = new VeryLongRes
+        {
+            Data = $"[서버 응답] 수신한 데이터 길이: {request.Data?.Length ?? 0}자\n\n{longText}"
+        };
+
+        await session.SendMessagePackAsync(SocketMessageType.VeryLongRes, response);
+
+        _logger.LogInformation("VeryLongRes 전송 완료. SessionID: {SessionID}, ResponseLength: {ResponseLength}",
+            session.SessionID, response.Data.Length);
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Bogus;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Demo.Application.DTO;
@@ -54,9 +55,12 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         _messageHandler.RegisterHandler(SocketMessageType.ConnectionSuccess, OnConnectionSuccessNfy);
         
         _messageHandler.RegisterHandler(SocketMessageType.Ping, OnPing);
-        
+
         // MsgPackResponse 핸들러
         _messageHandler.RegisterHandler(SocketMessageType.MsgPackResponse, OnMsgPackResponse);
+
+        // VeryLongRes 핸들러
+        _messageHandler.RegisterHandler(SocketMessageType.VeryLongRes, OnVeryLongRes);
     }
 
     private string OnPing(MessageReceivedEventArgs arg)
@@ -181,6 +185,65 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             AddReceivedMessage($"[오류] MsgPack 전송 실패: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 압축 테스트용 VeryLongReq 전송
+    /// Bogus를 사용하여 긴 텍스트 생성 (약 1000~2000자)
+    /// </summary>
+    [RelayCommand]
+    private async Task SendVeryLongReqAsync()
+    {
+        if (!IsConnected)
+            return;
+
+        try
+        {
+            var faker = new Faker("ko");
+            // 10개 문단 생성 (약 1000~2000자)
+            var longText = string.Join("\n", new[]
+            {
+                faker.Lorem.Paragraphs(5),
+                faker.Lorem.Paragraphs(5),
+            });
+
+            var request = new VeryLongReq
+            {
+                Data = longText
+            };
+
+            await _socketClient.SendMessagePackAsync(SocketMessageType.VeryLongReq, request);
+            AddReceivedMessage($"[전송 VeryLongReq] 길이: {longText.Length}자 (압축 테스트)");
+        }
+        catch (Exception ex)
+        {
+            AddReceivedMessage($"[오류] VeryLongReq 전송 실패: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// VeryLongRes 수신 핸들러
+    /// </summary>
+    private string OnVeryLongRes(MessageReceivedEventArgs arg)
+    {
+        try
+        {
+            var response = arg.DeserializeMessagePack<VeryLongRes>();
+            if (response != null)
+            {
+                var compressed = arg.IsCompressed ? " [압축됨]" : "";
+                var preview = response.Data.Length > 100
+                    ? response.Data.Substring(0, 100) + "..."
+                    : response.Data;
+
+                return $"[수신 VeryLongRes]{compressed} 길이: {response.Data.Length}자\n미리보기: {preview}";
+            }
+            return $"[수신 오류] Type:{arg.MessageType}, 역직렬화 실패";
+        }
+        catch (Exception ex)
+        {
+            return $"[수신 오류] Type:{arg.MessageType}, 역직렬화 실패: {ex.Message}";
         }
     }
 
