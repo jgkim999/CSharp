@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.IO.Pipelines;
 using System.Threading.Channels;
-using Demo.Application.DTO;
+using Demo.Application.DTO.Socket;
 using Demo.SimpleSocket.SuperSocket.Handlers;
 using MessagePack;
 using SuperSocket.Connection;
@@ -18,7 +18,13 @@ public class DemoSession : AppSession, IDisposable
     private readonly CancellationTokenSource _cts = new();
     private readonly Channel<BinaryPackageInfo> _receiveChannel = Channel.CreateUnbounded<BinaryPackageInfo>();
     private Task? _processTask;
+    private Task? _pingTask;
     private bool _disposed;
+    private DateTime _lastPongUtc;
+    private double _rttMs;
+
+    public DateTime LastPongUtc => _lastPongUtc;
+    public double RttMs => _rttMs;
 
     public DemoSession(ILogger<DemoSession> logger, ClientSocketMessageHandler messageHandler)
     {
@@ -35,8 +41,13 @@ public class DemoSession : AppSession, IDisposable
     {
         _logger.LogInformation("#1 DemoSession connected. {SessionID}", SessionID);
 
+        _lastPongUtc = DateTime.UtcNow;
+        
         // 메시지 처리 백그라운드 태스크 시작
         _processTask = Task.Run(ProcessMessagesAsync);
+
+        // Ping 전송 백그라운드 태스크 시작
+        _pingTask = Task.Run(SendPingPeriodicallyAsync);
 
         await ValueTask.CompletedTask;
     }
@@ -57,6 +68,7 @@ public class DemoSession : AppSession, IDisposable
         await _cts.CancelAsync();
         _receiveChannel.Writer.Complete();
 
+        // 메시지 처리 태스크 대기
         if (_processTask != null)
         {
             try
@@ -70,6 +82,23 @@ public class DemoSession : AppSession, IDisposable
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while waiting for process task completion");
+            }
+        }
+
+        // Ping 태스크 대기
+        if (_pingTask != null)
+        {
+            try
+            {
+                await _pingTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // 정상 종료
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while waiting for ping task completion");
             }
         }
 
@@ -164,6 +193,40 @@ public class DemoSession : AppSession, IDisposable
         {
             _logger.LogError(ex, "Error queuing package to channel. Disposing package. SessionID: {SessionID}", SessionID);
             package.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 5초마다 클라이언트에게 Ping 메시지를 전송하는 백그라운드 태스크
+    /// </summary>
+    private async Task SendPingPeriodicallyAsync()
+    {
+        _logger.LogInformation("Ping task started. SessionID: {SessionID}", SessionID);
+
+        try
+        {
+            while (!_cts.Token.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5), _cts.Token);
+
+                var pingMsg = new MsgPackPing
+                {
+                    ServerDt = DateTime.UtcNow
+                };
+
+                await SendMessagePackAsync(SocketMessageType.Ping, pingMsg);
+
+                _logger.LogDebug("Ping sent to client. SessionID: {SessionID}, ServerDt: {ServerDt}",
+                    SessionID, pingMsg.ServerDt);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("Ping task cancelled. SessionID: {SessionID}", SessionID);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in ping task. SessionID: {SessionID}", SessionID);
         }
     }
 
@@ -333,5 +396,11 @@ public class DemoSession : AppSession, IDisposable
     ~DemoSession()
     {
         Dispose(disposing: false);
+    }
+
+    public void SetLastPong(DateTime utcNow, double rttMs)
+    {
+        _lastPongUtc = utcNow;
+        _rttMs = rttMs;
     }
 }

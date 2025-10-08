@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using Demo.Application.DTO;
+using Demo.Application.DTO.Socket;
 
 namespace Demo.SimpleSocket.SuperSocket.Handlers;
 
@@ -15,8 +16,10 @@ public class ClientSocketMessageHandler
     public ClientSocketMessageHandler(ILogger<ClientSocketMessageHandler> logger)
     {
         _logger = logger;
+        RegisterHandler(SocketMessageType.Pong, OnPongAsync);
         RegisterHandler(SocketMessageType.MsgPackRequest, OnSocketMsgPackReqAsync);
     }
+
 
     /// <summary>
     /// MessageType에 대한 핸들러 등록
@@ -115,28 +118,44 @@ public class ClientSocketMessageHandler
     {
         if (package.BodyLength == 0)
         {
-            _logger.LogWarning("SocketMsgPackReq received but BodyLength is 0. SessionID: {SessionID}", session.SessionID);
+            _logger.LogWarning("MsgPackReq received but BodyLength is 0. SessionID: {SessionID}", session.SessionID);
             return;
         }
 
         try
         {
             // MessagePack 역직렬화 - package.Body는 이미 ArrayPool을 사용하므로 추가 할당 없음
-            var request = MessagePack.MessagePackSerializer.Deserialize<Application.DTO.SocketMsgPackReq>(
+            var request = MessagePack.MessagePackSerializer.Deserialize<MsgPackReq>(
                 package.Body.AsMemory(0, package.BodyLength));
 
-            _logger.LogInformation("SocketMsgPackReq 수신. Name: {Name}, Message: {Message}",
+            _logger.LogInformation("MsgPackReq 수신. Name: {Name}, Message: {Message}",
                 request.Name, request.Message);
 
-            // SocketMsgPackRes 생성
-            var response = new SocketMsgPackRes
+            // MsgPackRes 생성
+            var response = new MsgPackRes
             {
                 Msg = $"서버에서 받은 메시지: {request.Message} (보낸이: {request.Name})",
                 ProcessDt = DateTime.Now
             };
 
             await session.SendMessagePackAsync(SocketMessageType.MsgPackResponse, response);
-            _logger.LogInformation("SocketMsgPackRes 전송 완료. Msg: {Msg}", response.Msg);
+            _logger.LogInformation("MsgPackRes 전송 완료. Msg: {Msg}", response.Msg);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "MessagePack 처리 중 오류 발생. SessionID: {SessionID}", session.SessionID);
+        }
+    }
+    
+    private async Task OnPongAsync(BinaryPackageInfo package, DemoSession session)
+    {
+        try
+        {
+            MsgPackPing ping = MessagePack.MessagePackSerializer.Deserialize<MsgPackPing>(package.Body.AsMemory(0, package.BodyLength));
+            var utcNow = DateTime.UtcNow;
+            var rtt = (utcNow - ping.ServerDt).TotalMilliseconds;
+            session.SetLastPong(utcNow, rtt);
+            _logger.LogInformation("Pong 수신. {MilliSeconds}ms", rtt);
         }
         catch (Exception ex)
         {

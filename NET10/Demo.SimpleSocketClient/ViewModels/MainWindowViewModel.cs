@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Demo.Application.DTO;
+using Demo.Application.DTO.Socket;
 using Demo.SimpleSocket.SuperSocket;
 using Demo.SimpleSocketClient.Services;
 
@@ -56,18 +57,45 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     /// </summary>
     private void RegisterMessageHandlers()
     {
-        // MsgPackResponse 핸들러
-        _messageHandler.RegisterHandler(SocketMessageType.MsgPackResponse, OnMsgPackResponse);
-
         // ConnectionSuccess 핸들러
         _messageHandler.RegisterHandler(SocketMessageType.ConnectionSuccess, OnConnectionSuccessNfy);
+        
+        _messageHandler.RegisterHandler(SocketMessageType.Ping, OnPing);
+        
+        // MsgPackResponse 핸들러
+        _messageHandler.RegisterHandler(SocketMessageType.MsgPackResponse, OnMsgPackResponse);
     }
-    
+
+    private string OnPing(MessageReceivedEventArgs arg)
+    {
+        try
+        {
+            MsgPackPing? ping = arg.DeserializeMessagePack<MsgPackPing>();
+            if (ping is null)
+            {
+                return $"[수신 오류] Type:{arg.MessageType}, 역직렬화 실패: null";
+            }
+            var pong = new MsgPackPong()
+            {
+                ServerDt = ping.ServerDt
+            };
+            
+            _socketClient.SendMessagePackAsync(SocketMessageType.Pong, pong)
+                .ConfigureAwait(false).GetAwaiter().GetResult();
+            
+            return $"[수신] Ping: {(DateTime.UtcNow - ping.ServerDt).TotalMilliseconds}ms";
+        }
+        catch (Exception ex)
+        {
+            return $"[수신 오류] Type:{arg.MessageType}, 역직렬화 실패: {ex.Message}";
+        }
+    }
+
     private string OnConnectionSuccessNfy(MessageReceivedEventArgs arg)
     {
         try
         {
-            var response = arg.DeserializeMessagePack<SocketMsgConnectionSuccessNfy>();
+            var response = arg.DeserializeMessagePack<MsgConnectionSuccessNfy>();
             if (response != null)
             {
                 return $"[수신 MsgPack] Type:{arg.MessageType}, Msg: {response.ConnectionId} {response.ServerUtcTime}";
@@ -84,7 +112,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            var response = arg.DeserializeMessagePack<SocketMsgPackRes>();
+            var response = arg.DeserializeMessagePack<MsgPackRes>();
             if (response != null)
             {
                 return $"[수신 MsgPack] Type:{arg.MessageType}, Msg: {response.Msg}, ProcessDt: {response.ProcessDt:yyyy-MM-dd HH:mm:ss}";
@@ -164,7 +192,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 
         try
         {
-            var request = new SocketMsgPackReq
+            var request = new MsgPackReq
             {
                 Name = MsgPackName,
                 Message = MsgPackMessage

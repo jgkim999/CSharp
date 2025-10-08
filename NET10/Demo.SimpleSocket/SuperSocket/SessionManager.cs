@@ -1,18 +1,19 @@
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using Demo.Application.DTO;
+using Demo.Application.DTO.Socket;
 using MessagePack;
 using SuperSocket.Connection;
 using SuperSocket.Server.Abstractions.Session;
 
 namespace Demo.SimpleSocket.SuperSocket;
 
-public class SessionManager
+public class SessionManager : IAsyncDisposable
 {
     private readonly CancellationToken _cancellationToken;
     private readonly ILogger<SessionManager> _logger;
-    private ConcurrentDictionary<string, DemoSession> _sessions = new();
-
+    private readonly ConcurrentDictionary<string, DemoSession> _sessions = new();
+    
     public SessionManager(IHostApplicationLifetime lifetime, ILogger<SessionManager> logger)
     {
         _cancellationToken = lifetime.ApplicationStopping;
@@ -35,13 +36,37 @@ public class SessionManager
 
         _sessions.TryAdd(session.SessionID, demoSession);
 
-        SocketMsgConnectionSuccessNfy message = new()
+        MsgConnectionSuccessNfy message = new()
         {
             ConnectionId = session.SessionID,
             ServerUtcTime = DateTime.UtcNow
         };
         
         await demoSession.SendMessagePackAsync(SocketMessageType.ConnectionSuccess, message);
+    }
+
+    public async ValueTask SendMessagePackAsync<T>(IEnumerable<string> sessionIds, SocketMessageType messageType, T msgPack)
+    {
+        foreach (var sessionId in sessionIds)
+        {
+            await SendMessagePackAsync(sessionId, messageType, msgPack);
+        }
+    }
+    
+    public async ValueTask SendMessagePackAsync<T>(string sessionId, SocketMessageType messageType, T msgPack)
+    {
+        if (_sessions.TryGetValue(sessionId, out DemoSession? demoSession))
+        {
+            await demoSession.SendMessagePackAsync(messageType, msgPack);
+        }
+    }
+    
+    public async ValueTask SendMessagePackAllAsync<T>(SocketMessageType messageType, T msgPack)
+    {
+        foreach (var session in _sessions)
+        {
+            await session.Value.SendMessagePackAsync(messageType, msgPack);
+        }
     }
 
     /// <summary>
@@ -91,5 +116,16 @@ public class SessionManager
         {
             _logger.LogInformation("Received package but session not found. SessionId: {SessionId}", session.SessionID);
         }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        foreach (var session in _sessions.Values)
+        {
+            await session.CloseAsync();
+            session.Dispose();
+        }
+
+        _sessions.Clear();
     }
 }

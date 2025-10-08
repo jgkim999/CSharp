@@ -1,9 +1,9 @@
 using MessagePack;
 
-namespace Demo.Application.DTO;
+namespace Demo.Application.DTO.Socket;
 
 [MessagePackObject]
-public class SocketMsgPackRes
+public class MsgPackRes
 {
     [Key(0)]
     public string Msg { get; set; }

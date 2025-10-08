@@ -1,9 +1,9 @@
 using MessagePack;
 
-namespace Demo.Application.DTO;
+namespace Demo.Application.DTO.Socket;
 
 [MessagePackObject]
-public class SocketMsgConnectionSuccessNfy
+public class MsgConnectionSuccessNfy
 {
     [Key(0)]
     public string ConnectionId { get; set; } = string.Empty;
