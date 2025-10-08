@@ -1,6 +1,8 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.IO;
+using System.IO.Compression;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +10,7 @@ using Bogus;
 using Demo.Application.Utils;
 using Demo.SimpleSocket.SuperSocket;
 using MessagePack;
+using Microsoft.IO;
 
 namespace Demo.SimpleSocketClient.Services;
 
@@ -18,6 +21,7 @@ namespace Demo.SimpleSocketClient.Services;
 public class SocketClient : IDisposable
 {
     private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Shared;
+    private static readonly RecyclableMemoryStreamManager _memoryStreamManager = new();
     private TcpClient? _tcpClient;
     private NetworkStream? _stream;
     private readonly Faker _faker = new("ko");
@@ -104,40 +108,97 @@ public class SocketClient : IDisposable
     /// <summary>
     /// 메시지 전송 (플래그 + 시퀀스 포함, ushort 버전)
     /// ReadOnlyMemory를 사용하여 불필요한 복사 제거 (async 호환)
+    /// 512바이트 이상의 바디는 자동으로 GZip 압축
     /// </summary>
     private async Task SendMessageAsync(ushort messageType, ReadOnlyMemory<byte> body, PacketFlags flags, CancellationToken cancellationToken = default)
     {
         if (!IsConnected || _stream == null)
             throw new InvalidOperationException("서버에 연결되어 있지 않습니다.");
 
-        var bodyLength = (ushort)body.Length;
-        var packetLength = 8 + bodyLength;
+        // 512바이트 이상이면 압축 수행
+        ReadOnlyMemory<byte> processedBody = body;
+        byte[]? compressedBuffer = null;
 
-        // ArrayPool에서 버퍼 빌리기 (GC 압력 감소)
-        var packet = _arrayPool.Rent(packetLength);
+        if (body.Length > 512)
+        {
+            compressedBuffer = CompressData(body.Span);
+            processedBody = compressedBuffer;
+            flags |= PacketFlags.Compressed;  // 압축 플래그 설정
+        }
 
         try
         {
-            // 헤더 작성 (8바이트)
-            packet[0] = (byte)flags;  // 플래그 (1바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), _sendSequence.GetNext());  // 시퀀스 (2바이트)
-            packet[3] = _faker.Random.Byte(1, 255);  // 예약 (1바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(4, 2), messageType);  // 메시지 타입 (2바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(6, 2), bodyLength);   // 바디 길이 (2바이트)
+            var bodyLength = (ushort)processedBody.Length;
+            var packetLength = 8 + bodyLength;
 
-            // 바디 복사 (ReadOnlyMemory -> Span 직접 복사)
-            if (bodyLength > 0)
-                body.Span.CopyTo(packet.AsSpan(8));
+            // ArrayPool에서 버퍼 빌리기 (GC 압력 감소)
+            var packet = _arrayPool.Rent(packetLength);
 
-            // 실제 사용하는 크기만큼만 전송
-            await _stream.WriteAsync(packet.AsMemory(0, packetLength), cancellationToken);
-            await _stream.FlushAsync(cancellationToken);
+            try
+            {
+                // 헤더 작성 (8바이트)
+                packet[0] = (byte)flags;  // 플래그 (1바이트)
+                BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), _sendSequence.GetNext());  // 시퀀스 (2바이트)
+                packet[3] = _faker.Random.Byte(1, 255);  // 예약 (1바이트)
+                BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(4, 2), messageType);  // 메시지 타입 (2바이트)
+                BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(6, 2), bodyLength);   // 바디 길이 (2바이트)
+
+                // 바디 복사 (ReadOnlyMemory -> Span 직접 복사)
+                if (bodyLength > 0)
+                    processedBody.Span.CopyTo(packet.AsSpan(8));
+
+                // 실제 사용하는 크기만큼만 전송
+                await _stream.WriteAsync(packet.AsMemory(0, packetLength), cancellationToken);
+                await _stream.FlushAsync(cancellationToken);
+            }
+            finally
+            {
+                // ArrayPool에 버퍼 반납
+                _arrayPool.Return(packet);
+            }
         }
         finally
         {
-            // ArrayPool에 버퍼 반납
-            _arrayPool.Return(packet);
+            // 압축 버퍼 해제
+            if (compressedBuffer != null)
+            {
+                _arrayPool.Return(compressedBuffer);
+            }
         }
+    }
+
+    /// <summary>
+    /// GZip을 사용하여 데이터 압축
+    /// RecyclableMemoryStream을 사용하여 메모리 할당 최소화
+    /// </summary>
+    private byte[] CompressData(ReadOnlySpan<byte> data)
+    {
+        using var output = _memoryStreamManager.GetStream("SocketClient-Compress");
+        using (var gzip = new GZipStream(output, CompressionLevel.Fastest, leaveOpen: true))
+        {
+            gzip.Write(data);
+        }
+
+        // RecyclableMemoryStream에서 버퍼를 가져와 ArrayPool 버퍼로 복사
+        var compressedLength = (int)output.Length;
+        var result = _arrayPool.Rent(compressedLength);
+        output.Position = 0;
+        output.ReadExactly(result.AsSpan(0, compressedLength));
+        return result;
+    }
+
+    /// <summary>
+    /// GZip으로 압축된 데이터 압축 해제
+    /// RecyclableMemoryStream을 사용하여 메모리 할당 최소화
+    /// </summary>
+    private byte[] DecompressData(ReadOnlySpan<byte> compressedData)
+    {
+        using var input = _memoryStreamManager.GetStream("SocketClient-Decompress-Input", compressedData);
+        using var gzip = new GZipStream(input, CompressionMode.Decompress);
+        using var output = _memoryStreamManager.GetStream("SocketClient-Decompress-Output");
+
+        gzip.CopyTo(output);
+        return output.ToArray();
     }
 
     /// <summary>
@@ -225,9 +286,17 @@ public class SocketClient : IDisposable
                             bodyBytesRead += read;
                         }
 
-                        // 실제 사용한 크기만큼만 복사 (이벤트 핸들러에서 사용)
-                        body = new byte[bodyLength];
-                        Array.Copy(rentedBuffer, 0, body, 0, bodyLength);
+                        // 압축 플래그가 설정되어 있으면 압축 해제
+                        if (flags.HasFlag(PacketFlags.Compressed))
+                        {
+                            body = DecompressData(rentedBuffer.AsSpan(0, bodyLength));
+                        }
+                        else
+                        {
+                            // 실제 사용한 크기만큼만 복사 (이벤트 핸들러에서 사용)
+                            body = new byte[bodyLength];
+                            Array.Copy(rentedBuffer, 0, body, 0, bodyLength);
+                        }
                     }
                     finally
                     {

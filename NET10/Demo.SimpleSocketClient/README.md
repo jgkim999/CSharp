@@ -340,6 +340,41 @@ client.MessageReceived += async (sender, e) =>
 };
 ```
 
+## 자동 압축 기능
+
+`SocketClient`는 **512바이트 이상**의 메시지를 전송할 때 자동으로 GZip 압축을 수행하고 `Compressed` 플래그를 설정합니다.
+
+- 압축 알고리즘: GZip (CompressionLevel.Fastest)
+- 압축 임계값: 512 바이트
+- 자동 압축 해제: 수신 시 `Compressed` 플래그가 설정되어 있으면 자동으로 압축 해제
+
+이 기능은 대용량 메시지 전송 시 네트워크 대역폭을 절약하고 전송 속도를 향상시킵니다.
+
+## 메모리 최적화
+
+`SocketClient`는 여러 메모리 최적화 기법을 적용하여 GC 압력을 최소화합니다:
+
+### 1. **ArrayPool<byte>**
+- 송수신 패킷 버퍼를 ArrayPool에서 관리
+- 메시지 바디 수신 시 ArrayPool 사용
+- GC 할당 최소화 및 재사용 극대화
+
+### 2. **RecyclableMemoryStream**
+- GZip 압축/해제 시 RecyclableMemoryStream 사용
+- 기존 MemoryStream 대비 대량 할당 방지
+- 메모리 풀링을 통한 재사용
+
+### 3. **ReadOnlyMemory<byte>**
+- 메시지 전송 시 ReadOnlyMemory<byte> 사용
+- Zero-copy 전송으로 불필요한 메모리 복사 제거
+- ArrayBufferWriter와 결합하여 추가 최적화
+
+### 4. **버퍼 재사용**
+- 헤더 버퍼(8바이트) 수신 루프에서 재사용
+- 단일 할당으로 수천 개의 메시지 처리 가능
+
+이러한 최적화를 통해 **고처리량, 저지연, 낮은 GC 압력**을 달성합니다.
+
 ## 주의사항
 
 1. **Dispose 호출**: 사용 후 반드시 `Dispose()`를 호출하거나 `using` 구문을 사용하세요.
@@ -350,4 +385,4 @@ client.MessageReceived += async (sender, e) =>
 
 4. **빅 엔디안**: 메시지 타입과 바디 길이는 빅 엔디안으로 인코딩됩니다.
 
-5. **압축/암호화**: 플래그만 설정하고 실제 압축/암호화 처리를 하지 않으면 서버에서 올바르게 해석하지 못할 수 있습니다.
+5. **자동 압축**: 512바이트 이상의 메시지는 자동으로 압축됩니다. 서버에서도 `Compressed` 플래그를 확인하고 압축 해제를 처리해야 합니다.
