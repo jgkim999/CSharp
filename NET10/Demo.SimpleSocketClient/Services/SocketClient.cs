@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Bogus;
+using Demo.Application.Utils;
 using Demo.SimpleSocket.SuperSocket;
 using MessagePack;
 
@@ -17,6 +19,8 @@ public class SocketClient : IDisposable
 {
     private TcpClient? _tcpClient;
     private NetworkStream? _stream;
+    private readonly Faker _faker = new("ko");
+    private SequenceGenerator _sendSequence = new();
     private CancellationTokenSource? _receiveCts;
     private bool _disposed;
 
@@ -95,13 +99,13 @@ public class SocketClient : IDisposable
             Disconnected?.Invoke(this, EventArgs.Empty);
         }
     }
-
+    
     /// <summary>
     /// 메시지 전송 (enum 버전)
     /// </summary>
     public Task SendMessageAsync(SocketMessageType messageType, byte[] body, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync((ushort)messageType, body, PacketFlags.None, 0, cancellationToken);
+        return SendMessageAsync((ushort)messageType, body, PacketFlags.None, cancellationToken);
     }
 
     /// <summary>
@@ -109,7 +113,7 @@ public class SocketClient : IDisposable
     /// </summary>
     public Task SendMessageAsync(ushort messageType, byte[] body, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync(messageType, body, PacketFlags.None, 0, cancellationToken);
+        return SendMessageAsync(messageType, body, PacketFlags.None, cancellationToken);
     }
 
     /// <summary>
@@ -117,32 +121,24 @@ public class SocketClient : IDisposable
     /// </summary>
     public Task SendMessageAsync(SocketMessageType messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync((ushort)messageType, body, flags, 0, cancellationToken);
+        return SendMessageAsync((ushort)messageType, body, flags, cancellationToken);
     }
-
-    /// <summary>
-    /// 메시지 전송 (플래그 포함, ushort 버전)
-    /// </summary>
-    public Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
-    {
-        return SendMessageAsync(messageType, body, flags, 0, cancellationToken);
-    }
-
+    
     /// <summary>
     /// 메시지 전송 (플래그 + 시퀀스 포함, ushort 버전)
     /// </summary>
-    public async Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, ushort sequence, CancellationToken cancellationToken = default)
+    public async Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
     {
         if (!IsConnected || _stream == null)
             throw new InvalidOperationException("서버에 연결되어 있지 않습니다.");
 
         var bodyLength = (ushort)body.Length;
         var packet = new byte[8 + bodyLength];
-
+        
         // 헤더 작성 (8바이트)
         packet[0] = (byte)flags;  // 플래그 (1바이트)
-        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), sequence);  // 시퀀스 (2바이트)
-        packet[3] = 0;  // 예약 (1바이트)
+        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), _sendSequence.GetNext());  // 시퀀스 (2바이트)
+        packet[3] = _faker.Random.Byte(1, 255);  // 예약 (1바이트)
         BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(4, 2), messageType);  // 메시지 타입 (2바이트)
         BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(6, 2), bodyLength);   // 바디 길이 (2바이트)
 
@@ -275,4 +271,3 @@ public class SocketClient : IDisposable
         _disposed = true;
     }
 }
-

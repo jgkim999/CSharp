@@ -2,7 +2,9 @@ using System.Buffers;
 using System.Buffers.Binary;
 using System.IO.Pipelines;
 using System.Threading.Channels;
+using Bogus;
 using Demo.Application.DTO.Socket;
+using Demo.Application.Utils;
 using Demo.SimpleSocket.SuperSocket.Handlers;
 using MessagePack;
 using SuperSocket.Connection;
@@ -17,13 +19,29 @@ public class DemoSession : AppSession, IDisposable
     private readonly ClientSocketMessageHandler _messageHandler;
     private readonly CancellationTokenSource _cts = new();
     private readonly Channel<BinaryPackageInfo> _receiveChannel = Channel.CreateUnbounded<BinaryPackageInfo>();
+    private readonly SequenceGenerator _seqGenerator = new();
+    private readonly Faker _faker = new("ko");
     private Task? _processTask;
     private Task? _pingTask;
     private bool _disposed;
     private DateTime _lastPongUtc;
     private double _rttMs;
 
+    /// <summary>
+    /// 마지막 pong도달 시간
+    /// </summary>
     public DateTime LastPongUtc => _lastPongUtc;
+    
+    /// <summary>
+    /// 현재 시간에서 마지막 pong도달 후 지난시간
+    /// </summary>
+    /// <param name="utcNow"></param>
+    /// <returns></returns>
+    public double LastPongElapsedMs(DateTime utcNow) => (utcNow - _lastPongUtc).TotalMilliseconds;
+    
+    /// <summary>
+    /// ping-pong에서 측정한 rtt
+    /// </summary>
     public double RttMs => _rttMs;
 
     public DemoSession(ILogger<DemoSession> logger, ClientSocketMessageHandler messageHandler)
@@ -105,7 +123,7 @@ public class DemoSession : AppSession, IDisposable
         await ValueTask.CompletedTask;
     }
 
-    public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack, PacketFlags flags = PacketFlags.None, ushort sequence = 0)
+    public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack, PacketFlags flags = PacketFlags.None)
     {
         ArrayBufferWriter<byte> bufferWriter = new();
         MessagePackSerializer.Serialize(bufferWriter, msgPack);
@@ -116,8 +134,8 @@ public class DemoSession : AppSession, IDisposable
             {
                 var headerSpan = writer.GetSpan(8);
                 headerSpan[0] = (byte)flags;  // 플래그 (1바이트)
-                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), sequence);  // 시퀀스 (2바이트)
-                headerSpan[3] = 0;  // 예약 (1바이트)
+                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), _seqGenerator.GetNext());  // 시퀀스 (2바이트)
+                headerSpan[3] = _faker.Random.Byte();  // 예약 (1바이트)
                 BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), (ushort)messageType);  // 메시지 타입 (2바이트)
                 BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);  // 바디 길이 (2바이트)
                 writer.Advance(8);
@@ -183,8 +201,8 @@ public class DemoSession : AppSession, IDisposable
             await _receiveChannel.Writer.WriteAsync(package, _cts.Token);
 
             _logger.LogDebug(
-                "Package queued to channel. SessionID: {SessionID}, MessageType: {MessageType}, BodyLength: {BodyLength}",
-                SessionID, package.MessageType, package.BodyLength);
+                "Package queued to channel. SessionID: {SessionID}, MessageType: {MessageType}, BodyLength: {BodyLength}, Sequence: {Sequence}, Reserved: {Reserved}",
+                SessionID, package.MessageType, package.BodyLength, package.Sequence, package.Reserved);
         }
         catch (OperationCanceledException)
         {
@@ -248,16 +266,23 @@ public class DemoSession : AppSession, IDisposable
                 using (package)
                 {
                     _logger.LogInformation(
-                        "SessionManager OnMessageAsync. SessionId: {SessionId}, MessageType: {MessageType}, BodyLength: {BodyLength}",
-                        SessionID, package.MessageType, package.BodyLength);
+                        "SessionManager OnMessageAsync. SessionId: {SessionId}, MessageType: {MessageType}, BodyLength: {BodyLength}, Sequence: {Sequence}, Reserved: {Reserved}",
+                        SessionID, package.MessageType, package.BodyLength, package.Sequence, package.Reserved);
 
-                    // 등록된 핸들러를 통해 메시지 처리
-                    var handled = await _messageHandler.HandleAsync(package, this);
-
-                    // 핸들러가 없으면 기본 ECHO 처리
-                    if (!handled)
+                    try
                     {
-                        await HandleEchoAsync(package);
+                        // 등록된 핸들러를 통해 메시지 처리
+                        var handled = await _messageHandler.HandleAsync(package, this);
+
+                        // 핸들러가 없으면 기본 ECHO 처리
+                        if (!handled)
+                        {
+                            await HandleEchoAsync(package);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Handle error. SessionID: {SessionID}", SessionID);
                     }
                 }
             }
