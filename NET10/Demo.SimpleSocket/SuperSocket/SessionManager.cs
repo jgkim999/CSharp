@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using Demo.Application.DTO;
 using Demo.Application.DTO.Socket;
+using Demo.Application.Utils;
 using MessagePack;
 using SuperSocket.Connection;
 using SuperSocket.Server.Abstractions.Session;
@@ -36,12 +37,21 @@ public class SessionManager : IAsyncDisposable
 
         _sessions.TryAdd(session.SessionID, demoSession);
 
+        // AES Key/IV 생성
+        var (aesKey, aesIV) = AesHelper.GenerateKeyAndIV();
+        demoSession.SetAesKey(aesKey, aesIV);
+
         MsgConnectionSuccessNfy message = new()
         {
             ConnectionId = session.SessionID,
-            ServerUtcTime = DateTime.UtcNow
+            ServerUtcTime = DateTime.UtcNow,
+            AesKey = aesKey,
+            AesIV = aesIV
         };
-        
+
+        _logger.LogInformation("AES Key/IV generated and sent. SessionId: {SessionId}, KeySize: {KeySize}, IVSize: {IVSize}",
+            session.SessionID, aesKey.Length, aesIV.Length);
+
         await demoSession.SendMessagePackAsync(SocketMessageType.ConnectionSuccess, message);
     }
 

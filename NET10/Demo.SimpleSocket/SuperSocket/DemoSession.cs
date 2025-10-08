@@ -32,6 +32,8 @@ public class DemoSession : AppSession, IDisposable
     private bool _disposed;
     private DateTime _lastPongUtc;
     private double _rttMs;
+    private byte[] _aesKey = Array.Empty<byte>();
+    private byte[] _aesIV = Array.Empty<byte>();
 
     /// <summary>
     /// 마지막 pong도달 시간
@@ -129,41 +131,50 @@ public class DemoSession : AppSession, IDisposable
         await ValueTask.CompletedTask;
     }
 
-    public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack, PacketFlags flags = PacketFlags.None)
+    public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack, PacketFlags flags = PacketFlags.None, bool encrypt = false)
     {
         ArrayBufferWriter<byte> bufferWriter = new();
         MessagePackSerializer.Serialize(bufferWriter, msgPack);
         ReadOnlyMemory<byte> bodyMemory = bufferWriter.WrittenMemory;
 
-        // 512바이트 이상이면 압축 수행
         byte[]? compressedBuffer = null;
-        int compressedLength = 0;
-        if (bodyMemory.Length > 512)
-        {
-            var originalSize = bodyMemory.Length;
-            (compressedBuffer, compressedLength) = CompressData(bodyMemory.Span);
-            bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
-            flags |= PacketFlags.Compressed;  // 압축 플래그 설정
-
-            _logger.LogInformation("[서버 압축] 원본: {OriginalSize} 바이트 → 압축: {CompressedSize} 바이트 ({Ratio:F1}%)",
-                originalSize, compressedLength, compressedLength * 100.0 / originalSize);
-        }
+        byte[]? encryptedBuffer = null;
 
         try
         {
+            // 1단계: 압축 (512바이트 이상이면 자동 압축)
+            if (bodyMemory.Length > 512)
+            {
+                var originalSize = bodyMemory.Length;
+                int compressedLength;
+                (compressedBuffer, compressedLength) = CompressData(bodyMemory.Span);
+                bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
+                flags |= PacketFlags.Compressed;
+
+                _logger.LogInformation("[서버 압축] 원본: {OriginalSize} 바이트 → 압축: {CompressedSize} 바이트 ({Ratio:F1}%)",
+                    originalSize, compressedLength, compressedLength * 100.0 / originalSize);
+            }
+
+            // 2단계: 암호화 (encrypt=true이면 암호화)
+            if (encrypt)
+            {
+                encryptedBuffer = EncryptData(bodyMemory.Span);
+                bodyMemory = encryptedBuffer.AsMemory();
+                flags |= PacketFlags.Encrypted;
+            }
+
             ushort bodyLength = (ushort)bodyMemory.Length;
             await Connection.SendAsync(
                 (writer) =>
                 {
                     var headerSpan = writer.GetSpan(8);
-                    headerSpan[0] = (byte)flags;  // 플래그 (1바이트)
-                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), _seqGenerator.GetNext());  // 시퀀스 (2바이트)
-                    headerSpan[3] = _faker.Random.Byte();  // 예약 (1바이트)
-                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), (ushort)messageType);  // 메시지 타입 (2바이트)
-                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);  // 바디 길이 (2바이트)
+                    headerSpan[0] = (byte)flags;
+                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), _seqGenerator.GetNext());
+                    headerSpan[3] = _faker.Random.Byte();
+                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), (ushort)messageType);
+                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);
                     writer.Advance(8);
 
-                    // 바디 작성 - 직접 PipeWriter에 쓰기 (복사 1번만)
                     var bodySpan = writer.GetSpan(bodyLength);
                     bodyMemory.Span.CopyTo(bodySpan);
                     writer.Advance(bodyMemory.Length);
@@ -171,7 +182,6 @@ public class DemoSession : AppSession, IDisposable
         }
         finally
         {
-            // 압축 버퍼 해제
             if (compressedBuffer != null)
             {
                 _arrayPool.Return(compressedBuffer);
@@ -468,6 +478,47 @@ public class DemoSession : AppSession, IDisposable
     {
         _lastPongUtc = utcNow;
         _rttMs = rttMs;
+    }
+
+    /// <summary>
+    /// AES Key/IV 설정
+    /// </summary>
+    public void SetAesKey(byte[] key, byte[] iv)
+    {
+        _aesKey = key;
+        _aesIV = iv;
+    }
+
+    /// <summary>
+    /// 데이터 암호화
+    /// </summary>
+    private byte[] EncryptData(ReadOnlySpan<byte> data)
+    {
+        if (_aesKey.Length == 0 || _aesIV.Length == 0)
+        {
+            throw new InvalidOperationException("AES Key/IV가 설정되지 않았습니다.");
+        }
+
+        var encrypted = AesHelper.Encrypt(data, _aesKey, _aesIV);
+        _logger.LogInformation("[서버 암호화] 원본: {OriginalSize} 바이트 → 암호화: {EncryptedSize} 바이트",
+            data.Length, encrypted.Length);
+        return encrypted;
+    }
+
+    /// <summary>
+    /// 데이터 복호화
+    /// </summary>
+    public byte[] DecryptData(ReadOnlySpan<byte> encryptedData)
+    {
+        if (_aesKey.Length == 0 || _aesIV.Length == 0)
+        {
+            throw new InvalidOperationException("AES Key/IV가 설정되지 않았습니다.");
+        }
+
+        var decrypted = AesHelper.Decrypt(encryptedData, _aesKey, _aesIV);
+        _logger.LogInformation("[서버 복호화] 암호화: {EncryptedSize} 바이트 → 원본: {DecryptedSize} 바이트",
+            encryptedData.Length, decrypted.Length);
+        return decrypted;
     }
 
     /// <summary>

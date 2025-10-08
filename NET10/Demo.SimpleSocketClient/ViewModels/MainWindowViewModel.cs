@@ -95,7 +95,15 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
             var response = arg.DeserializeMessagePack<MsgConnectionSuccessNfy>();
             if (response != null)
             {
-                return $"[수신 MsgPack] Type:{arg.MessageType}, Msg: {response.ConnectionId} {response.ServerUtcTime}";
+                // AES Key/IV 설정
+                if (response.AesKey != null && response.AesKey.Length > 0 &&
+                    response.AesIV != null && response.AesIV.Length > 0)
+                {
+                    _socketClient.SetAesKey(response.AesKey, response.AesIV);
+                    return $"[수신 MsgPack] Type:{arg.MessageType}, ConnectionId: {response.ConnectionId}, ServerTime: {response.ServerUtcTime:HH:mm:ss}, AES Key/IV 설정 완료";
+                }
+
+                return $"[수신 MsgPack] Type:{arg.MessageType}, ConnectionId: {response.ConnectionId}, ServerTime: {response.ServerUtcTime:HH:mm:ss}";
             }
             return $"[수신 오류] Type:{arg.MessageType}, 역직렬화 실패";
         }
@@ -219,6 +227,32 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             AddReceivedMessage($"[오류] VeryLongReq 전송 실패: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 암호화 테스트용 MsgPackReq 전송 (암호화 적용)
+    /// </summary>
+    [RelayCommand]
+    private async Task SendEncryptedMsgPackAsync()
+    {
+        if (!IsConnected)
+            return;
+
+        try
+        {
+            var request = new MsgPackReq
+            {
+                Name = "암호화 테스트",
+                Message = "이 메시지는 AES-256으로 암호화되어 전송됩니다."
+            };
+
+            await _socketClient.SendMessagePackAsync(SocketMessageType.MsgPackRequest, request, encrypt: true);
+            AddReceivedMessage($"[전송 암호화 MsgPack] Type:{SocketMessageType.MsgPackRequest}, Name: {request.Name}, Message: {request.Message}");
+        }
+        catch (Exception ex)
+        {
+            AddReceivedMessage($"[오류] 암호화 MsgPack 전송 실패: {ex.Message}");
         }
     }
 

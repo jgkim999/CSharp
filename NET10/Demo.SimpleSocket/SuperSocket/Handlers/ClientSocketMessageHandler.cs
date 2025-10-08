@@ -127,28 +127,33 @@ public class ClientSocketMessageHandler
 
         try
         {
-            // 압축된 데이터인 경우 먼저 압축 해제
-            ReadOnlyMemory<byte> bodyMemory;
+            ReadOnlyMemory<byte> bodyMemory = package.Body.AsMemory(0, package.BodyLength);
+            byte[]? decryptedData = null;
             byte[]? decompressedData = null;
-
-            if (package.Flags.HasFlag(PacketFlags.Compressed))
-            {
-                decompressedData = session.DecompressData(package.Body.AsSpan(0, package.BodyLength));
-                bodyMemory = decompressedData.AsMemory();
-            }
-            else
-            {
-                bodyMemory = package.Body.AsMemory(0, package.BodyLength);
-            }
 
             try
             {
-                // MessagePack 역직렬화
+                // 1단계: 암호화된 데이터인 경우 먼저 복호화
+                if (package.Flags.HasFlag(PacketFlags.Encrypted))
+                {
+                    decryptedData = session.DecryptData(bodyMemory.Span);
+                    bodyMemory = decryptedData.AsMemory();
+                }
+
+                // 2단계: 압축된 데이터인 경우 압축 해제
+                if (package.Flags.HasFlag(PacketFlags.Compressed))
+                {
+                    decompressedData = session.DecompressData(bodyMemory.Span);
+                    bodyMemory = decompressedData.AsMemory();
+                }
+
+                // 3단계: MessagePack 역직렬화
                 return MessagePack.MessagePackSerializer.Deserialize<T>(bodyMemory);
             }
             finally
             {
-                // 압축 해제된 데이터가 있으면 해제 (GC에 맡김, 작은 배열이므로 ArrayPool 불필요)
+                // 할당된 데이터 해제 (GC에 맡김)
+                decryptedData = null;
                 decompressedData = null;
             }
         }

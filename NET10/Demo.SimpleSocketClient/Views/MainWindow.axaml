@@ -131,7 +131,7 @@
                 CornerRadius="5"
                 Padding="15"
                 Margin="0,15,0,0">
-            <Grid RowDefinitions="Auto,10,Auto">
+            <Grid RowDefinitions="Auto,10,Auto,10,Auto">
                 <!-- 압축 테스트 버튼 -->
                 <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
                     <TextBlock Grid.Column="0"
@@ -148,8 +148,24 @@
                             Classes="accent"/>
                 </Grid>
 
+                <!-- 암호화 테스트 버튼 -->
+                <Grid Grid.Row="2" ColumnDefinitions="Auto,*">
+                    <TextBlock Grid.Column="0"
+                               Text="암호화 테스트:"
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               Margin="0,0,10,0"/>
+                    <Button Grid.Column="1"
+                            Content="암호화 MsgPack 전송 (AES-256)"
+                            Command="{Binding SendEncryptedMsgPackCommand}"
+                            IsEnabled="{Binding IsConnected}"
+                            HorizontalAlignment="Left"
+                            Width="250"
+                            Classes="accent"/>
+                </Grid>
+
                 <!-- MessagePack 전송 -->
-                <Grid Grid.Row="2" ColumnDefinitions="Auto,150,Auto,*,Auto">
+                <Grid Grid.Row="4" ColumnDefinitions="Auto,150,Auto,*,Auto">
                     <!-- Name 입력 -->
                     <TextBlock Grid.Column="0"
                                Text="MsgPack Name:"

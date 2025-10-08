@@ -28,6 +28,8 @@ public class SocketClient : IDisposable
     private readonly SequenceGenerator _sendSequence = new();
     private CancellationTokenSource? _receiveCts;
     private bool _disposed;
+    private byte[] _aesKey = Array.Empty<byte>();
+    private byte[] _aesIV = Array.Empty<byte>();
 
     /// <summary>
     /// 연결 상태
@@ -296,16 +298,34 @@ public class SocketClient : IDisposable
                             bodyBytesRead += read;
                         }
 
-                        // 압축 플래그가 설정되어 있으면 압축 해제
-                        if (flags.HasFlag(PacketFlags.Compressed))
+                        // 수신 데이터 처리: 암호화 → 압축 → 원본 순서로 복원
+                        byte[]? decryptedData = null;
+                        ReadOnlySpan<byte> processedData = rentedBuffer.AsSpan(0, bodyLength);
+
+                        try
                         {
-                            body = DecompressData(rentedBuffer.AsSpan(0, bodyLength));
+                            // 1단계: 암호화된 데이터인 경우 먼저 복호화
+                            if (flags.HasFlag(PacketFlags.Encrypted))
+                            {
+                                decryptedData = DecryptData(processedData);
+                                processedData = decryptedData.AsSpan();
+                            }
+
+                            // 2단계: 압축된 데이터인 경우 압축 해제
+                            if (flags.HasFlag(PacketFlags.Compressed))
+                            {
+                                body = DecompressData(processedData);
+                            }
+                            else
+                            {
+                                // 실제 사용한 크기만큼만 복사
+                                body = new byte[processedData.Length];
+                                processedData.CopyTo(body);
+                            }
                         }
-                        else
+                        finally
                         {
-                            // 실제 사용한 크기만큼만 복사 (이벤트 핸들러에서 사용)
-                            body = new byte[bodyLength];
-                            Array.Copy(rentedBuffer, 0, body, 0, bodyLength);
+                            decryptedData = null;
                         }
                     }
                     finally
@@ -332,6 +352,91 @@ public class SocketClient : IDisposable
             ErrorOccurred?.Invoke(this, ex);
             Disconnect();
         }
+    }
+
+    /// <summary>
+    /// AES Key/IV 설정
+    /// </summary>
+    public void SetAesKey(byte[] key, byte[] iv)
+    {
+        _aesKey = key;
+        _aesIV = iv;
+        Console.WriteLine($"[클라이언트 AES 설정] KeySize: {key.Length}, IVSize: {iv.Length}");
+    }
+
+    /// <summary>
+    /// MessagePack 객체 전송 (암호화 옵션 포함)
+    /// </summary>
+    public Task SendMessagePackAsync<T>(SocketMessageType messageType, T obj, bool encrypt, CancellationToken cancellationToken = default)
+    {
+        return SendMessagePackAsync((ushort)messageType, obj, encrypt, cancellationToken);
+    }
+
+    /// <summary>
+    /// MessagePack 객체 전송 (ushort 버전, 암호화 옵션 포함)
+    /// </summary>
+    private async Task SendMessagePackAsync<T>(ushort messageType, T obj, bool encrypt, CancellationToken cancellationToken = default)
+    {
+        var bufferWriter = new ArrayBufferWriter<byte>();
+        MessagePackSerializer.Serialize(bufferWriter, obj);
+        ReadOnlyMemory<byte> bodyMemory = bufferWriter.WrittenMemory;
+
+        byte[]? compressedBuffer = null;
+        byte[]? encryptedBuffer = null;
+        PacketFlags flags = PacketFlags.None;
+
+        try
+        {
+            // 1단계: 압축 (512바이트 이상이면 자동 압축)
+            if (bodyMemory.Length > 512)
+            {
+                var originalSize = bodyMemory.Length;
+                int compressedLength;
+                (compressedBuffer, compressedLength) = CompressData(bodyMemory.Span);
+                bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
+                flags |= PacketFlags.Compressed;
+
+                Console.WriteLine($"[클라이언트 압축] 원본: {originalSize} 바이트 → 압축: {compressedLength} 바이트 ({compressedLength * 100.0 / originalSize:F1}%)");
+            }
+
+            // 2단계: 암호화 (encrypt=true이면 암호화)
+            if (encrypt)
+            {
+                if (_aesKey.Length == 0 || _aesIV.Length == 0)
+                {
+                    throw new InvalidOperationException("AES Key/IV가 설정되지 않았습니다.");
+                }
+
+                encryptedBuffer = AesHelper.Encrypt(bodyMemory.Span, _aesKey, _aesIV);
+                Console.WriteLine($"[클라이언트 암호화] 원본: {bodyMemory.Length} 바이트 → 암호화: {encryptedBuffer.Length} 바이트");
+                bodyMemory = encryptedBuffer.AsMemory();
+                flags |= PacketFlags.Encrypted;
+            }
+
+            await SendMessageAsync(messageType, bodyMemory, flags, cancellationToken);
+        }
+        finally
+        {
+            if (compressedBuffer != null)
+            {
+                _arrayPool.Return(compressedBuffer);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 데이터 복호화
+    /// </summary>
+    private byte[] DecryptData(ReadOnlySpan<byte> encryptedData)
+    {
+        if (_aesKey.Length == 0 || _aesIV.Length == 0)
+        {
+            throw new InvalidOperationException("AES Key/IV가 설정되지 않았습니다.");
+        }
+
+        var decrypted = AesHelper.Decrypt(encryptedData, _aesKey, _aesIV);
+        Console.WriteLine($"[클라이언트 복호화] 암호화: {encryptedData.Length} 바이트 → 원본: {decrypted.Length} 바이트");
+        return decrypted;
     }
 
     public void Dispose()
