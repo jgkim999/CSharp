@@ -101,33 +101,9 @@ public class SocketClient : IDisposable
     }
     
     /// <summary>
-    /// 메시지 전송 (enum 버전)
-    /// </summary>
-    public Task SendMessageAsync(SocketMessageType messageType, byte[] body, CancellationToken cancellationToken = default)
-    {
-        return SendMessageAsync((ushort)messageType, body, PacketFlags.None, cancellationToken);
-    }
-
-    /// <summary>
-    /// 메시지 전송 (ushort 버전)
-    /// </summary>
-    public Task SendMessageAsync(ushort messageType, byte[] body, CancellationToken cancellationToken = default)
-    {
-        return SendMessageAsync(messageType, body, PacketFlags.None, cancellationToken);
-    }
-
-    /// <summary>
-    /// 메시지 전송 (플래그 포함, enum 버전)
-    /// </summary>
-    public Task SendMessageAsync(SocketMessageType messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
-    {
-        return SendMessageAsync((ushort)messageType, body, flags, cancellationToken);
-    }
-    
-    /// <summary>
     /// 메시지 전송 (플래그 + 시퀀스 포함, ushort 버전)
     /// </summary>
-    public async Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
+    private async Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
     {
         if (!IsConnected || _stream == null)
             throw new InvalidOperationException("서버에 연결되어 있지 않습니다.");
@@ -161,10 +137,18 @@ public class SocketClient : IDisposable
     /// <summary>
     /// MessagePack 객체 전송 (ushort 버전)
     /// </summary>
-    public Task SendMessagePackAsync<T>(ushort messageType, T obj, CancellationToken cancellationToken = default)
+    private Task SendMessagePackAsync<T>(ushort messageType, T obj, CancellationToken cancellationToken = default)
     {
         var body = MessagePackSerializer.Serialize(obj);
         return SendMessageAsync(messageType, body, cancellationToken);
+    }
+
+    /// <summary>
+    /// 메시지 전송 (ushort 버전)
+    /// </summary>
+    private Task SendMessageAsync(ushort messageType, byte[] body, CancellationToken cancellationToken = default)
+    {
+        return SendMessageAsync(messageType, body, PacketFlags.None, cancellationToken);
     }
 
     /// <summary>
