@@ -1,7 +1,6 @@
-using System.Buffers;
 using System.Collections.Concurrent;
-using Demo.Application.DTO;
 using Demo.Application.DTO.Socket;
+using LiteBus.Commands.Abstractions;
 
 namespace Demo.SimpleSocket.SuperSocket.Handlers;
 
@@ -12,10 +11,12 @@ public class ClientSocketMessageHandler
 {
     private readonly ConcurrentDictionary<ushort, Func<BinaryPackageInfo, DemoSession, Task>> _handlers = new();
     private readonly ILogger<ClientSocketMessageHandler> _logger;
+    private readonly ICommandMediator _mediator;
 
-    public ClientSocketMessageHandler(ILogger<ClientSocketMessageHandler> logger)
+    public ClientSocketMessageHandler(ILogger<ClientSocketMessageHandler> logger, ICommandMediator mediator)
     {
         _logger = logger;
+        _mediator = mediator;
         RegisterHandler(SocketMessageType.Pong, OnPongAsync);
         RegisterHandler(SocketMessageType.MsgPackRequest, OnSocketMsgPackReqAsync);
     }
@@ -114,52 +115,43 @@ public class ClientSocketMessageHandler
     /// </summary>
     public int HandlerCount => _handlers.Count;
     
-    private async Task OnSocketMsgPackReqAsync(BinaryPackageInfo package, DemoSession session)
+    private T? CheckPackage<T>(BinaryPackageInfo package, DemoSession session) where T : class
     {
         if (package.BodyLength == 0)
         {
-            _logger.LogWarning("MsgPackReq received but BodyLength is 0. SessionID: {SessionID}", session.SessionID);
-            return;
+            _logger.LogWarning("Received package with empty body. SessionID: {SessionID}", session.SessionID);
+            return null;
         }
 
         try
         {
             // MessagePack 역직렬화 - package.Body는 이미 ArrayPool을 사용하므로 추가 할당 없음
-            var request = MessagePack.MessagePackSerializer.Deserialize<MsgPackReq>(
-                package.Body.AsMemory(0, package.BodyLength));
-
-            _logger.LogInformation("MsgPackReq 수신. Name: {Name}, Message: {Message}",
-                request.Name, request.Message);
-
-            // MsgPackRes 생성
-            var response = new MsgPackRes
-            {
-                Msg = $"서버에서 받은 메시지: {request.Message} (보낸이: {request.Name})",
-                ProcessDt = DateTime.Now
-            };
-
-            await session.SendMessagePackAsync(SocketMessageType.MsgPackResponse, response);
-            _logger.LogInformation("MsgPackRes 전송 완료. Msg: {Msg}", response.Msg);
+            return MessagePack.MessagePackSerializer.Deserialize<T>(package.Body.AsMemory(0, package.BodyLength));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "MessagePack 처리 중 오류 발생. SessionID: {SessionID}", session.SessionID);
+            _logger.LogError(ex, "Error deserializing package. SessionID: {SessionID}", session.SessionID);
+            return null;
         }
+    }
+    
+    private async Task OnSocketMsgPackReqAsync(BinaryPackageInfo package, DemoSession session)
+    {
+        var request = CheckPackage<MsgPackReq>(package, session);
+        if (request == null)
+            return;
+        await _mediator.SendAsync(new MsgPackReqCommand(request, session));
     }
     
     private async Task OnPongAsync(BinaryPackageInfo package, DemoSession session)
     {
-        try
-        {
-            MsgPackPing ping = MessagePack.MessagePackSerializer.Deserialize<MsgPackPing>(package.Body.AsMemory(0, package.BodyLength));
-            var utcNow = DateTime.UtcNow;
-            var rtt = (utcNow - ping.ServerDt).TotalMilliseconds;
-            session.SetLastPong(utcNow, rtt);
-            _logger.LogInformation("Pong 수신. {MilliSeconds}ms", rtt);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "MessagePack 처리 중 오류 발생. SessionID: {SessionID}", session.SessionID);
-        }
+        var request = CheckPackage<MsgPackPing>(package, session);
+        if (request == null)
+            return;
+        var utcNow = DateTime.UtcNow;
+        var rtt = (utcNow - request.ServerDt).TotalMilliseconds;
+        session.SetLastPong(utcNow, rtt);
+        _logger.LogInformation("Pong 수신. {MilliSeconds}ms", rtt);
+        await Task.CompletedTask;
     }
 }
