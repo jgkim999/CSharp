@@ -1,6 +1,6 @@
-using Demo.Application.Commands.Sod;
 using Demo.Application.Services.Sod;
 using System.Threading.Channels;
+using Demo.Application.Handlers.Commands.Sod;
 
 namespace Demo.Infra.Services.Sod;
 

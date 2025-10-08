@@ -3,7 +3,7 @@ using Demo.Domain.Repositories;
 using FluentResults;
 using LiteBus.Commands.Abstractions;
 
-namespace Demo.Application.Commands;
+namespace Demo.Application.Handlers.Commands;
 
 public record CompanyCreateCommandResult(Result Result);
 

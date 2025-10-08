@@ -1,4 +1,4 @@
-using Demo.Application.Commands.Sod;
+using Demo.Application.Handlers.Commands.Sod;
 
 namespace Demo.Infra.Tests.TestHelpers;
 

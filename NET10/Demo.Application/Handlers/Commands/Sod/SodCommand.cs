@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Demo.Domain.Commands;
 
-namespace Demo.Application.Commands.Sod;
+namespace Demo.Application.Handlers.Commands.Sod;
 
 /// <summary>
 /// SOD 명령의 기본 추상 클래스

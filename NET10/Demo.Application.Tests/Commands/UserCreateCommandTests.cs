@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Demo.Application.Commands;
+using Demo.Application.Handlers.Commands;
 using Demo.Domain.Repositories;
 using FluentAssertions;
 using FluentResults;

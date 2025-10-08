@@ -1,5 +1,5 @@
-using Demo.Application.Commands;
 using Demo.Application.Extensions;
+using Demo.Application.Handlers.Commands;
 using Demo.Application.Services;
 using Demo.Web.GraphQL.Types.Input;
 using Demo.Web.GraphQL.Types.Payload;

@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using Demo.Application.Commands.Sod;
+using Demo.Application.Handlers.Commands.Sod;
 using Demo.Application.Services;
 
 namespace GamePulse.EndPoints.Rtt;

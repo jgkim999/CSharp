@@ -1,4 +1,4 @@
-using Demo.Application.Queries;
+using Demo.Application.Handlers.Queries;
 using Demo.Application.Services;
 using FastEndpoints;
 using LiteBus.Queries.Abstractions;

@@ -1,9 +1,9 @@
-using Demo.Application.Commands;
 using Demo.Application.Configs;
 using Demo.Application.Services;
 using FastEndpoints;
 using LiteBus.Commands.Abstractions;
 using Demo.Application.Extensions;
+using Demo.Application.Handlers.Commands;
 using Demo.Application.Models;
 using Microsoft.Extensions.Options;
 

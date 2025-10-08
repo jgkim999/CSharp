@@ -1,4 +1,4 @@
-using Demo.Application.Queries;
+using Demo.Application.Handlers.Queries;
 using Demo.Application.Services;
 using Demo.Web.GraphQL.Types.Payload;
 using LiteBus.Queries.Abstractions;

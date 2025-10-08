@@ -5,7 +5,7 @@ using LiteBus.Queries.Abstractions;
 using Mapster;
 using Microsoft.Extensions.Logging;
 
-namespace Demo.Application.Queries;
+namespace Demo.Application.Handlers.Queries;
 
 public record CompanyListQuery(string? SearchTerm, int Page, int PageSize) : IQuery<Result<CompanyListQueryResult>>;
 

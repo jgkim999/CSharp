@@ -69,6 +69,7 @@
 
     <ItemGroup>
       <Folder Include="Enums\" />
+      <Folder Include="Handlers\" />
     </ItemGroup>
 
 </Project>

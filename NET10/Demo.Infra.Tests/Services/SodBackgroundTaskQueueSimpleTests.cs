@@ -1,8 +1,8 @@
 using Demo.Infra.Services.Sod;
 using Demo.Infra.Tests.TestHelpers;
 using FluentAssertions;
-using Demo.Application.Commands.Sod;
 using System.Diagnostics;
+using Demo.Application.Handlers.Commands.Sod;
 
 namespace Demo.Infra.Tests.Services;
 

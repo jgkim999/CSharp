@@ -4,7 +4,7 @@ using Demo.Application.Services;
 using LiteBus.Queries.Abstractions;
 using NodaTime;
 
-namespace Demo.Application.Queries;
+namespace Demo.Application.Handlers.Queries;
 
 public record ServerTimeQuery : IQuery<(string utc, string korea, string koreanCalendar)>;
 

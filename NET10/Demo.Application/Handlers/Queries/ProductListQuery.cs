@@ -2,10 +2,9 @@ using Demo.Application.DTO.Product;
 using Demo.Domain.Repositories;
 using FluentResults;
 using LiteBus.Queries.Abstractions;
-using Mapster;
 using Microsoft.Extensions.Logging;
 
-namespace Demo.Application.Queries;
+namespace Demo.Application.Handlers.Queries;
 
 public record ProductListQuery(string? SearchTerm, long? CompanyId, int Page, int PageSize) : IQuery<Result<ProductListQueryResult>>;
 

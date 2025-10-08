@@ -1,5 +1,5 @@
 using Demo.Application.DTO.User;
-using Demo.Application.Queries;
+using Demo.Application.Handlers.Queries;
 using Demo.Application.Services;
 using Demo.Domain.Repositories;
 using Demo.Web.GraphQL.Types.Payload;
