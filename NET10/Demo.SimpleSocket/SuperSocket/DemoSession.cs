@@ -105,7 +105,7 @@ public class DemoSession : AppSession, IDisposable
         await ValueTask.CompletedTask;
     }
 
-    public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack, PacketFlags flags = PacketFlags.None)
+    public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack, PacketFlags flags = PacketFlags.None, ushort sequence = 0)
     {
         ArrayBufferWriter<byte> bufferWriter = new();
         MessagePackSerializer.Serialize(bufferWriter, msgPack);
@@ -114,11 +114,13 @@ public class DemoSession : AppSession, IDisposable
         await Connection.SendAsync(
             (writer) =>
             {
-                var headerSpan = writer.GetSpan(5);
+                var headerSpan = writer.GetSpan(8);
                 headerSpan[0] = (byte)flags;  // 플래그 (1바이트)
-                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), (ushort)messageType);  // 메시지 타입 (2바이트)
-                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(3, 2), bodyLength);  // 바디 길이 (2바이트)
-                writer.Advance(5);
+                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), sequence);  // 시퀀스 (2바이트)
+                headerSpan[3] = 0;  // 예약 (1바이트)
+                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), (ushort)messageType);  // 메시지 타입 (2바이트)
+                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);  // 바디 길이 (2바이트)
+                writer.Advance(8);
 
                 // 바디 작성 - 직접 PipeWriter에 쓰기 (복사 1번만)
                 var bodySpan = writer.GetSpan(bodyLength);
@@ -286,18 +288,22 @@ public class DemoSession : AppSession, IDisposable
         // package.Body는 ArrayPool에서 관리되므로 Memory로 캡처
         var bodyMemory = package.Body.AsMemory(0, package.BodyLength);
         var flags = package.Flags;
+        var sequence = package.Sequence;
+        var reserved = package.Reserved;
         var messageType = package.MessageType;
         var bodyLength = package.BodyLength;
 
         // PipeWriter를 사용하여 직접 전송 - 추가 메모리 할당 없음!
         await SendAsync(writer =>
         {
-            // 헤더 작성 (5바이트)
-            var headerSpan = writer.GetSpan(5);
+            // 헤더 작성 (8바이트)
+            var headerSpan = writer.GetSpan(8);
             headerSpan[0] = (byte)flags;  // 플래그 (1바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), messageType);  // 메시지 타입 (2바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(3, 2), bodyLength);   // 바디 길이 (2바이트)
-            writer.Advance(5);
+            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), sequence);  // 시퀀스 (2바이트)
+            headerSpan[3] = reserved;  // 예약 (1바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), messageType);  // 메시지 타입 (2바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);   // 바디 길이 (2바이트)
+            writer.Advance(8);
 
             // Body 복사 - PipeWriter에 직접 쓰기 (복사 1번만)
             if (bodyLength > 0)

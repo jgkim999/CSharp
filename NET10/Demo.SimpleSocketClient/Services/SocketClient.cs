@@ -11,7 +11,7 @@ namespace Demo.SimpleSocketClient.Services;
 
 /// <summary>
 /// SimpleSocket 서버와 통신하는 TCP 클라이언트
-/// 프로토콜: 5바이트 헤더(플래그 1바이트 + 메시지타입 2바이트 + 길이 2바이트) + 바디
+/// 프로토콜: 8바이트 헤더(플래그 1 + 시퀀스 2 + 예약 1 + 메시지타입 2 + 길이 2) + 바디
 /// </summary>
 public class SocketClient : IDisposable
 {
@@ -101,7 +101,7 @@ public class SocketClient : IDisposable
     /// </summary>
     public Task SendMessageAsync(SocketMessageType messageType, byte[] body, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync((ushort)messageType, body, PacketFlags.None, cancellationToken);
+        return SendMessageAsync((ushort)messageType, body, PacketFlags.None, 0, cancellationToken);
     }
 
     /// <summary>
@@ -109,7 +109,7 @@ public class SocketClient : IDisposable
     /// </summary>
     public Task SendMessageAsync(ushort messageType, byte[] body, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync(messageType, body, PacketFlags.None, cancellationToken);
+        return SendMessageAsync(messageType, body, PacketFlags.None, 0, cancellationToken);
     }
 
     /// <summary>
@@ -117,28 +117,38 @@ public class SocketClient : IDisposable
     /// </summary>
     public Task SendMessageAsync(SocketMessageType messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
     {
-        return SendMessageAsync((ushort)messageType, body, flags, cancellationToken);
+        return SendMessageAsync((ushort)messageType, body, flags, 0, cancellationToken);
     }
 
     /// <summary>
     /// 메시지 전송 (플래그 포함, ushort 버전)
     /// </summary>
-    public async Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
+    public Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
+    {
+        return SendMessageAsync(messageType, body, flags, 0, cancellationToken);
+    }
+
+    /// <summary>
+    /// 메시지 전송 (플래그 + 시퀀스 포함, ushort 버전)
+    /// </summary>
+    public async Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, ushort sequence, CancellationToken cancellationToken = default)
     {
         if (!IsConnected || _stream == null)
             throw new InvalidOperationException("서버에 연결되어 있지 않습니다.");
 
         var bodyLength = (ushort)body.Length;
-        var packet = new byte[5 + bodyLength];
+        var packet = new byte[8 + bodyLength];
 
-        // 헤더 작성
+        // 헤더 작성 (8바이트)
         packet[0] = (byte)flags;  // 플래그 (1바이트)
-        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), messageType);  // 메시지 타입 (2바이트, BigEndian)
-        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(3, 2), bodyLength);   // 바디 길이 (2바이트, BigEndian)
+        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), sequence);  // 시퀀스 (2바이트)
+        packet[3] = 0;  // 예약 (1바이트)
+        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(4, 2), messageType);  // 메시지 타입 (2바이트)
+        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(6, 2), bodyLength);   // 바디 길이 (2바이트)
 
         // 바디 복사
         if (bodyLength > 0)
-            body.CopyTo(packet.AsSpan(5));
+            body.CopyTo(packet.AsSpan(8));
 
         await _stream.WriteAsync(packet, cancellationToken);
         await _stream.FlushAsync(cancellationToken);
@@ -185,16 +195,16 @@ public class SocketClient : IDisposable
     {
         try
         {
-            var headerBuffer = new byte[5];
+            var headerBuffer = new byte[8];
 
             while (!cancellationToken.IsCancellationRequested && IsConnected && _stream != null)
             {
-                // 헤더 수신 (5바이트) - 완전히 읽을 때까지 반복
+                // 헤더 수신 (8바이트) - 완전히 읽을 때까지 반복
                 var headerBytesRead = 0;
-                while (headerBytesRead < 5)
+                while (headerBytesRead < 8)
                 {
                     var read = await _stream.ReadAsync(
-                        headerBuffer.AsMemory(headerBytesRead, 5 - headerBytesRead),
+                        headerBuffer.AsMemory(headerBytesRead, 8 - headerBytesRead),
                         cancellationToken);
 
                     if (read == 0)
@@ -209,8 +219,10 @@ public class SocketClient : IDisposable
 
                 // 헤더 파싱
                 var flags = (PacketFlags)headerBuffer[0];
-                var messageType = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(1, 2));
-                var bodyLength = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(3, 2));
+                var sequence = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(1, 2));
+                var reserved = headerBuffer[3];
+                var messageType = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(4, 2));
+                var bodyLength = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(6, 2));
 
                 // 바디 수신
                 byte[] body;
@@ -240,7 +252,7 @@ public class SocketClient : IDisposable
                 }
 
                 // 메시지 수신 이벤트 발생
-                MessageReceived?.Invoke(this, new MessageReceivedEventArgs(flags, messageType, body));
+                MessageReceived?.Invoke(this, new MessageReceivedEventArgs(flags, sequence, reserved, messageType, body));
             }
         }
         catch (OperationCanceledException)

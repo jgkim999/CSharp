@@ -11,6 +11,8 @@ namespace Demo.SimpleSocketClient.Services;
 public class MessageReceivedEventArgs : EventArgs
 {
     public PacketFlags Flags { get; }
+    public ushort Sequence { get; }
+    public byte Reserved { get; }
     public ushort MessageType { get; }
     public byte[] Body { get; }
     public string BodyText => Encoding.UTF8.GetString(Body);
@@ -25,9 +27,11 @@ public class MessageReceivedEventArgs : EventArgs
     /// </summary>
     public bool IsEncrypted => Flags.IsEncrypted();
 
-    public MessageReceivedEventArgs(PacketFlags flags, ushort messageType, byte[] body)
+    public MessageReceivedEventArgs(PacketFlags flags, ushort sequence, byte reserved, ushort messageType, byte[] body)
     {
         Flags = flags;
+        Sequence = sequence;
+        Reserved = reserved;
         MessageType = messageType;
         Body = body;
     }

@@ -4,8 +4,10 @@ namespace Demo.SimpleSocket.SuperSocket;
 
 /// <summary>
 /// 바이너리 패킷 정보
-/// 헤더(5바이트) + 바디로 구성된 패킷
+/// 헤더(8바이트) + 바디로 구성된 패킷
 /// - 1바이트: 플래그 (압축, 암호화 등)
+/// - 2바이트: 시퀀스 번호
+/// - 1바이트: 예약됨 (미래 사용)
 /// - 2바이트: 메시지 타입
 /// - 2바이트: 바디 길이
 /// - 나머지: 바디 데이터
@@ -23,6 +25,18 @@ public class BinaryPackageInfo : IDisposable
     /// 나머지: 예약됨
     /// </summary>
     public PacketFlags Flags { get; set; }
+
+    /// <summary>
+    /// 시퀀스 번호 (2바이트)
+    /// 패킷 순서 추적용
+    /// </summary>
+    public ushort Sequence { get; set; }
+
+    /// <summary>
+    /// 예약 필드 (1바이트)
+    /// 미래 확장을 위해 예약됨
+    /// </summary>
+    public byte Reserved { get; set; }
 
     /// <summary>
     /// 메시지 타입 (2바이트)
