@@ -7,6 +7,7 @@ namespace Demo.SimpleSocket.SuperSocket;
 /// <summary>
 /// 고정 헤더 파이프라인 필터
 /// 패킷 구조:
+/// - 1바이트: 플래그 (압축, 암호화 등)
 /// - 2바이트: 메시지 타입 (ushort, BigEndian)
 /// - 2바이트: 바디 길이 (ushort, BigEndian)
 /// - N바이트: 바디 데이터
@@ -15,30 +16,31 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
 {
     /// <summary>
     /// 생성자
-    /// 헤더 크기는 4바이트 (메시지 타입 2바이트 + 바디 길이 2바이트)
+    /// 헤더 크기는 5바이트 (플래그 1바이트 + 메시지 타입 2바이트 + 바디 길이 2바이트)
     /// </summary>
-    public FixedHeaderPipelineFilter() : base(4)
+    public FixedHeaderPipelineFilter() : base(5)
     {
     }
 
     /// <summary>
     /// 헤더에서 바디 길이를 추출합니다
     /// </summary>
-    /// <param name="buffer">헤더 버퍼 (4바이트)</param>
+    /// <param name="buffer">헤더 버퍼 (5바이트)</param>
     /// <returns>바디 길이</returns>
     protected override int GetBodyLengthFromHeader(ref ReadOnlySequence<byte> buffer)
     {
         // 단일 세그먼트인 경우 fast path 사용 (대부분의 경우)
         if (buffer.IsSingleSegment)
         {
-            return BinaryPrimitives.ReadUInt16BigEndian(buffer.FirstSpan.Slice(2, 2));
+            // 플래그(1바이트) + 메시지 타입(2바이트) 건너뛰고 바디 길이(2바이트) 읽기
+            return BinaryPrimitives.ReadUInt16BigEndian(buffer.FirstSpan.Slice(3, 2));
         }
 
         // 여러 세그먼트인 경우 (드문 경우)
         var reader = new SequenceReader<byte>(buffer);
 
-        // 처음 2바이트(메시지 타입)는 건너뜀
-        reader.Advance(2);
+        // 플래그(1바이트) + 메시지 타입(2바이트) 건너뜀
+        reader.Advance(3);
 
         // 다음 2바이트에서 바디 길이를 읽음 (BigEndian)
         Span<byte> lengthBytes = stackalloc byte[2];
@@ -54,6 +56,7 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
     /// <returns>디코딩된 패킷 정보</returns>
     protected override BinaryPackageInfo DecodePackage(ref ReadOnlySequence<byte> buffer)
     {
+        PacketFlags flags;
         ushort messageType;
         ushort bodyLength;
 
@@ -64,17 +67,20 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
         {
             var span = buffer.FirstSpan;
 
-            // 메시지 타입 읽기 (처음 2바이트) - stackalloc 없이 직접 읽기
-            messageType = BinaryPrimitives.ReadUInt16BigEndian(span);
+            // 플래그 읽기 (처음 1바이트)
+            flags = (PacketFlags)span[0];
+
+            // 메시지 타입 읽기 (다음 2바이트) - stackalloc 없이 직접 읽기
+            messageType = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(1, 2));
 
             // 바디 길이 읽기 (다음 2바이트)
-            bodyLength = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(2, 2));
+            bodyLength = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(3, 2));
 
             // 바디 데이터 - ArrayPool에서 빌려서 복사
             if (bodyLength > 0)
             {
                 packageInfo.RentBody(bodyLength);
-                span.Slice(4, bodyLength).CopyTo(packageInfo.Body);
+                span.Slice(5, bodyLength).CopyTo(packageInfo.Body);
             }
             else
             {
@@ -85,6 +91,10 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
         {
             // 버퍼가 여러 세그먼트인 경우 (드문 경우)
             var reader = new SequenceReader<byte>(buffer);
+
+            // 플래그 읽기
+            reader.TryRead(out byte flagsByte);
+            flags = (PacketFlags)flagsByte;
 
             // 메시지 타입 읽기
             Span<byte> messageTypeBytes = stackalloc byte[2];
@@ -110,6 +120,7 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
             }
         }
 
+        packageInfo.Flags = flags;
         packageInfo.MessageType = messageType;
         packageInfo.BodyLength = bodyLength;
 

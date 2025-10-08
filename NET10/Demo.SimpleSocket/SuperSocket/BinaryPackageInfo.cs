@@ -4,9 +4,10 @@ namespace Demo.SimpleSocket.SuperSocket;
 
 /// <summary>
 /// 바이너리 패킷 정보
-/// 헤더(4바이트) + 바디로 구성된 패킷
-/// - 처음 2바이트: 메시지 타입
-/// - 다음 2바이트: 바디 길이
+/// 헤더(5바이트) + 바디로 구성된 패킷
+/// - 1바이트: 플래그 (압축, 암호화 등)
+/// - 2바이트: 메시지 타입
+/// - 2바이트: 바디 길이
 /// - 나머지: 바디 데이터
 /// </summary>
 public class BinaryPackageInfo : IDisposable
@@ -14,6 +15,14 @@ public class BinaryPackageInfo : IDisposable
     private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Shared;
     private byte[]? _rentedArray;
     private bool _disposed;
+
+    /// <summary>
+    /// 패킷 플래그 (1바이트)
+    /// 1번째 비트: 압축 여부
+    /// 2번째 비트: 암호화 여부
+    /// 나머지: 예약됨
+    /// </summary>
+    public PacketFlags Flags { get; set; }
 
     /// <summary>
     /// 메시지 타입 (2바이트)

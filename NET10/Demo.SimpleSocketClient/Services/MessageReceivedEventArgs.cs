@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using Demo.SimpleSocket.SuperSocket;
 using MessagePack;
 
 namespace Demo.SimpleSocketClient.Services;
@@ -9,12 +10,24 @@ namespace Demo.SimpleSocketClient.Services;
 /// </summary>
 public class MessageReceivedEventArgs : EventArgs
 {
+    public PacketFlags Flags { get; }
     public ushort MessageType { get; }
     public byte[] Body { get; }
     public string BodyText => Encoding.UTF8.GetString(Body);
 
-    public MessageReceivedEventArgs(ushort messageType, byte[] body)
+    /// <summary>
+    /// 압축 여부
+    /// </summary>
+    public bool IsCompressed => Flags.IsCompressed();
+
+    /// <summary>
+    /// 암호화 여부
+    /// </summary>
+    public bool IsEncrypted => Flags.IsEncrypted();
+
+    public MessageReceivedEventArgs(PacketFlags flags, ushort messageType, byte[] body)
     {
+        Flags = flags;
         MessageType = messageType;
         Body = body;
     }

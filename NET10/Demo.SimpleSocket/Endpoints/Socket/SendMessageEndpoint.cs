@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Net.Sockets;
+using Demo.SimpleSocket.SuperSocket;
 using FastEndpoints;
 
 namespace Demo.SimpleSocket.Endpoints.Socket;
@@ -59,20 +60,23 @@ public class SendMessageEndpoint : Endpoint<SendMessageRequest, SendMessageRespo
                 return;
             }
 
-            // 패킷 구성: MessageType(2) + BodyLength(2) + Body
+            // 패킷 구성: Flags(1) + MessageType(2) + BodyLength(2) + Body
             ushort bodyLength = (ushort)messageBody.Length;
-            byte[] packet = new byte[4 + bodyLength];
+            byte[] packet = new byte[5 + bodyLength];
 
-            // MessageType을 BigEndian으로 쓰기
-            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(0, 2), req.MessageType);
+            // Flags 쓰기 (1바이트) - 기본값 None
+            packet[0] = (byte)PacketFlags.None;
 
-            // BodyLength를 BigEndian으로 쓰기
-            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(2, 2), bodyLength);
+            // MessageType을 BigEndian으로 쓰기 (2바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), req.MessageType);
+
+            // BodyLength를 BigEndian으로 쓰기 (2바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(3, 2), bodyLength);
 
             // Body 복사
             if (bodyLength > 0)
             {
-                Array.Copy(messageBody, 0, packet, 4, bodyLength);
+                Array.Copy(messageBody, 0, packet, 5, bodyLength);
             }
 
             // TCP 연결 및 메시지 전송
@@ -90,11 +94,11 @@ public class SendMessageEndpoint : Endpoint<SendMessageRequest, SendMessageRespo
 
             await using var stream = client.GetStream();
 
-            // 연결 성공 패킷 수신 (MessageType: 0xFFFF, BodyLength: 0)
-            byte[] connectHeaderBuffer = new byte[4];
+            // 연결 성공 패킷 수신 (5바이트 헤더)
+            byte[] connectHeaderBuffer = new byte[5];
             int connectBytesRead = await stream.ReadAsync(connectHeaderBuffer, ct);
 
-            if (connectBytesRead < 4)
+            if (connectBytesRead < 5)
             {
                 HttpContext.Response.StatusCode = 500;
                 Response = new SendMessageResponse
@@ -105,8 +109,10 @@ public class SendMessageEndpoint : Endpoint<SendMessageRequest, SendMessageRespo
                 return;
             }
 
-            ushort connectMessageType = BinaryPrimitives.ReadUInt16BigEndian(connectHeaderBuffer.AsSpan(0, 2));
-            _logger.LogInformation("Received connection packet - MessageType: {MessageType}", connectMessageType);
+            var connectFlags = (PacketFlags)connectHeaderBuffer[0];
+            ushort connectMessageType = BinaryPrimitives.ReadUInt16BigEndian(connectHeaderBuffer.AsSpan(1, 2));
+            _logger.LogInformation("Received connection packet - Flags: {Flags}, MessageType: {MessageType}",
+                connectFlags, connectMessageType);
 
             // 패킷 전송
             await stream.WriteAsync(packet, ct);
@@ -114,11 +120,11 @@ public class SendMessageEndpoint : Endpoint<SendMessageRequest, SendMessageRespo
                 "Sent packet - MessageType: {MessageType}, BodyLength: {BodyLength}",
                 req.MessageType, bodyLength);
 
-            // ECHO 응답 수신 (헤더 4바이트)
-            byte[] headerBuffer = new byte[4];
+            // ECHO 응답 수신 (헤더 5바이트)
+            byte[] headerBuffer = new byte[5];
             int headerBytesRead = await stream.ReadAsync(headerBuffer, ct);
 
-            if (headerBytesRead < 4)
+            if (headerBytesRead < 5)
             {
                 HttpContext.Response.StatusCode = 500;
                 Response = new SendMessageResponse
@@ -130,12 +136,13 @@ public class SendMessageEndpoint : Endpoint<SendMessageRequest, SendMessageRespo
             }
 
             // 헤더 파싱
-            ushort responseMessageType = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(0, 2));
-            ushort responseBodyLength = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(2, 2));
+            var responseFlags = (PacketFlags)headerBuffer[0];
+            ushort responseMessageType = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(1, 2));
+            ushort responseBodyLength = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(3, 2));
 
             _logger.LogInformation(
-                "Received response header - MessageType: {MessageType}, BodyLength: {BodyLength}",
-                responseMessageType, responseBodyLength);
+                "Received response header - Flags: {Flags}, MessageType: {MessageType}, BodyLength: {BodyLength}",
+                responseFlags, responseMessageType, responseBodyLength);
 
             // 바디 수신
             byte[] bodyBuffer = new byte[responseBodyLength];
