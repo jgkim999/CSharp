@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Demo.SimpleSocket.SuperSocket;
+using Demo.Application.DTO.Socket;
 
 namespace Demo.SimpleSocketClient.Services;
 

@@ -7,8 +7,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Bogus;
+using Demo.Application.DTO.Socket;
 using Demo.Application.Utils;
-using Demo.SimpleSocket.SuperSocket;
 using MessagePack;
 using Microsoft.IO;
 

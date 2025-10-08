@@ -1,4 +1,4 @@
-namespace Demo.SimpleSocket.SuperSocket;
+namespace Demo.Application.DTO.Socket;
 
 /// <summary>
 /// 소켓 메시지 타입 정의
@@ -22,4 +22,7 @@ public enum SocketMessageType : ushort
     /// MsgPackRes 메시지 (서버 -> 클라이언트)
     /// </summary>
     MsgPackResponse = 5,
+    
+    VeryLongReq,
+    VeryLongRes,
 }

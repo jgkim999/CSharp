@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Buffers.Binary;
+using Demo.Application.DTO.Socket;
 using SuperSocket.ProtoBase;
 
 namespace Demo.SimpleSocket.SuperSocket;

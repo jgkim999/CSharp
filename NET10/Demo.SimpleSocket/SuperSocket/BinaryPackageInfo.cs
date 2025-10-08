@@ -1,4 +1,5 @@
 using System.Buffers;
+using Demo.Application.DTO.Socket;
 
 namespace Demo.SimpleSocket.SuperSocket;
 

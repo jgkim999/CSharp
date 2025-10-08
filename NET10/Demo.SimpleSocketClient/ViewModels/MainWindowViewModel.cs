@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Demo.Application.DTO;
 using Demo.Application.DTO.Socket;
-using Demo.SimpleSocket.SuperSocket;
 using Demo.SimpleSocketClient.Services;
 
 namespace Demo.SimpleSocketClient.ViewModels;

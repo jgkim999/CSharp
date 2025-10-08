@@ -1,4 +1,4 @@
-namespace Demo.SimpleSocket.SuperSocket;
+namespace Demo.Application.DTO.Socket;
 
 /// <summary>
 /// 패킷 플래그 (1바이트)

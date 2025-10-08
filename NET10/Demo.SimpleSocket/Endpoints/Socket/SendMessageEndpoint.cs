@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Net.Sockets;
+using Demo.Application.DTO.Socket;
 using Demo.SimpleSocket.SuperSocket;
 using FastEndpoints;
 
