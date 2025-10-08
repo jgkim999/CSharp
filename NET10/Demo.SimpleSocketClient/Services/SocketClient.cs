@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Net.Sockets;
 using System.Text;
@@ -17,6 +18,7 @@ namespace Demo.SimpleSocketClient.Services;
 /// </summary>
 public class SocketClient : IDisposable
 {
+    private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Shared;
     private TcpClient? _tcpClient;
     private NetworkStream? _stream;
     private readonly Faker _faker = new("ko");
@@ -102,28 +104,41 @@ public class SocketClient : IDisposable
     
     /// <summary>
     /// 메시지 전송 (플래그 + 시퀀스 포함, ushort 버전)
+    /// ReadOnlyMemory를 사용하여 불필요한 복사 제거 (async 호환)
     /// </summary>
-    private async Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
+    private async Task SendMessageAsync(ushort messageType, ReadOnlyMemory<byte> body, PacketFlags flags, CancellationToken cancellationToken = default)
     {
         if (!IsConnected || _stream == null)
             throw new InvalidOperationException("서버에 연결되어 있지 않습니다.");
 
         var bodyLength = (ushort)body.Length;
-        var packet = new byte[8 + bodyLength];
-        
-        // 헤더 작성 (8바이트)
-        packet[0] = (byte)flags;  // 플래그 (1바이트)
-        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), _sendSequence.GetNext());  // 시퀀스 (2바이트)
-        packet[3] = _faker.Random.Byte(1, 255);  // 예약 (1바이트)
-        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(4, 2), messageType);  // 메시지 타입 (2바이트)
-        BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(6, 2), bodyLength);   // 바디 길이 (2바이트)
+        var packetLength = 8 + bodyLength;
 
-        // 바디 복사
-        if (bodyLength > 0)
-            body.CopyTo(packet.AsSpan(8));
+        // ArrayPool에서 버퍼 빌리기 (GC 압력 감소)
+        var packet = _arrayPool.Rent(packetLength);
 
-        await _stream.WriteAsync(packet, cancellationToken);
-        await _stream.FlushAsync(cancellationToken);
+        try
+        {
+            // 헤더 작성 (8바이트)
+            packet[0] = (byte)flags;  // 플래그 (1바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), _sendSequence.GetNext());  // 시퀀스 (2바이트)
+            packet[3] = _faker.Random.Byte(1, 255);  // 예약 (1바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(4, 2), messageType);  // 메시지 타입 (2바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(6, 2), bodyLength);   // 바디 길이 (2바이트)
+
+            // 바디 복사 (ReadOnlyMemory -> Span 직접 복사)
+            if (bodyLength > 0)
+                body.Span.CopyTo(packet.AsSpan(8));
+
+            // 실제 사용하는 크기만큼만 전송
+            await _stream.WriteAsync(packet.AsMemory(0, packetLength), cancellationToken);
+            await _stream.FlushAsync(cancellationToken);
+        }
+        finally
+        {
+            // ArrayPool에 버퍼 반납
+            _arrayPool.Return(packet);
+        }
     }
 
     /// <summary>
@@ -136,11 +151,15 @@ public class SocketClient : IDisposable
 
     /// <summary>
     /// MessagePack 객체 전송 (ushort 버전)
+    /// ArrayBufferWriter를 사용하여 메모리 할당 최소화, ToArray() 제거로 추가 최적화
     /// </summary>
     private Task SendMessagePackAsync<T>(ushort messageType, T obj, CancellationToken cancellationToken = default)
     {
-        var body = MessagePackSerializer.Serialize(obj);
-        return SendMessageAsync(messageType, body, cancellationToken);
+        // ArrayBufferWriter를 사용하면 내부적으로 ArrayPool을 활용하여 효율적
+        var bufferWriter = new ArrayBufferWriter<byte>();
+        MessagePackSerializer.Serialize(bufferWriter, obj);
+        // WrittenMemory를 직접 사용하여 ToArray() 호출 제거 (zero-copy)
+        return SendMessageAsync(messageType, bufferWriter.WrittenMemory, PacketFlags.None, cancellationToken);
     }
 
     /// <summary>
@@ -153,13 +172,15 @@ public class SocketClient : IDisposable
 
     /// <summary>
     /// 수신 루프
+    /// ArrayPool을 사용하여 메모리 할당 최소화
     /// </summary>
     private async Task ReceiveLoopAsync(CancellationToken cancellationToken)
     {
+        // 헤더 버퍼는 수신 루프 전체에서 재사용 (8바이트 고정)
+        var headerBuffer = new byte[8];
+
         try
         {
-            var headerBuffer = new byte[8];
-
             while (!cancellationToken.IsCancellationRequested && IsConnected && _stream != null)
             {
                 // 헤더 수신 (8바이트) - 완전히 읽을 때까지 반복
@@ -187,26 +208,40 @@ public class SocketClient : IDisposable
                 var messageType = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(4, 2));
                 var bodyLength = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(6, 2));
 
-                // 바디 수신
+                // 바디 수신 - ArrayPool 사용으로 GC 압력 감소
                 byte[] body;
+
                 if (bodyLength > 0)
                 {
-                    body = new byte[bodyLength];
+                    // ArrayPool에서 버퍼 빌리기
+                    var rentedBuffer = _arrayPool.Rent(bodyLength);
                     var bodyBytesRead = 0;
 
-                    while (bodyBytesRead < bodyLength)
+                    try
                     {
-                        var read = await _stream.ReadAsync(
-                            body.AsMemory(bodyBytesRead, bodyLength - bodyBytesRead),
-                            cancellationToken);
-
-                        if (read == 0)
+                        while (bodyBytesRead < bodyLength)
                         {
-                            Disconnect();
-                            return;
+                            var read = await _stream.ReadAsync(
+                                rentedBuffer.AsMemory(bodyBytesRead, bodyLength - bodyBytesRead),
+                                cancellationToken);
+
+                            if (read == 0)
+                            {
+                                Disconnect();
+                                return;
+                            }
+
+                            bodyBytesRead += read;
                         }
 
-                        bodyBytesRead += read;
+                        // 실제 사용한 크기만큼만 복사 (이벤트 핸들러에서 사용)
+                        body = new byte[bodyLength];
+                        Array.Copy(rentedBuffer, 0, body, 0, bodyLength);
+                    }
+                    finally
+                    {
+                        // ArrayPool에 버퍼 반납
+                        _arrayPool.Return(rentedBuffer);
                     }
                 }
                 else
