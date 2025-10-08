@@ -1,5 +1,7 @@
 using System.Buffers;
 using System.Buffers.Binary;
+using System.IO;
+using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Threading.Channels;
 using Bogus;
@@ -7,6 +9,7 @@ using Demo.Application.DTO.Socket;
 using Demo.Application.Utils;
 using Demo.SimpleSocket.SuperSocket.Handlers;
 using MessagePack;
+using Microsoft.IO;
 using SuperSocket.Connection;
 using SuperSocket.ProtoBase;
 using SuperSocket.Server;
@@ -15,6 +18,9 @@ namespace Demo.SimpleSocket.SuperSocket;
 
 public class DemoSession : AppSession, IDisposable
 {
+    private static readonly RecyclableMemoryStreamManager _memoryStreamManager = new();
+    private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Shared;
+
     private readonly ILogger<DemoSession> _logger;
     private readonly ClientSocketMessageHandler _messageHandler;
     private readonly CancellationTokenSource _cts = new();
@@ -128,23 +134,45 @@ public class DemoSession : AppSession, IDisposable
         ArrayBufferWriter<byte> bufferWriter = new();
         MessagePackSerializer.Serialize(bufferWriter, msgPack);
         ReadOnlyMemory<byte> bodyMemory = bufferWriter.WrittenMemory;
-        ushort bodyLength = (ushort)bodyMemory.Length;
-        await Connection.SendAsync(
-            (writer) =>
-            {
-                var headerSpan = writer.GetSpan(8);
-                headerSpan[0] = (byte)flags;  // 플래그 (1바이트)
-                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), _seqGenerator.GetNext());  // 시퀀스 (2바이트)
-                headerSpan[3] = _faker.Random.Byte();  // 예약 (1바이트)
-                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), (ushort)messageType);  // 메시지 타입 (2바이트)
-                BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);  // 바디 길이 (2바이트)
-                writer.Advance(8);
 
-                // 바디 작성 - 직접 PipeWriter에 쓰기 (복사 1번만)
-                var bodySpan = writer.GetSpan(bodyLength);
-                bodyMemory.Span.CopyTo(bodySpan);
-                writer.Advance(bodyMemory.Length);
-            }, _cts.Token);
+        // 512바이트 이상이면 압축 수행
+        byte[]? compressedBuffer = null;
+        int compressedLength = 0;
+        if (bodyMemory.Length > 512)
+        {
+            (compressedBuffer, compressedLength) = CompressData(bodyMemory.Span);
+            bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
+            flags |= PacketFlags.Compressed;  // 압축 플래그 설정
+        }
+
+        try
+        {
+            ushort bodyLength = (ushort)bodyMemory.Length;
+            await Connection.SendAsync(
+                (writer) =>
+                {
+                    var headerSpan = writer.GetSpan(8);
+                    headerSpan[0] = (byte)flags;  // 플래그 (1바이트)
+                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), _seqGenerator.GetNext());  // 시퀀스 (2바이트)
+                    headerSpan[3] = _faker.Random.Byte();  // 예약 (1바이트)
+                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), (ushort)messageType);  // 메시지 타입 (2바이트)
+                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);  // 바디 길이 (2바이트)
+                    writer.Advance(8);
+
+                    // 바디 작성 - 직접 PipeWriter에 쓰기 (복사 1번만)
+                    var bodySpan = writer.GetSpan(bodyLength);
+                    bodyMemory.Span.CopyTo(bodySpan);
+                    writer.Advance(bodyMemory.Length);
+                }, _cts.Token);
+        }
+        finally
+        {
+            // 압축 버퍼 해제
+            if (compressedBuffer != null)
+            {
+                _arrayPool.Return(compressedBuffer);
+            }
+        }
     }
 
     /// <summary>Sends binary data to the client asynchronously.</summary>
@@ -436,5 +464,40 @@ public class DemoSession : AppSession, IDisposable
     {
         _lastPongUtc = utcNow;
         _rttMs = rttMs;
+    }
+
+    /// <summary>
+    /// GZip을 사용하여 데이터 압축
+    /// RecyclableMemoryStream을 사용하여 메모리 할당 최소화
+    /// </summary>
+    /// <returns>(압축된 버퍼, 실제 압축 데이터 길이)</returns>
+    private static (byte[] Buffer, int Length) CompressData(ReadOnlySpan<byte> data)
+    {
+        using var output = _memoryStreamManager.GetStream("DemoSession-Compress");
+        using (var gzip = new GZipStream(output, CompressionLevel.Fastest, leaveOpen: true))
+        {
+            gzip.Write(data);
+        }
+
+        // RecyclableMemoryStream에서 버퍼를 가져와 ArrayPool 버퍼로 복사
+        var compressedLength = (int)output.Length;
+        var result = _arrayPool.Rent(compressedLength);
+        output.Position = 0;
+        output.ReadExactly(result.AsSpan(0, compressedLength));
+        return (result, compressedLength);
+    }
+
+    /// <summary>
+    /// GZip으로 압축된 데이터 압축 해제
+    /// RecyclableMemoryStream을 사용하여 메모리 할당 최소화
+    /// </summary>
+    private static byte[] DecompressData(ReadOnlySpan<byte> compressedData)
+    {
+        using var input = _memoryStreamManager.GetStream("DemoSession-Decompress-Input", compressedData);
+        using var gzip = new GZipStream(input, CompressionMode.Decompress);
+        using var output = _memoryStreamManager.GetStream("DemoSession-Decompress-Output");
+
+        gzip.CopyTo(output);
+        return output.ToArray();
     }
 }
