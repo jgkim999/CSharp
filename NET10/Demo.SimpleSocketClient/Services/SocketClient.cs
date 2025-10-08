@@ -160,15 +160,7 @@ public class SocketClient : IDisposable
         // WrittenMemory를 직접 사용하여 ToArray() 호출 제거 (zero-copy)
         return SendMessageAsync(messageType, bufferWriter.WrittenMemory, PacketFlags.None, cancellationToken);
     }
-
-    /// <summary>
-    /// 메시지 전송 (ushort 버전)
-    /// </summary>
-    private Task SendMessageAsync(ushort messageType, byte[] body, CancellationToken cancellationToken = default)
-    {
-        return SendMessageAsync(messageType, body, PacketFlags.None, cancellationToken);
-    }
-
+    
     /// <summary>
     /// 수신 루프
     /// ArrayPool을 사용하여 메모리 할당 최소화
