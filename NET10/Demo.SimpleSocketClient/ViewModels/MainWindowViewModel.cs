@@ -26,13 +26,7 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 
     [ObservableProperty]
     private string _statusMessage = "연결 안 됨";
-
-    [ObservableProperty]
-    private string _messageToSend = string.Empty;
-
-    [ObservableProperty]
-    private ushort _messageType = 1;
-
+    
     [ObservableProperty]
     private string _msgPackName = string.Empty;
 
@@ -163,24 +157,6 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         {
             StatusMessage = $"연결 해제 실패: {ex.Message}";
             AddReceivedMessage($"[오류] 연결 해제 실패: {ex.Message}");
-        }
-    }
-
-    [RelayCommand]
-    private async Task SendMessageAsync()
-    {
-        if (!IsConnected || string.IsNullOrWhiteSpace(MessageToSend))
-            return;
-
-        try
-        {
-            await _socketClient.SendTextMessageAsync(MessageType, MessageToSend);
-            AddReceivedMessage($"[전송] Type:{MessageType}, Message: {MessageToSend}");
-            MessageToSend = string.Empty;
-        }
-        catch (Exception ex)
-        {
-            AddReceivedMessage($"[오류] 전송 실패: {ex.Message}");
         }
     }
 

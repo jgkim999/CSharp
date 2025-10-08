@@ -20,7 +20,7 @@ public class SocketClient : IDisposable
     private TcpClient? _tcpClient;
     private NetworkStream? _stream;
     private readonly Faker _faker = new("ko");
-    private SequenceGenerator _sendSequence = new();
+    private readonly SequenceGenerator _sendSequence = new();
     private CancellationTokenSource? _receiveCts;
     private bool _disposed;
 
@@ -148,23 +148,6 @@ public class SocketClient : IDisposable
 
         await _stream.WriteAsync(packet, cancellationToken);
         await _stream.FlushAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// 텍스트 메시지 전송 (UTF-8, enum 버전)
-    /// </summary>
-    public Task SendTextMessageAsync(SocketMessageType messageType, string text, CancellationToken cancellationToken = default)
-    {
-        return SendTextMessageAsync((ushort)messageType, text, cancellationToken);
-    }
-
-    /// <summary>
-    /// 텍스트 메시지 전송 (UTF-8, ushort 버전)
-    /// </summary>
-    public Task SendTextMessageAsync(ushort messageType, string text, CancellationToken cancellationToken = default)
-    {
-        var body = Encoding.UTF8.GetBytes(text);
-        return SendMessageAsync(messageType, body, cancellationToken);
     }
 
     /// <summary>

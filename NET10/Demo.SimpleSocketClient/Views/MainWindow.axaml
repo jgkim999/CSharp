@@ -132,44 +132,6 @@
                 Padding="15"
                 Margin="0,15,0,0">
             <Grid RowDefinitions="Auto,10,Auto">
-
-                <!-- 텍스트 메시지 전송 -->
-                <Grid Grid.Row="0" ColumnDefinitions="Auto,100,Auto,*,Auto">
-                    <!-- 메시지 타입 -->
-                    <TextBlock Grid.Column="0"
-                               Text="메시지 타입:"
-                               VerticalAlignment="Center"
-                               Margin="0,0,10,0"/>
-                    <TextBox Grid.Column="1"
-                             Text="{Binding MessageType}"
-                             IsEnabled="{Binding IsConnected}"
-                             Watermark="1"/>
-
-                    <!-- 메시지 입력 -->
-                    <TextBlock Grid.Column="2"
-                               Text="메시지:"
-                               VerticalAlignment="Center"
-                               Margin="20,0,10,0"/>
-                    <TextBox Grid.Column="3"
-                             Text="{Binding MessageToSend}"
-                             IsEnabled="{Binding IsConnected}"
-                             Watermark="전송할 메시지를 입력하세요..."
-                             AcceptsReturn="False">
-                        <TextBox.KeyBindings>
-                            <KeyBinding Gesture="Enter" Command="{Binding SendMessageCommand}"/>
-                        </TextBox.KeyBindings>
-                    </TextBox>
-
-                    <!-- 전송 버튼 -->
-                    <Button Grid.Column="4"
-                            Content="전송"
-                            Command="{Binding SendMessageCommand}"
-                            IsEnabled="{Binding IsConnected}"
-                            Margin="10,0,0,0"
-                            Width="100"
-                            Classes="accent"/>
-                </Grid>
-
                 <!-- MessagePack 전송 -->
                 <Grid Grid.Row="2" ColumnDefinitions="Auto,150,Auto,*,Auto">
                     <!-- Name 입력 -->
