@@ -299,16 +299,17 @@ public class SocketClient : IDisposable
                         }
 
                         // 수신 데이터 처리: 암호화 → 압축 → 원본 순서로 복원
-                        byte[]? decryptedData = null;
+                        byte[]? decryptedBuffer = null;
+                        int decryptedLength = 0;
                         ReadOnlySpan<byte> processedData = rentedBuffer.AsSpan(0, bodyLength);
 
                         try
                         {
-                            // 1단계: 암호화된 데이터인 경우 먼저 복호화
+                            // 1단계: 암호화된 데이터인 경우 먼저 복호화 (ArrayPool 사용)
                             if (flags.IsEncrypted())
                             {
-                                decryptedData = DecryptData(processedData);
-                                processedData = decryptedData.AsSpan();
+                                (decryptedBuffer, decryptedLength) = DecryptDataToPool(processedData);
+                                processedData = decryptedBuffer.AsSpan(0, decryptedLength);
                             }
 
                             // 2단계: 압축된 데이터인 경우 압축 해제
@@ -325,7 +326,11 @@ public class SocketClient : IDisposable
                         }
                         finally
                         {
-                            decryptedData = null;
+                            // ArrayPool 버퍼 반환
+                            if (decryptedBuffer != null)
+                            {
+                                _arrayPool.Return(decryptedBuffer);
+                            }
                         }
                     }
                     finally
@@ -383,6 +388,7 @@ public class SocketClient : IDisposable
 
         byte[]? compressedBuffer = null;
         byte[]? encryptedBuffer = null;
+        int encryptedLength = 0;
         PacketFlags flags = PacketFlags.None;
 
         try
@@ -399,7 +405,7 @@ public class SocketClient : IDisposable
                 Console.WriteLine($"[클라이언트 압축] 원본: {originalSize} 바이트 → 압축: {compressedLength} 바이트 ({compressedLength * 100.0 / originalSize:F1}%)");
             }
 
-            // 2단계: 암호화 (encrypt=true이면 암호화)
+            // 2단계: 암호화 (encrypt=true이면 암호화) - ArrayPool 사용
             if (encrypt)
             {
                 if (_aesKey.Length == 0 || _aesIV.Length == 0)
@@ -408,10 +414,10 @@ public class SocketClient : IDisposable
                 }
 
                 var originalSize = bodyMemory.Length;
-                encryptedBuffer = AesHelper.Encrypt(bodyMemory.Span, _aesKey, _aesIV);
-                Console.WriteLine($"[클라이언트 암호화] 원본: {originalSize} 바이트 → 암호화: {encryptedBuffer.Length} 바이트");
-                bodyMemory = encryptedBuffer.AsMemory();
+                (encryptedBuffer, encryptedLength) = AesHelper.EncryptToPool(bodyMemory.Span, _aesKey, _aesIV);
+                bodyMemory = encryptedBuffer.AsMemory(0, encryptedLength);
                 flags = flags.SetEncrypted(true);
+                Console.WriteLine($"[클라이언트 암호화] 원본: {originalSize} 바이트 → 암호화: {encryptedLength} 바이트");
             }
 
             await SendMessageAsync(messageType, bodyMemory, flags, cancellationToken);
@@ -422,24 +428,29 @@ public class SocketClient : IDisposable
             {
                 _arrayPool.Return(compressedBuffer);
             }
-            // 암호화 버퍼가 heap 할당된 경우 null로 설정하여 GC가 회수하도록 함
-            encryptedBuffer = null;
+            // 암호화 버퍼 ArrayPool 반환
+            if (encryptedBuffer != null)
+            {
+                _arrayPool.Return(encryptedBuffer);
+            }
         }
     }
 
     /// <summary>
-    /// 데이터 복호화
+    /// 데이터 복호화 (ArrayPool 사용 - 최적화 버전)
+    /// 반환된 버퍼는 반드시 ArrayPool에 반환해야 함
     /// </summary>
-    private byte[] DecryptData(ReadOnlySpan<byte> encryptedData)
+    /// <returns>(복호화된 버퍼, 실제 데이터 길이)</returns>
+    private (byte[] Buffer, int Length) DecryptDataToPool(ReadOnlySpan<byte> encryptedData)
     {
         if (_aesKey.Length == 0 || _aesIV.Length == 0)
         {
             throw new InvalidOperationException("AES Key/IV가 설정되지 않았습니다.");
         }
 
-        var decrypted = AesHelper.Decrypt(encryptedData, _aesKey, _aesIV);
-        Console.WriteLine($"[클라이언트 복호화] 암호화: {encryptedData.Length} 바이트 → 원본: {decrypted.Length} 바이트");
-        return decrypted;
+        var (buffer, length) = AesHelper.DecryptToPool(encryptedData, _aesKey, _aesIV);
+        Console.WriteLine($"[클라이언트 복호화] 암호화: {encryptedData.Length} 바이트 → 원본: {length} 바이트");
+        return (buffer, length);
     }
 
     public void Dispose()

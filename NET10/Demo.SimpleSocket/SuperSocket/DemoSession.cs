@@ -139,6 +139,7 @@ public class DemoSession : AppSession, IDisposable
 
         byte[]? compressedBuffer = null;
         byte[]? encryptedBuffer = null;
+        int encryptedLength = 0;
 
         try
         {
@@ -159,11 +160,11 @@ public class DemoSession : AppSession, IDisposable
             if (encrypt)
             {
                 var originalSize = bodyMemory.Length;
-                encryptedBuffer = EncryptData(bodyMemory.Span);
-                bodyMemory = encryptedBuffer.AsMemory();
+                (encryptedBuffer, encryptedLength) = AesHelper.EncryptToPool(bodyMemory.Span, _aesKey, _aesIV);
+                bodyMemory = encryptedBuffer.AsMemory(0, encryptedLength);
                 flags = flags.SetEncrypted(true);
                 _logger.LogInformation("[서버 암호화] 원본: {OriginalSize} 바이트 → 암호화: {EncryptedSize} 바이트",
-                    originalSize, encryptedBuffer.Length);
+                    originalSize, encryptedLength);
             }
 
             ushort bodyLength = (ushort)bodyMemory.Length;
@@ -189,8 +190,11 @@ public class DemoSession : AppSession, IDisposable
             {
                 _arrayPool.Return(compressedBuffer);
             }
-            // 암호화 버퍼가 heap 할당된 경우 null로 설정하여 GC가 회수하도록 함
-            encryptedBuffer = null;
+            // 암호화 버퍼 ArrayPool 반환
+            if (encryptedBuffer != null)
+            {
+                _arrayPool.Return(encryptedBuffer);
+            }
         }
     }
 
@@ -495,35 +499,21 @@ public class DemoSession : AppSession, IDisposable
     }
 
     /// <summary>
-    /// 데이터 암호화
+    /// 데이터 복호화 (ArrayPool 사용 - 최적화 버전)
+    /// 반환된 배열은 반드시 ArrayPool에 반환해야 함
     /// </summary>
-    private byte[] EncryptData(ReadOnlySpan<byte> data)
+    /// <returns>(복호화된 버퍼, 실제 데이터 길이)</returns>
+    public (byte[] Buffer, int Length) DecryptDataToPool(ReadOnlySpan<byte> encryptedData)
     {
         if (_aesKey.Length == 0 || _aesIV.Length == 0)
         {
             throw new InvalidOperationException("AES Key/IV가 설정되지 않았습니다.");
         }
 
-        var encrypted = AesHelper.Encrypt(data, _aesKey, _aesIV);
-        _logger.LogInformation("[서버 암호화] 원본: {OriginalSize} 바이트 → 암호화: {EncryptedSize} 바이트",
-            data.Length, encrypted.Length);
-        return encrypted;
-    }
-
-    /// <summary>
-    /// 데이터 복호화
-    /// </summary>
-    public byte[] DecryptData(ReadOnlySpan<byte> encryptedData)
-    {
-        if (_aesKey.Length == 0 || _aesIV.Length == 0)
-        {
-            throw new InvalidOperationException("AES Key/IV가 설정되지 않았습니다.");
-        }
-
-        var decrypted = AesHelper.Decrypt(encryptedData, _aesKey, _aesIV);
+        var (buffer, length) = AesHelper.DecryptToPool(encryptedData, _aesKey, _aesIV);
         _logger.LogInformation("[서버 복호화] 암호화: {EncryptedSize} 바이트 → 원본: {DecryptedSize} 바이트",
-            encryptedData.Length, decrypted.Length);
-        return decrypted;
+            encryptedData.Length, length);
+        return (buffer, length);
     }
 
     /// <summary>

@@ -128,21 +128,22 @@ public class ClientSocketMessageHandler
         try
         {
             ReadOnlyMemory<byte> bodyMemory = package.Body.AsMemory(0, package.BodyLength);
-            byte[]? decryptedData = null;
+            byte[]? decryptedBuffer = null;
             byte[]? decompressedData = null;
+            int decryptedLength = 0;
 
             _logger.LogInformation("[서버 수신] MessageType: {MessageType}, BodyLength: {BodyLength}, Flags: {Flags}, IsEncrypted: {IsEncrypted}, IsCompressed: {IsCompressed}",
                 package.MessageType, package.BodyLength, package.Flags, package.Flags.IsEncrypted(), package.Flags.IsCompressed());
 
             try
             {
-                // 1단계: 암호화된 데이터인 경우 먼저 복호화
+                // 1단계: 암호화된 데이터인 경우 먼저 복호화 (ArrayPool 사용)
                 if (package.Flags.IsEncrypted())
                 {
                     _logger.LogInformation("[서버 복호화 시작] BodyLength: {BodyLength}", bodyMemory.Length);
-                    decryptedData = session.DecryptData(bodyMemory.Span);
-                    bodyMemory = decryptedData.AsMemory();
-                    _logger.LogInformation("[서버 복호화 완료] DecryptedLength: {DecryptedLength}", bodyMemory.Length);
+                    (decryptedBuffer, decryptedLength) = session.DecryptDataToPool(bodyMemory.Span);
+                    bodyMemory = decryptedBuffer.AsMemory(0, decryptedLength);
+                    _logger.LogInformation("[서버 복호화 완료] DecryptedLength: {DecryptedLength}", decryptedLength);
                 }
 
                 // 2단계: 압축된 데이터인 경우 압축 해제
@@ -162,8 +163,12 @@ public class ClientSocketMessageHandler
             }
             finally
             {
-                // 할당된 데이터 해제 (GC에 맡김)
-                decryptedData = null;
+                // ArrayPool 버퍼 반환
+                if (decryptedBuffer != null)
+                {
+                    System.Buffers.ArrayPool<byte>.Shared.Return(decryptedBuffer);
+                }
+                // 압축 해제 데이터는 GC에 맡김 (DecompressData가 ToArray() 사용)
                 decompressedData = null;
             }
         }
