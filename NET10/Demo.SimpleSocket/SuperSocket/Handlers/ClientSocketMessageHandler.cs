@@ -7,7 +7,7 @@ namespace Demo.SimpleSocket.SuperSocket.Handlers;
 /// <summary>
 /// MessageType별로 메시지 처리 핸들러를 등록하고 실행하는 클래스
 /// </summary>
-public class ClientSocketMessageHandler
+public class ClientSocketMessageHandler : IClientSocketMessageHandler
 {
     private readonly ConcurrentDictionary<ushort, Func<BinaryPackageInfo, string, Task>> _handlers = new();
     private readonly ILogger<ClientSocketMessageHandler> _logger;

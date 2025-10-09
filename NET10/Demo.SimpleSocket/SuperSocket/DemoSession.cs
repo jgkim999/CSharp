@@ -18,11 +18,11 @@ namespace Demo.SimpleSocket.SuperSocket;
 
 public class DemoSession : AppSession, IDisposable
 {
-    private static readonly RecyclableMemoryStreamManager _memoryStreamManager = new();
-    private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Shared;
+    private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
+    private static readonly ArrayPool<byte> ArrayPool = ArrayPool<byte>.Shared;
 
     private readonly ILogger<DemoSession> _logger;
-    private readonly ClientSocketMessageHandler _messageHandler;
+    private readonly IClientSocketMessageHandler _messageHandler;
     private readonly ILogger<AesSessionEncryption> _encryptionLogger;
     private readonly CancellationTokenSource _cts = new();
     private readonly Channel<BinaryPackageInfo> _receiveChannel = Channel.CreateUnbounded<BinaryPackageInfo>();
@@ -57,7 +57,7 @@ public class DemoSession : AppSession, IDisposable
     /// </summary>
     public bool IsDisposed => _disposed;
 
-    public DemoSession(ILogger<DemoSession> logger, ClientSocketMessageHandler messageHandler, ILogger<AesSessionEncryption> encryptionLogger)
+    public DemoSession(ILogger<DemoSession> logger, IClientSocketMessageHandler messageHandler, ILogger<AesSessionEncryption> encryptionLogger)
     {
         _logger = logger;
         _messageHandler = messageHandler;
@@ -170,7 +170,7 @@ public class DemoSession : AppSession, IDisposable
                     throw new InvalidOperationException("암호화가 초기화되지 않았습니다. GenerateAndSetEncryption()를 먼저 호출하세요.");
                 }
 
-                (encryptedBuffer, encryptedLength) = _encryption.Encrypt(bodyMemory.Span, _arrayPool);
+                (encryptedBuffer, encryptedLength) = _encryption.Encrypt(bodyMemory.Span, ArrayPool);
                 bodyMemory = encryptedBuffer.AsMemory(0, encryptedLength);
                 flags = flags.SetEncrypted(true);
             }
@@ -196,12 +196,12 @@ public class DemoSession : AppSession, IDisposable
         {
             if (compressedBuffer != null)
             {
-                _arrayPool.Return(compressedBuffer);
+                ArrayPool.Return(compressedBuffer);
             }
             // 암호화 버퍼 ArrayPool 반환
             if (encryptedBuffer != null)
             {
-                _arrayPool.Return(encryptedBuffer);
+                ArrayPool.Return(encryptedBuffer);
             }
         }
     }
@@ -537,7 +537,7 @@ public class DemoSession : AppSession, IDisposable
             throw new InvalidOperationException("암호화가 초기화되지 않았습니다.");
         }
 
-        return _encryption.Decrypt(encryptedData, _arrayPool);
+        return _encryption.Decrypt(encryptedData, ArrayPool);
     }
 
     /// <summary>
@@ -547,7 +547,7 @@ public class DemoSession : AppSession, IDisposable
     /// <returns>(압축된 버퍼, 실제 압축 데이터 길이)</returns>
     private static (byte[] Buffer, int Length) CompressData(ReadOnlySpan<byte> data)
     {
-        using var output = _memoryStreamManager.GetStream("DemoSession-Compress");
+        using var output = MemoryStreamManager.GetStream("DemoSession-Compress");
         using (var gzip = new GZipStream(output, CompressionLevel.Fastest, leaveOpen: true))
         {
             gzip.Write(data);
@@ -555,7 +555,7 @@ public class DemoSession : AppSession, IDisposable
 
         // RecyclableMemoryStream에서 버퍼를 가져와 ArrayPool 버퍼로 복사
         var compressedLength = (int)output.Length;
-        var result = _arrayPool.Rent(compressedLength);
+        var result = ArrayPool.Rent(compressedLength);
         output.Position = 0;
         output.ReadExactly(result.AsSpan(0, compressedLength));
         return (result, compressedLength);
@@ -571,9 +571,9 @@ public class DemoSession : AppSession, IDisposable
 
         try
         {
-            using var input = _memoryStreamManager.GetStream("DemoSession-Decompress-Input", compressedData);
+            using var input = MemoryStreamManager.GetStream("DemoSession-Decompress-Input", compressedData);
             using var gzip = new GZipStream(input, CompressionMode.Decompress);
-            using var output = _memoryStreamManager.GetStream("DemoSession-Decompress-Output");
+            using var output = MemoryStreamManager.GetStream("DemoSession-Decompress-Output");
 
             gzip.CopyTo(output);
             var decompressed = output.ToArray();

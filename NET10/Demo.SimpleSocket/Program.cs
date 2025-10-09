@@ -151,8 +151,8 @@ try
     #region SuperSocket
 
     builder.Services.AddSingleton<SessionManager>();
-    builder.Services.AddSingleton<ClientSocketMessageHandler>();
-    
+    builder.Services.AddSingleton<IClientSocketMessageHandler, ClientSocketMessageHandler>();
+
     // SuperSocket을 ASP.NET Core 호스트에 통합
     builder.Host
         .AsSuperSocketHostBuilder<BinaryPackageInfo, FixedHeaderPipelineFilter>()
