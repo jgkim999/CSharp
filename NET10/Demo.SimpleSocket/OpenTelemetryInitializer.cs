@@ -89,7 +89,11 @@ public static class OpenTelemetryInitializer
         // 추적 설정
         openTelemetryBuilder.WithTracing(tracing =>
         {
+            // 서비스 ActivitySource 등록
             tracing.AddSource(serviceName);
+            // SuperSocket 관련 ActivitySource 등록
+            tracing.AddSource("Session.*");
+            tracing.AddSource("MessageHandler.*");
             tracing.SetSampler(new TraceIdRatioBasedSampler(probability));
 
             // ASP.NET Core 자동 계측
@@ -207,8 +211,8 @@ public static class OpenTelemetryInitializer
         // TelemetryService 등록
         appBuilder.Services.AddSingleton<ITelemetryService>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<TelemetryService>>();
-            return new TelemetryService(serviceName, serviceVersion, logger);
+            var telemetryLogger = provider.GetRequiredService<ILogger<TelemetryService>>();
+            return new TelemetryService(serviceName, serviceVersion, telemetryLogger);
         });
 
         openTelemetryBuilder.UseOtlpExporter(

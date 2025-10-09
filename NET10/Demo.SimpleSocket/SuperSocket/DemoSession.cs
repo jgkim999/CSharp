@@ -1,9 +1,11 @@
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Threading.Channels;
 using Bogus;
 using Demo.Application.DTO.Socket;
+using Demo.Application.Services;
 using Demo.Application.Utils;
 using Demo.SimpleSocket.SuperSocket.Handlers;
 using Demo.SimpleSocket.SuperSocket.Interfaces;
@@ -22,6 +24,7 @@ public partial class DemoSession : AppSession, IDisposable
     private readonly IClientSocketMessageHandler _messageHandler;
     private readonly ILoggerFactory _loggerFactory;
     private readonly ISessionCompression _compression;
+    private readonly ITelemetryService _telemetryService;
     private readonly CancellationTokenSource _cts = new();
     private readonly Channel<BinaryPackageInfo> _receiveChannel = Channel.CreateUnbounded<BinaryPackageInfo>();
     private readonly SequenceGenerator _seqGenerator = new();
@@ -62,12 +65,14 @@ public partial class DemoSession : AppSession, IDisposable
         ILogger<DemoSession> logger,
         IClientSocketMessageHandler messageHandler,
         ILoggerFactory loggerFactory,
-        ISessionCompression compression)
+        ISessionCompression compression,
+        ITelemetryService telemetryService)
     {
         _logger = logger;
         _messageHandler = messageHandler;
         _loggerFactory = loggerFactory;
         _compression = compression;
+        _telemetryService = telemetryService;
     }
 
     /// <summary>
@@ -77,17 +82,32 @@ public partial class DemoSession : AppSession, IDisposable
     /// <returns>A task representing the async operation.</returns>
     protected override async ValueTask OnSessionConnectedAsync()
     {
-        LogSessionConnected(SessionID);
+        using var activity = _telemetryService.StartActivity("Session.Connected", ActivityKind.Server, new Dictionary<string, object?>
+        {
+            ["session.id"] = SessionID,
+            ["remote.address"] = RemoteEndPoint?.ToString()
+        });
 
-        _lastPongUtc = DateTime.UtcNow;
-        
-        // 메시지 처리 백그라운드 태스크 시작
-        _processTask = Task.Run(ProcessMessagesAsync);
+        try
+        {
+            LogSessionConnected(SessionID);
 
-        // Ping 전송 백그라운드 태스크 시작
-        _pingTask = Task.Run(SendPingPeriodicallyAsync);
+            _lastPongUtc = DateTime.UtcNow;
 
-        await ValueTask.CompletedTask;
+            // 메시지 처리 백그라운드 태스크 시작
+            _processTask = Task.Run(ProcessMessagesAsync);
+
+            // Ping 전송 백그라운드 태스크 시작
+            _pingTask = Task.Run(SendPingPeriodicallyAsync);
+
+            _telemetryService.SetActivitySuccess(activity, "Session connected successfully");
+            await ValueTask.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.SetActivityError(activity, ex);
+            throw;
+        }
     }
 
     /// <summary>
@@ -145,6 +165,13 @@ public partial class DemoSession : AppSession, IDisposable
 
     public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack, PacketFlags flags = PacketFlags.None, bool encrypt = false)
     {
+        using var activity = _telemetryService.StartActivity("Session.SendMessagePack", ActivityKind.Producer, new Dictionary<string, object?>
+        {
+            ["session.id"] = SessionID,
+            ["message.type"] = messageType.ToString(),
+            ["message.encrypted"] = encrypt
+        });
+
         // ArrayBufferWriter 동기화 (thread-safe)
         await _bufferWriterLock.WaitAsync(_cts.Token);
 
@@ -157,17 +184,21 @@ public partial class DemoSession : AppSession, IDisposable
             byte[]? compressedBuffer = null;
             byte[]? encryptedBuffer = null;
             int encryptedLength = 0;
+            var originalSize = bodyMemory.Length;
 
             try
             {
                 // 1단계: 압축 (512바이트 이상이면 자동 압축)
                 if (bodyMemory.Length > 512)
                 {
-                    var originalSize = bodyMemory.Length;
                     int compressedLength;
                     (compressedBuffer, compressedLength) = _compression.Compress(bodyMemory.Span, ArrayPool);
                     bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
                     flags = flags.SetCompressed(true);
+
+                    activity?.SetTag("message.compressed", true);
+                    activity?.SetTag("message.original_size", originalSize);
+                    activity?.SetTag("message.compressed_size", compressedLength);
 
                     LogCompression(originalSize, compressedLength, compressedLength * 100.0 / originalSize);
                 }
@@ -183,9 +214,13 @@ public partial class DemoSession : AppSession, IDisposable
                     (encryptedBuffer, encryptedLength) = _encryption.Encrypt(bodyMemory.Span, ArrayPool);
                     bodyMemory = encryptedBuffer.AsMemory(0, encryptedLength);
                     flags = flags.SetEncrypted(true);
+
+                    activity?.SetTag("message.encrypted_size", encryptedLength);
                 }
 
                 ushort bodyLength = (ushort)bodyMemory.Length;
+                activity?.SetTag("message.final_size", bodyLength);
+
                 await Connection.SendAsync(
                     (writer) =>
                     {
@@ -201,6 +236,8 @@ public partial class DemoSession : AppSession, IDisposable
                         bodyMemory.Span.CopyTo(bodySpan);
                         writer.Advance(bodyMemory.Length);
                     }, _cts.Token);
+
+                _telemetryService.SetActivitySuccess(activity, "Message sent successfully");
             }
             finally
             {
@@ -214,6 +251,11 @@ public partial class DemoSession : AppSession, IDisposable
                     ArrayPool.Return(encryptedBuffer);
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            _telemetryService.SetActivityError(activity, ex);
+            throw;
         }
         finally
         {

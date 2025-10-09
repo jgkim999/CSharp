@@ -158,6 +158,40 @@ public sealed class TelemetryService : ITelemetryService, IDisposable
     }
 
     /// <summary>
+    /// 부모 없이 새로운 root Activity를 시작합니다.
+    /// Activity.Current를 임시로 null로 설정하여 기존 trace와의 연결을 끊습니다.
+    /// </summary>
+    public Activity? StartRootActivity(string operationName, ActivityKind kind, Dictionary<string, object?>? tags = null)
+    {
+        // 기존 Activity.Current를 저장
+        var previousActivity = Activity.Current;
+
+        try
+        {
+            // Activity.Current를 null로 설정하여 부모 연결 끊기
+            Activity.Current = null;
+
+            // 새로운 root activity 시작
+            var activity = _activitySource.StartActivity(operationName, kind);
+
+            if (activity != null && tags != null)
+            {
+                foreach (var tag in tags)
+                {
+                    activity.SetTag(tag.Key, tag.Value);
+                }
+            }
+
+            return activity;
+        }
+        finally
+        {
+            // Activity.Current는 새로 생성된 activity로 자동 설정되므로
+            // 이전 activity로 복원하지 않음
+        }
+    }
+
+    /// <summary>
     /// HTTP 요청 메트릭을 기록합니다.
     /// </summary>
     /// <param name="method">HTTP 메서드</param>

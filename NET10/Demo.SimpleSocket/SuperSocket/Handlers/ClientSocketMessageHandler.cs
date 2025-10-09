@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Demo.Application.DTO.Socket;
+using Demo.Application.Services;
 using Demo.SimpleSocket.SuperSocket.Interfaces;
 using LiteBus.Commands.Abstractions;
 
@@ -14,16 +16,19 @@ public partial class ClientSocketMessageHandler : IClientSocketMessageHandler
     private readonly ILogger<ClientSocketMessageHandler> _logger;
     private readonly ICommandMediator _mediator;
     private readonly ISessionManager _sessionManager;
+    private readonly ITelemetryService _telemetryService;
 
     public ClientSocketMessageHandler(
         ILogger<ClientSocketMessageHandler> logger,
         ICommandMediator mediator,
-        ISessionManager sessionManager)
+        ISessionManager sessionManager,
+        ITelemetryService telemetryService)
     {
         _logger = logger;
         _mediator = mediator;
         _sessionManager = sessionManager;
-        
+        _telemetryService = telemetryService;
+
         RegisterHandler(SocketMessageType.Pong, OnPongAsync);
         RegisterHandler(SocketMessageType.MsgPackRequest, OnSocketMsgPackReqAsync);
         RegisterHandler(SocketMessageType.VeryLongReq, OnVeryLongReqAsync);
@@ -76,21 +81,70 @@ public partial class ClientSocketMessageHandler : IClientSocketMessageHandler
     /// <returns>핸들러를 찾아 실행했으면 true, 없으면 false</returns>
     public async Task<bool> HandleAsync(BinaryPackageInfo package, string sessionId)
     {
+        // 각 패킷 처리를 독립적인 root trace로 시작 (기존 trace와 연결 끊기)
+        using var activity = _telemetryService.StartRootActivity(
+            "MessageHandler.HandleAsync",
+            ActivityKind.Consumer,
+            new Dictionary<string, object?>
+            {
+                ["session.id"] = sessionId,
+                ["message.type"] = package.MessageType,
+                ["message.body_length"] = package.BodyLength,
+                ["message.flags"] = package.Flags.ToString()
+            });
+
         if (_handlers.TryGetValue(package.MessageType, out var handler))
         {
             try
             {
                 await handler(package, sessionId);
+
+                // 패킷 유형별 처리량 기록
+                _telemetryService.RecordBusinessMetric(
+                    "socket.message.processed",
+                    1,
+                    new Dictionary<string, object?>
+                    {
+                        ["message.type"] = package.MessageType,
+                        ["message.type_name"] = ((SocketMessageType)package.MessageType).ToString(),
+                        ["message.compressed"] = package.Flags.IsCompressed(),
+                        ["message.encrypted"] = package.Flags.IsEncrypted()
+                    });
+
+                _telemetryService.SetActivitySuccess(activity, "Message handled successfully");
                 return true;
             }
             catch (Exception ex)
             {
+                // 에러 메트릭 기록
+                _telemetryService.RecordBusinessMetric(
+                    "socket.message.error",
+                    1,
+                    new Dictionary<string, object?>
+                    {
+                        ["message.type"] = package.MessageType,
+                        ["message.type_name"] = ((SocketMessageType)package.MessageType).ToString(),
+                        ["error.type"] = ex.GetType().Name
+                    });
+
+                _telemetryService.SetActivityError(activity, ex);
                 _logger.LogError(ex,
                     "Error handling message. SessionId: {SessionId}, MessageType: {MessageType}",
                     sessionId, package.MessageType);
                 throw;
             }
         }
+
+        activity?.SetTag("handler.found", false);
+
+        // 핸들러를 찾지 못한 메시지 기록
+        _telemetryService.RecordBusinessMetric(
+            "socket.message.no_handler",
+            1,
+            new Dictionary<string, object?>
+            {
+                ["message.type"] = package.MessageType
+            });
 
         return false;
     }
@@ -124,16 +178,28 @@ public partial class ClientSocketMessageHandler : IClientSocketMessageHandler
     
     private T? CheckPackage<T>(BinaryPackageInfo package, string sessionId) where T : class
     {
+        // CheckPackage는 HandleAsync의 child activity로 유지 (parentContext 지정 안함)
+        using var activity = _telemetryService.StartActivity("MessageHandler.CheckPackage", ActivityKind.Internal, new Dictionary<string, object?>
+        {
+            ["session.id"] = sessionId,
+            ["message.type"] = package.MessageType,
+            ["message.body_length"] = package.BodyLength,
+            ["message.flags"] = package.Flags.ToString(),
+            ["message.target_type"] = typeof(T).Name
+        });
+
         var session = _sessionManager.GetSession(sessionId);
         if (session == null)
         {
             _logger.LogWarning("Session not found. SessionID: {SessionID}", sessionId);
+            activity?.SetTag("error", "Session not found");
             return null;
         }
-        
+
         if (package.BodyLength == 0)
         {
             _logger.LogWarning("Received package with empty body. SessionID: {SessionID}", session.SessionID);
+            activity?.SetTag("error", "Empty body");
             return null;
         }
 
@@ -157,6 +223,9 @@ public partial class ClientSocketMessageHandler : IClientSocketMessageHandler
                     LogDecryption(originalBodyLength, decryptedLength);
                     bodyMemory = decryptedBuffer.AsMemory(0, decryptedLength);
                     originalBodyLength = decryptedLength;
+
+                    activity?.SetTag("message.decrypted", true);
+                    activity?.SetTag("message.decrypted_size", decryptedLength);
                 }
 
                 // 2단계: 압축된 데이터인 경우 압축 해제 (ArrayPool 사용)
@@ -165,11 +234,16 @@ public partial class ClientSocketMessageHandler : IClientSocketMessageHandler
                     (decompressedBuffer, decompressedLength) = session.DecompressDataToPool(bodyMemory.Span);
                     LogDecompression(originalBodyLength, decompressedLength);
                     bodyMemory = decompressedBuffer.AsMemory(0, decompressedLength);
+
+                    activity?.SetTag("message.decompressed", true);
+                    activity?.SetTag("message.decompressed_size", decompressedLength);
                 }
 
                 // 3단계: MessagePack 역직렬화
                 var result = MessagePack.MessagePackSerializer.Deserialize<T>(bodyMemory);
                 LogDeserialization(typeof(T).Name, bodyMemory.Length);
+
+                _telemetryService.SetActivitySuccess(activity, "Package processed successfully");
                 return result;
             }
             finally
@@ -187,6 +261,7 @@ public partial class ClientSocketMessageHandler : IClientSocketMessageHandler
         }
         catch (Exception ex)
         {
+            _telemetryService.SetActivityError(activity, ex);
             _logger.LogError(
                 ex,
                 "Error deserializing package. SessionID: {SessionID}, MessageType: {MessageType}, BodyLength: {BodyLength}, Flags: {Flags}",

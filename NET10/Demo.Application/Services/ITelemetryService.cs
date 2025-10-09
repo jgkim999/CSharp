@@ -19,6 +19,15 @@ public interface ITelemetryService
     Activity? StartActivity(string operationName, ActivityKind kind, ActivityContext? parentContext,
         Dictionary<string, object?>? tags = null);
     Activity? StartActivity(string operationName, ActivityKind kind, string? parentTraceId);
+
+    /// <summary>
+    /// 부모 없이 새로운 root Activity를 시작합니다. 기존 trace와 연결되지 않습니다.
+    /// </summary>
+    /// <param name="operationName">작업 이름</param>
+    /// <param name="kind">Activity 종류</param>
+    /// <param name="tags">추가할 태그</param>
+    /// <returns>The started root <see cref="Activity"/> instance, or null if the activity could not be started.</returns>
+    Activity? StartRootActivity(string operationName, ActivityKind kind, Dictionary<string, object?>? tags = null);
     
     /// <summary>
     /// HTTP 요청 메트릭을 기록합니다.
