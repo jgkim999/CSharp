@@ -8,7 +8,7 @@ using SuperSocket.Server.Abstractions.Session;
 
 namespace Demo.SimpleSocket.SuperSocket;
 
-public class SessionManager : IAsyncDisposable
+public class SessionManager : ISessionManager
 {
     private readonly CancellationToken _cancellationToken;
     private readonly ILogger<SessionManager> _logger;

@@ -9,9 +9,9 @@ public record VeryLongReqCommand(VeryLongReq Packet, string SessionId) : IComman
 public class VeryLongReqCommandHandler : ICommandHandler<VeryLongReqCommand>
 {
     private readonly ILogger<VeryLongReqCommandHandler> _logger;
-    private readonly SessionManager _sessionManager;
-    
-    public VeryLongReqCommandHandler(ILogger<VeryLongReqCommandHandler> logger, SessionManager sessionManager)
+    private readonly ISessionManager _sessionManager;
+
+    public VeryLongReqCommandHandler(ILogger<VeryLongReqCommandHandler> logger, ISessionManager sessionManager)
     {
         _logger = logger;
         _sessionManager = sessionManager;

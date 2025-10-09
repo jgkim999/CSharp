@@ -8,9 +8,9 @@ public record PongCommand(MsgPackPing Packet, string SessionId) : ICommand;
 public class PongCommandHandler : ICommandHandler<PongCommand>
 {
     private readonly ILogger<PongCommandHandler> _logger;
-    private readonly SessionManager _sessionManager;
+    private readonly ISessionManager _sessionManager;
 
-    public PongCommandHandler(ILogger<PongCommandHandler> logger, SessionManager sessionManager)
+    public PongCommandHandler(ILogger<PongCommandHandler> logger, ISessionManager sessionManager)
     {
         _logger = logger;
         _sessionManager = sessionManager;

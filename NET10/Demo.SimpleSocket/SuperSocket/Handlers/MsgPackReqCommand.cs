@@ -8,9 +8,9 @@ public record MsgPackReqCommand(MsgPackReq Packet, string SessionId) : ICommand;
 public class MsgPackReqCommandHandler : ICommandHandler<MsgPackReqCommand>
 {
     private readonly ILogger<MsgPackReqCommandHandler> _logger;
-    private readonly SessionManager _sessionManager;
+    private readonly ISessionManager _sessionManager;
 
-    public MsgPackReqCommandHandler(ILogger<MsgPackReqCommandHandler> logger, SessionManager sessionManager)
+    public MsgPackReqCommandHandler(ILogger<MsgPackReqCommandHandler> logger, ISessionManager sessionManager)
     {
         _logger = logger;
         _sessionManager = sessionManager;

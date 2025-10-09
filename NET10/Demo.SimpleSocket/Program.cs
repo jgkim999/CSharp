@@ -150,7 +150,7 @@ try
 
     #region SuperSocket
 
-    builder.Services.AddSingleton<SessionManager>();
+    builder.Services.AddSingleton<ISessionManager, SessionManager>();
     builder.Services.AddSingleton<IClientSocketMessageHandler, ClientSocketMessageHandler>();
 
     // SuperSocket을 ASP.NET Core 호스트에 통합
@@ -158,11 +158,11 @@ try
         .AsSuperSocketHostBuilder<BinaryPackageInfo, FixedHeaderPipelineFilter>()
         .UseSessionHandler(async (session) =>
             {
-                var sessionManager = session.Server.ServiceProvider.GetService<SessionManager>();
+                var sessionManager = session.Server.ServiceProvider.GetService<ISessionManager>();
                 await sessionManager?.OnConnectAsync(session)!;
             }, async (session, closeReason) =>
             {
-                var sessionManager = session.Server.ServiceProvider.GetService<SessionManager>();
+                var sessionManager = session.Server.ServiceProvider.GetService<ISessionManager>();
                 await sessionManager?.OnDisconnectAsync(session, closeReason)!;
             })
         .UsePackageHandler(async (session, package) =>
@@ -175,7 +175,7 @@ try
                 else
                 {
                     // Fallback: SessionManager 직접 호출
-                    var sessionManager = session.Server.ServiceProvider.GetService<SessionManager>();
+                    var sessionManager = session.Server.ServiceProvider.GetService<ISessionManager>();
                     await sessionManager?.OnMessageAsync(session, package)!;
                 }
             })

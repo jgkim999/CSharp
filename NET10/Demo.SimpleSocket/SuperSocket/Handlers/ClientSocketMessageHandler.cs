@@ -12,12 +12,12 @@ public class ClientSocketMessageHandler : IClientSocketMessageHandler
     private readonly ConcurrentDictionary<ushort, Func<BinaryPackageInfo, string, Task>> _handlers = new();
     private readonly ILogger<ClientSocketMessageHandler> _logger;
     private readonly ICommandMediator _mediator;
-    private readonly SessionManager _sessionManager;
+    private readonly ISessionManager _sessionManager;
 
     public ClientSocketMessageHandler(
         ILogger<ClientSocketMessageHandler> logger,
         ICommandMediator mediator,
-        SessionManager sessionManager)
+        ISessionManager sessionManager)
     {
         _logger = logger;
         _mediator = mediator;
