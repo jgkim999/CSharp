@@ -3,6 +3,7 @@ using System.Buffers.Binary;
 using System.IO;
 using System.IO.Compression;
 using System.IO.Pipelines;
+using System.Security.Cryptography;
 using System.Threading.Channels;
 using Bogus;
 using Demo.Application.DTO.Socket;
@@ -34,6 +35,7 @@ public class DemoSession : AppSession, IDisposable
     private double _rttMs;
     private byte[] _aesKey = Array.Empty<byte>();
     private byte[] _aesIV = Array.Empty<byte>();
+    private Aes? _aes;  // Aes 인스턴스 재사용
 
     /// <summary>
     /// 마지막 pong도달 시간
@@ -159,8 +161,13 @@ public class DemoSession : AppSession, IDisposable
             // 2단계: 암호화 (encrypt=true이면 암호화)
             if (encrypt)
             {
+                if (_aes == null)
+                {
+                    throw new InvalidOperationException("AES가 초기화되지 않았습니다. SetAesKey()를 먼저 호출하세요.");
+                }
+
                 var originalSize = bodyMemory.Length;
-                (encryptedBuffer, encryptedLength) = AesHelper.EncryptToPool(bodyMemory.Span, _aesKey, _aesIV);
+                (encryptedBuffer, encryptedLength) = EncryptDataToPool(bodyMemory.Span);
                 bodyMemory = encryptedBuffer.AsMemory(0, encryptedLength);
                 flags = flags.SetEncrypted(true);
                 _logger.LogInformation("[서버 암호화] 원본: {OriginalSize} 바이트 → 암호화: {EncryptedSize} 바이트",
@@ -464,6 +471,17 @@ public class DemoSession : AppSession, IDisposable
                     _logger.LogError(ex, "Error disposing CancellationTokenSource. SessionID: {SessionID}", SessionID);
                 }
 
+                // 2. Aes Dispose
+                try
+                {
+                    _aes?.Dispose();
+                    _aes = null;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error disposing Aes. SessionID: {SessionID}", SessionID);
+                }
+
                 _logger.LogInformation("DemoSession disposed successfully. SessionID: {SessionID}", SessionID);
             }
             catch (Exception ex)
@@ -490,30 +508,91 @@ public class DemoSession : AppSession, IDisposable
     }
 
     /// <summary>
-    /// AES Key/IV 설정
+    /// AES Key/IV 설정 및 Aes 인스턴스 초기화
     /// </summary>
     public void SetAesKey(byte[] key, byte[] iv)
     {
         _aesKey = key;
         _aesIV = iv;
+
+        // 기존 Aes 인스턴스 해제
+        _aes?.Dispose();
+
+        // 새로운 Aes 인스턴스 생성 및 설정
+        _aes = Aes.Create();
+        _aes.Key = key;
+        _aes.IV = iv;
+        _aes.Mode = CipherMode.CBC;
+        _aes.Padding = PaddingMode.PKCS7;
+
+        _logger.LogInformation("[서버 AES 초기화] KeySize: {KeySize}, IVSize: {IVSize}", key.Length, iv.Length);
     }
 
     /// <summary>
-    /// 데이터 복호화 (ArrayPool 사용 - 최적화 버전)
+    /// 데이터 암호화 (ArrayPool 사용, Aes 인스턴스 재사용)
+    /// 반환된 배열은 반드시 ArrayPool에 반환해야 함
+    /// </summary>
+    /// <returns>(암호화된 버퍼, 실제 데이터 길이)</returns>
+    private (byte[] Buffer, int Length) EncryptDataToPool(ReadOnlySpan<byte> data)
+    {
+        if (_aes == null)
+        {
+            throw new InvalidOperationException("AES가 초기화되지 않았습니다.");
+        }
+
+        using var encryptor = _aes.CreateEncryptor();
+
+        var inputBuffer = _arrayPool.Rent(data.Length);
+        try
+        {
+            data.CopyTo(inputBuffer);
+            var encrypted = encryptor.TransformFinalBlock(inputBuffer, 0, data.Length);
+
+            // 암호화된 데이터를 ArrayPool 버퍼로 복사
+            var outputBuffer = _arrayPool.Rent(encrypted.Length);
+            encrypted.CopyTo(outputBuffer, 0);
+
+            return (outputBuffer, encrypted.Length);
+        }
+        finally
+        {
+            _arrayPool.Return(inputBuffer);
+        }
+    }
+
+    /// <summary>
+    /// 데이터 복호화 (ArrayPool 사용, Aes 인스턴스 재사용)
     /// 반환된 배열은 반드시 ArrayPool에 반환해야 함
     /// </summary>
     /// <returns>(복호화된 버퍼, 실제 데이터 길이)</returns>
     public (byte[] Buffer, int Length) DecryptDataToPool(ReadOnlySpan<byte> encryptedData)
     {
-        if (_aesKey.Length == 0 || _aesIV.Length == 0)
+        if (_aes == null)
         {
-            throw new InvalidOperationException("AES Key/IV가 설정되지 않았습니다.");
+            throw new InvalidOperationException("AES가 초기화되지 않았습니다.");
         }
 
-        var (buffer, length) = AesHelper.DecryptToPool(encryptedData, _aesKey, _aesIV);
-        _logger.LogInformation("[서버 복호화] 암호화: {EncryptedSize} 바이트 → 원본: {DecryptedSize} 바이트",
-            encryptedData.Length, length);
-        return (buffer, length);
+        using var decryptor = _aes.CreateDecryptor();
+
+        var inputBuffer = _arrayPool.Rent(encryptedData.Length);
+        try
+        {
+            encryptedData.CopyTo(inputBuffer);
+            var decrypted = decryptor.TransformFinalBlock(inputBuffer, 0, encryptedData.Length);
+
+            // 복호화된 데이터를 ArrayPool 버퍼로 복사
+            var outputBuffer = _arrayPool.Rent(decrypted.Length);
+            decrypted.CopyTo(outputBuffer, 0);
+
+            _logger.LogInformation("[서버 복호화] 암호화: {EncryptedSize} 바이트 → 원본: {DecryptedSize} 바이트",
+                encryptedData.Length, decrypted.Length);
+
+            return (outputBuffer, decrypted.Length);
+        }
+        finally
+        {
+            _arrayPool.Return(inputBuffer);
+        }
     }
 
     /// <summary>
