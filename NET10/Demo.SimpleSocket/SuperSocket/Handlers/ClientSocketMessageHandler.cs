@@ -15,19 +15,6 @@ public partial class ClientSocketMessageHandler : IClientSocketMessageHandler
     private readonly ICommandMediator _mediator;
     private readonly ISessionManager _sessionManager;
 
-    // LoggerMessage 소스 생성기 (고성능 로깅)
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 수신] MessageType: {messageType}, BodyLength: {bodyLength}, Flags: {flags}")]
-    private partial void LogPackageReceived(ushort messageType, ushort bodyLength, PacketFlags flags);
-
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 복호화] BodyLength: {bodyLength} → DecryptedLength: {decryptedLength}")]
-    private partial void LogDecryption(int bodyLength, int decryptedLength);
-
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 압축 해제] BodyLength: {bodyLength} → DecompressedLength: {decompressedLength}")]
-    private partial void LogDecompression(int bodyLength, int decompressedLength);
-
-    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 역직렬화] Type: {typeName}, BodyLength: {bodyLength}")]
-    private partial void LogDeserialization(string typeName, int bodyLength);
-
     public ClientSocketMessageHandler(
         ILogger<ClientSocketMessageHandler> logger,
         ICommandMediator mediator,
