@@ -137,7 +137,9 @@ public class SessionManager : ISessionManager
         }
         else
         {
-            _logger.LogInformation("Received package but session not found. SessionId: {SessionId}", session.SessionID);
+            _logger.LogWarning("Received package but session not found. Disposing package to prevent memory leak. SessionId: {SessionId}", session.SessionID);
+            // 세션을 찾지 못한 경우 package를 Dispose하여 ArrayPool 버퍼 반환 (메모리 누수 방지)
+            package.Dispose();
         }
     }
 

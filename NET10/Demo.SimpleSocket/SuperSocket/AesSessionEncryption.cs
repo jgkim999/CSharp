@@ -43,10 +43,11 @@ public class AesSessionEncryption : ISessionEncryption
         using var encryptor = _aes.CreateEncryptor();
 
         var inputBuffer = arrayPool.Rent(data.Length);
+        byte[]? encrypted = null;
         try
         {
             data.CopyTo(inputBuffer);
-            var encrypted = encryptor.TransformFinalBlock(inputBuffer, 0, data.Length);
+            encrypted = encryptor.TransformFinalBlock(inputBuffer, 0, data.Length);
 
             // 암호화된 데이터를 ArrayPool 버퍼로 복사
             var outputBuffer = arrayPool.Rent(encrypted.Length);
@@ -60,6 +61,8 @@ public class AesSessionEncryption : ISessionEncryption
         finally
         {
             arrayPool.Return(inputBuffer);
+            // TransformFinalBlock이 할당한 배열 해제 (메모리 누수 방지)
+            encrypted = null;
         }
     }
 
@@ -78,10 +81,11 @@ public class AesSessionEncryption : ISessionEncryption
         using var decryptor = _aes.CreateDecryptor();
 
         var inputBuffer = arrayPool.Rent(encryptedData.Length);
+        byte[]? decrypted = null;
         try
         {
             encryptedData.CopyTo(inputBuffer);
-            var decrypted = decryptor.TransformFinalBlock(inputBuffer, 0, encryptedData.Length);
+            decrypted = decryptor.TransformFinalBlock(inputBuffer, 0, encryptedData.Length);
 
             // 복호화된 데이터를 ArrayPool 버퍼로 복사
             var outputBuffer = arrayPool.Rent(decrypted.Length);
@@ -95,6 +99,8 @@ public class AesSessionEncryption : ISessionEncryption
         finally
         {
             arrayPool.Return(inputBuffer);
+            // TransformFinalBlock이 할당한 배열 해제 (메모리 누수 방지)
+            decrypted = null;
         }
     }
 
