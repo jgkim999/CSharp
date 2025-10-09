@@ -14,13 +14,13 @@ using SuperSocket.Server;
 
 namespace Demo.SimpleSocket.SuperSocket;
 
-public class DemoSession : AppSession, IDisposable
+public partial class DemoSession : AppSession, IDisposable
 {
     private static readonly ArrayPool<byte> ArrayPool = ArrayPool<byte>.Shared;
 
     private readonly ILogger<DemoSession> _logger;
     private readonly IClientSocketMessageHandler _messageHandler;
-    private readonly ILogger<AesSessionEncryption> _encryptionLogger;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ISessionCompression _compression;
     private readonly CancellationTokenSource _cts = new();
     private readonly Channel<BinaryPackageInfo> _receiveChannel = Channel.CreateUnbounded<BinaryPackageInfo>();
@@ -35,6 +35,58 @@ public class DemoSession : AppSession, IDisposable
     private DateTime _lastPongUtc;
     private double _rttMs;
     private ISessionEncryption? _encryption;
+
+    // LoggerMessage 소스 생성기 (고성능 로깅)
+    [LoggerMessage(Level = LogLevel.Debug, Message = "#1 DemoSession connected. {SessionID}")]
+    private partial void LogSessionConnected(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "#3 DemoSession closed. {SessionID} {Reason}")]
+    private partial void LogSessionClosed(string sessionId, string reason);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 압축] 원본: {OriginalSize} 바이트 → 압축: {CompressedSize} 바이트 ({Ratio:F1}%)")]
+    private partial void LogCompression(int originalSize, int compressedSize, double ratio);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "DemoSession Reset. {SessionID}")]
+    private partial void LogSessionReset(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "DemoSession. {SessionID}")]
+    private partial void LogSessionClosing(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Package queued to channel. SessionID: {SessionID}, MessageType: {MessageType}, BodyLength: {BodyLength}, Sequence: {Sequence}, Reserved: {Reserved}")]
+    private partial void LogPackageQueued(string sessionId, ushort messageType, ushort bodyLength, ushort sequence, byte reserved);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Ping task started. SessionID: {SessionID}")]
+    private partial void LogPingTaskStarted(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Ping sent to client. SessionID: {SessionID}, ServerDt: {ServerDt}")]
+    private partial void LogPingSent(string sessionId, DateTime serverDt);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Ping task cancelled. SessionID: {SessionID}")]
+    private partial void LogPingTaskCancelled(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Message processing task started. SessionID: {SessionID}")]
+    private partial void LogProcessingTaskStarted(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "SessionManager OnMessageAsync. SessionId: {SessionId}, MessageType: {MessageType}, BodyLength: {BodyLength}, Sequence: {Sequence}, Reserved: {Reserved}")]
+    private partial void LogMessageReceived(string sessionId, ushort messageType, ushort bodyLength, ushort sequence, byte reserved);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Message processing task cancelled. SessionID: {SessionID}")]
+    private partial void LogProcessingTaskCancelled(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Message processing task stopped. SessionID: {SessionID}")]
+    private partial void LogProcessingTaskStopped(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Cleaned up {Count} remaining packages in channel. SessionID: {SessionID}")]
+    private partial void LogChannelCleanup(int count, string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Disposing DemoSession. SessionID: {SessionID}")]
+    private partial void LogDisposingSession(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "DemoSession disposed successfully. SessionID: {SessionID}")]
+    private partial void LogSessionDisposed(string sessionId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 암호화 초기화] KeySize: {KeySize}, IVSize: {IVSize}")]
+    private partial void LogEncryptionInitialized(int keySize, int ivSize);
 
     /// <summary>
     /// 마지막 pong도달 시간
@@ -61,12 +113,12 @@ public class DemoSession : AppSession, IDisposable
     public DemoSession(
         ILogger<DemoSession> logger,
         IClientSocketMessageHandler messageHandler,
-        ILogger<AesSessionEncryption> encryptionLogger,
+        ILoggerFactory loggerFactory,
         ISessionCompression compression)
     {
         _logger = logger;
         _messageHandler = messageHandler;
-        _encryptionLogger = encryptionLogger;
+        _loggerFactory = loggerFactory;
         _compression = compression;
     }
 
@@ -77,7 +129,7 @@ public class DemoSession : AppSession, IDisposable
     /// <returns>A task representing the async operation.</returns>
     protected override async ValueTask OnSessionConnectedAsync()
     {
-        _logger.LogInformation("#1 DemoSession connected. {SessionID}", SessionID);
+        LogSessionConnected(SessionID);
 
         _lastPongUtc = DateTime.UtcNow;
         
@@ -100,7 +152,7 @@ public class DemoSession : AppSession, IDisposable
     /// </returns>
     protected override async ValueTask OnSessionClosedAsync(CloseEventArgs e)
     {
-        _logger.LogInformation("#3 DemoSession closed. {SessionID} {Reason}", SessionID, e.Reason.ToString());
+        LogSessionClosed(SessionID, e.Reason.ToString());
 
         // Channel 정리 및 처리 태스크 종료
         await _cts.CancelAsync();
@@ -169,8 +221,7 @@ public class DemoSession : AppSession, IDisposable
                     bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
                     flags = flags.SetCompressed(true);
 
-                    _logger.LogInformation("[서버 압축] 원본: {OriginalSize} 바이트 → 압축: {CompressedSize} 바이트 ({Ratio:F1}%)",
-                        originalSize, compressedLength, compressedLength * 100.0 / originalSize);
+                    LogCompression(originalSize, compressedLength, compressedLength * 100.0 / originalSize);
                 }
 
                 // 2단계: 암호화 (encrypt=true이면 암호화)
@@ -255,14 +306,14 @@ public class DemoSession : AppSession, IDisposable
     /// </summary>
     protected override void Reset()
     {
-        _logger.LogInformation("DemoSession Reset. {SessionID}", SessionID);
+        LogSessionReset(SessionID);
     }
 
     /// <summary>Closes the session asynchronously.</summary>
     /// <returns>A task that represents the asynchronous close operation.</returns>
     public override async ValueTask CloseAsync()
     {
-        _logger.LogInformation("DemoSession. {SessionID}", SessionID);
+        LogSessionClosing(SessionID);
         await base.CloseAsync();
     }
 
@@ -276,9 +327,7 @@ public class DemoSession : AppSession, IDisposable
             // Channel에 패킷 추가 (비동기 대기 없이)
             await _receiveChannel.Writer.WriteAsync(package, _cts.Token);
 
-            _logger.LogDebug(
-                "Package queued to channel. SessionID: {SessionID}, MessageType: {MessageType}, BodyLength: {BodyLength}, Sequence: {Sequence}, Reserved: {Reserved}",
-                SessionID, package.MessageType, package.BodyLength, package.Sequence, package.Reserved);
+            LogPackageQueued(SessionID, package.MessageType, package.BodyLength, package.Sequence, package.Reserved);
         }
         catch (OperationCanceledException)
         {
@@ -298,7 +347,7 @@ public class DemoSession : AppSession, IDisposable
     /// </summary>
     private async Task SendPingPeriodicallyAsync()
     {
-        _logger.LogInformation("Ping task started. SessionID: {SessionID}", SessionID);
+        LogPingTaskStarted(SessionID);
 
         try
         {
@@ -311,13 +360,12 @@ public class DemoSession : AppSession, IDisposable
 
                 await SendMessagePackAsync(SocketMessageType.Ping, _pingMsg);
 
-                _logger.LogDebug("Ping sent to client. SessionID: {SessionID}, ServerDt: {ServerDt}",
-                    SessionID, _pingMsg.ServerDt);
+                LogPingSent(SessionID, _pingMsg.ServerDt);
             }
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("Ping task cancelled. SessionID: {SessionID}", SessionID);
+            LogPingTaskCancelled(SessionID);
         }
         catch (Exception ex)
         {
@@ -330,7 +378,7 @@ public class DemoSession : AppSession, IDisposable
     /// </summary>
     private async Task ProcessMessagesAsync()
     {
-        _logger.LogInformation("Message processing task started. SessionID: {SessionID}", SessionID);
+        LogProcessingTaskStarted(SessionID);
 
         try
         {
@@ -339,9 +387,7 @@ public class DemoSession : AppSession, IDisposable
                 // using을 사용하여 자동으로 ArrayPool 반환
                 using (package)
                 {
-                    _logger.LogInformation(
-                        "SessionManager OnMessageAsync. SessionId: {SessionId}, MessageType: {MessageType}, BodyLength: {BodyLength}, Sequence: {Sequence}, Reserved: {Reserved}",
-                        SessionID, package.MessageType, package.BodyLength, package.Sequence, package.Reserved);
+                    LogMessageReceived(SessionID, package.MessageType, package.BodyLength, package.Sequence, package.Reserved);
 
                     try
                     {
@@ -363,7 +409,7 @@ public class DemoSession : AppSession, IDisposable
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("Message processing task cancelled. SessionID: {SessionID}", SessionID);
+            LogProcessingTaskCancelled(SessionID);
         }
         catch (Exception ex)
         {
@@ -374,7 +420,7 @@ public class DemoSession : AppSession, IDisposable
             // Channel에 남아있는 모든 메시지를 Dispose
             await CleanupRemainingMessagesAsync();
 
-            _logger.LogInformation("Message processing task stopped. SessionID: {SessionID}", SessionID);
+            LogProcessingTaskStopped(SessionID);
         }
     }
 
@@ -440,9 +486,7 @@ public class DemoSession : AppSession, IDisposable
 
             if (cleanedCount > 0)
             {
-                _logger.LogInformation(
-                    "Cleaned up {Count} remaining packages in channel. SessionID: {SessionID}",
-                    cleanedCount, SessionID);
+                LogChannelCleanup(cleanedCount, SessionID);
             }
         }
         catch (Exception ex)
@@ -475,7 +519,7 @@ public class DemoSession : AppSession, IDisposable
             // 관리되는 리소스 정리
             try
             {
-                _logger.LogInformation("Disposing DemoSession. SessionID: {SessionID}", SessionID);
+                LogDisposingSession(SessionID);
 
                 // 1. CancellationTokenSource Dispose
                 try
@@ -508,7 +552,7 @@ public class DemoSession : AppSession, IDisposable
                     _logger.LogError(ex, "Error disposing SemaphoreSlim. SessionID: {SessionID}", SessionID);
                 }
 
-                _logger.LogInformation("DemoSession disposed successfully. SessionID: {SessionID}", SessionID);
+                LogSessionDisposed(SessionID);
             }
             catch (Exception ex)
             {
@@ -542,10 +586,10 @@ public class DemoSession : AppSession, IDisposable
         _encryption?.Dispose();
 
         // 새로운 암호화 인스턴스 생성
-        _encryption = new AesSessionEncryption(_encryptionLogger);
+        var encryptionLogger = _loggerFactory.CreateLogger<AesSessionEncryption>();
+        _encryption = new AesSessionEncryption(encryptionLogger);
 
-        _logger.LogInformation("[서버 암호화 초기화] KeySize: {KeySize}, IVSize: {IVSize}",
-            _encryption.Key.Length, _encryption.IV.Length);
+        LogEncryptionInitialized(_encryption.Key.Length, _encryption.IV.Length);
 
         return (_encryption.Key, _encryption.IV);
     }

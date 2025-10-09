@@ -8,12 +8,25 @@ namespace Demo.SimpleSocket.SuperSocket.Handlers;
 /// <summary>
 /// MessageType별로 메시지 처리 핸들러를 등록하고 실행하는 클래스
 /// </summary>
-public class ClientSocketMessageHandler : IClientSocketMessageHandler
+public partial class ClientSocketMessageHandler : IClientSocketMessageHandler
 {
     private readonly ConcurrentDictionary<ushort, Func<BinaryPackageInfo, string, Task>> _handlers = new();
     private readonly ILogger<ClientSocketMessageHandler> _logger;
     private readonly ICommandMediator _mediator;
     private readonly ISessionManager _sessionManager;
+
+    // LoggerMessage 소스 생성기 (고성능 로깅)
+    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 수신] MessageType: {messageType}, BodyLength: {bodyLength}, Flags: {flags}")]
+    private partial void LogPackageReceived(ushort messageType, ushort bodyLength, PacketFlags flags);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 복호화] BodyLength: {bodyLength} → DecryptedLength: {decryptedLength}")]
+    private partial void LogDecryption(int bodyLength, int decryptedLength);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 압축 해제] BodyLength: {bodyLength} → DecompressedLength: {decompressedLength}")]
+    private partial void LogDecompression(int bodyLength, int decompressedLength);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "[서버 역직렬화] Type: {typeName}, BodyLength: {bodyLength}")]
+    private partial void LogDeserialization(string typeName, int bodyLength);
 
     public ClientSocketMessageHandler(
         ILogger<ClientSocketMessageHandler> logger,
@@ -144,34 +157,32 @@ public class ClientSocketMessageHandler : IClientSocketMessageHandler
             byte[]? decompressedBuffer = null;
             int decryptedLength = 0;
             int decompressedLength = 0;
+            int originalBodyLength = bodyMemory.Length;
 
-            _logger.LogInformation("[서버 수신] MessageType: {MessageType}, BodyLength: {BodyLength}, Flags: {Flags}, IsEncrypted: {IsEncrypted}, IsCompressed: {IsCompressed}",
-                package.MessageType, package.BodyLength, package.Flags, package.Flags.IsEncrypted(), package.Flags.IsCompressed());
+            LogPackageReceived(package.MessageType, package.BodyLength, package.Flags);
 
             try
             {
                 // 1단계: 암호화된 데이터인 경우 먼저 복호화 (ArrayPool 사용)
                 if (package.Flags.IsEncrypted())
                 {
-                    _logger.LogInformation("[서버 복호화 시작] BodyLength: {BodyLength}", bodyMemory.Length);
                     (decryptedBuffer, decryptedLength) = session.DecryptDataToPool(bodyMemory.Span);
+                    LogDecryption(originalBodyLength, decryptedLength);
                     bodyMemory = decryptedBuffer.AsMemory(0, decryptedLength);
-                    _logger.LogInformation("[서버 복호화 완료] DecryptedLength: {DecryptedLength}", decryptedLength);
+                    originalBodyLength = decryptedLength;
                 }
 
                 // 2단계: 압축된 데이터인 경우 압축 해제 (ArrayPool 사용)
                 if (package.Flags.IsCompressed())
                 {
-                    _logger.LogInformation("[서버 압축 해제 시작] BodyLength: {BodyLength}", bodyMemory.Length);
                     (decompressedBuffer, decompressedLength) = session.DecompressDataToPool(bodyMemory.Span);
+                    LogDecompression(originalBodyLength, decompressedLength);
                     bodyMemory = decompressedBuffer.AsMemory(0, decompressedLength);
-                    _logger.LogInformation("[서버 압축 해제 완료] DecompressedLength: {DecompressedLength}", decompressedLength);
                 }
 
                 // 3단계: MessagePack 역직렬화
-                _logger.LogInformation("[서버 역직렬화 시작] FinalBodyLength: {FinalBodyLength}", bodyMemory.Length);
                 var result = MessagePack.MessagePackSerializer.Deserialize<T>(bodyMemory);
-                _logger.LogInformation("[서버 역직렬화 완료] Type: {TypeName}", typeof(T).Name);
+                LogDeserialization(typeof(T).Name, bodyMemory.Length);
                 return result;
             }
             finally
