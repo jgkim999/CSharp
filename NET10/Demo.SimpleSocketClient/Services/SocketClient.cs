@@ -181,7 +181,8 @@ public class SocketClient : IDisposable
     /// <returns>(압축된 버퍼, 실제 압축 데이터 길이)</returns>
     private (byte[] Buffer, int Length) CompressData(ReadOnlySpan<byte> data)
     {
-        using var output = _memoryStreamManager.GetStream("SocketClient-Compress");
+        // tag 제거: 다중 인스턴스 환경에서 안정성 향상
+        using var output = _memoryStreamManager.GetStream();
         using (var gzip = new GZipStream(output, CompressionLevel.Fastest, leaveOpen: true))
         {
             gzip.Write(data);
@@ -203,9 +204,13 @@ public class SocketClient : IDisposable
     {
         var compressedSize = compressedData.Length;
 
-        using var input = _memoryStreamManager.GetStream("SocketClient-Decompress-Input", compressedData);
+        // tag 제거: 다중 인스턴스 환경에서 안정성 향상
+        using var input = _memoryStreamManager.GetStream();
+        input.Write(compressedData);
+        input.Position = 0;
+
         using var gzip = new GZipStream(input, CompressionMode.Decompress);
-        using var output = _memoryStreamManager.GetStream("SocketClient-Decompress-Output");
+        using var output = _memoryStreamManager.GetStream();
 
         gzip.CopyTo(output);
         var decompressed = output.ToArray();

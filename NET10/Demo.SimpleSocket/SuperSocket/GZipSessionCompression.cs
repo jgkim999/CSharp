@@ -27,7 +27,8 @@ public partial class GZipSessionCompression : ISessionCompression
     {
         var originalSize = data.Length;
 
-        using var output = MemoryStreamManager.GetStream("GZipCompression-Compress");
+        // tag 제거: 다중 스레드 환경에서 tag 충돌 방지
+        using var output = MemoryStreamManager.GetStream();
         using (var gzip = new GZipStream(output, CompressionLevel.Fastest, leaveOpen: true))
         {
             gzip.Write(data);
@@ -54,9 +55,14 @@ public partial class GZipSessionCompression : ISessionCompression
 
         try
         {
-            using var input = MemoryStreamManager.GetStream("GZipCompression-Decompress-Input", compressedData);
+            // tag 제거: 다중 스레드 환경에서 tag 충돌 방지
+            // GetStream(tag, buffer) 대신 GetStream()을 사용하고 수동으로 Write
+            using var input = MemoryStreamManager.GetStream();
+            input.Write(compressedData);
+            input.Position = 0;
+
             using var gzip = new GZipStream(input, CompressionMode.Decompress);
-            using var output = MemoryStreamManager.GetStream("GZipCompression-Decompress-Output");
+            using var output = MemoryStreamManager.GetStream();
 
             gzip.CopyTo(output);
 
