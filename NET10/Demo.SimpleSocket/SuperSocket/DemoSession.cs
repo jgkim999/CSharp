@@ -1,7 +1,5 @@
 using System.Buffers;
 using System.Buffers.Binary;
-using System.IO;
-using System.IO.Compression;
 using System.IO.Pipelines;
 using System.Threading.Channels;
 using Bogus;
@@ -9,7 +7,6 @@ using Demo.Application.DTO.Socket;
 using Demo.Application.Utils;
 using Demo.SimpleSocket.SuperSocket.Handlers;
 using MessagePack;
-using Microsoft.IO;
 using SuperSocket.Connection;
 using SuperSocket.ProtoBase;
 using SuperSocket.Server;
@@ -18,12 +15,12 @@ namespace Demo.SimpleSocket.SuperSocket;
 
 public class DemoSession : AppSession, IDisposable
 {
-    private static readonly RecyclableMemoryStreamManager MemoryStreamManager = new();
     private static readonly ArrayPool<byte> ArrayPool = ArrayPool<byte>.Shared;
 
     private readonly ILogger<DemoSession> _logger;
     private readonly IClientSocketMessageHandler _messageHandler;
     private readonly ILogger<AesSessionEncryption> _encryptionLogger;
+    private readonly ISessionCompression _compression;
     private readonly CancellationTokenSource _cts = new();
     private readonly Channel<BinaryPackageInfo> _receiveChannel = Channel.CreateUnbounded<BinaryPackageInfo>();
     private readonly SequenceGenerator _seqGenerator = new();
@@ -57,11 +54,16 @@ public class DemoSession : AppSession, IDisposable
     /// </summary>
     public bool IsDisposed => _disposed;
 
-    public DemoSession(ILogger<DemoSession> logger, IClientSocketMessageHandler messageHandler, ILogger<AesSessionEncryption> encryptionLogger)
+    public DemoSession(
+        ILogger<DemoSession> logger,
+        IClientSocketMessageHandler messageHandler,
+        ILogger<AesSessionEncryption> encryptionLogger,
+        ISessionCompression compression)
     {
         _logger = logger;
         _messageHandler = messageHandler;
         _encryptionLogger = encryptionLogger;
+        _compression = compression;
     }
 
     /// <summary>
@@ -154,7 +156,7 @@ public class DemoSession : AppSession, IDisposable
             {
                 var originalSize = bodyMemory.Length;
                 int compressedLength;
-                (compressedBuffer, compressedLength) = CompressData(bodyMemory.Span);
+                (compressedBuffer, compressedLength) = _compression.Compress(bodyMemory.Span, ArrayPool);
                 bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
                 flags = flags.SetCompressed(true);
 
@@ -541,56 +543,12 @@ public class DemoSession : AppSession, IDisposable
     }
 
     /// <summary>
-    /// GZip을 사용하여 데이터 압축
-    /// RecyclableMemoryStream을 사용하여 메모리 할당 최소화
+    /// 데이터 압축 해제 (ArrayPool 사용)
+    /// 반환된 배열은 반드시 ArrayPool에 반환해야 함
     /// </summary>
-    /// <returns>(압축된 버퍼, 실제 압축 데이터 길이)</returns>
-    private static (byte[] Buffer, int Length) CompressData(ReadOnlySpan<byte> data)
+    /// <returns>(압축 해제된 버퍼, 실제 데이터 길이)</returns>
+    public (byte[] Buffer, int Length) DecompressDataToPool(ReadOnlySpan<byte> compressedData)
     {
-        using var output = MemoryStreamManager.GetStream("DemoSession-Compress");
-        using (var gzip = new GZipStream(output, CompressionLevel.Fastest, leaveOpen: true))
-        {
-            gzip.Write(data);
-        }
-
-        // RecyclableMemoryStream에서 버퍼를 가져와 ArrayPool 버퍼로 복사
-        var compressedLength = (int)output.Length;
-        var result = ArrayPool.Rent(compressedLength);
-        output.Position = 0;
-        output.ReadExactly(result.AsSpan(0, compressedLength));
-        return (result, compressedLength);
-    }
-
-    /// <summary>
-    /// GZip으로 압축된 데이터 압축 해제
-    /// RecyclableMemoryStream을 사용하여 메모리 할당 최소화
-    /// </summary>
-    public byte[] DecompressData(ReadOnlySpan<byte> compressedData)
-    {
-        var compressedSize = compressedData.Length;
-
-        try
-        {
-            using var input = MemoryStreamManager.GetStream("DemoSession-Decompress-Input", compressedData);
-            using var gzip = new GZipStream(input, CompressionMode.Decompress);
-            using var output = MemoryStreamManager.GetStream("DemoSession-Decompress-Output");
-
-            gzip.CopyTo(output);
-            var decompressed = output.ToArray();
-
-            _logger.LogInformation("[서버 압축 해제] 압축: {CompressedSize} 바이트 → 원본: {OriginalSize} 바이트 ({Ratio:F1}%)",
-                compressedSize, decompressed.Length, compressedSize * 100.0 / decompressed.Length);
-
-            return decompressed;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[서버 압축 해제 실패] CompressedSize: {CompressedSize}, 처음 16바이트: {FirstBytes}",
-                compressedSize,
-                compressedSize >= 16
-                    ? BitConverter.ToString(compressedData.Slice(0, 16).ToArray())
-                    : BitConverter.ToString(compressedData.ToArray()));
-            throw;
-        }
+        return _compression.Decompress(compressedData, ArrayPool);
     }
 }

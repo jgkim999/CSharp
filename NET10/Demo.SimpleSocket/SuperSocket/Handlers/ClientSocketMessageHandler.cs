@@ -140,8 +140,9 @@ public class ClientSocketMessageHandler : IClientSocketMessageHandler
         {
             ReadOnlyMemory<byte> bodyMemory = package.Body.AsMemory(0, package.BodyLength);
             byte[]? decryptedBuffer = null;
-            byte[]? decompressedData = null;
+            byte[]? decompressedBuffer = null;
             int decryptedLength = 0;
+            int decompressedLength = 0;
 
             _logger.LogInformation("[서버 수신] MessageType: {MessageType}, BodyLength: {BodyLength}, Flags: {Flags}, IsEncrypted: {IsEncrypted}, IsCompressed: {IsCompressed}",
                 package.MessageType, package.BodyLength, package.Flags, package.Flags.IsEncrypted(), package.Flags.IsCompressed());
@@ -157,13 +158,13 @@ public class ClientSocketMessageHandler : IClientSocketMessageHandler
                     _logger.LogInformation("[서버 복호화 완료] DecryptedLength: {DecryptedLength}", decryptedLength);
                 }
 
-                // 2단계: 압축된 데이터인 경우 압축 해제
+                // 2단계: 압축된 데이터인 경우 압축 해제 (ArrayPool 사용)
                 if (package.Flags.IsCompressed())
                 {
                     _logger.LogInformation("[서버 압축 해제 시작] BodyLength: {BodyLength}", bodyMemory.Length);
-                    decompressedData = session.DecompressData(bodyMemory.Span);
-                    bodyMemory = decompressedData.AsMemory();
-                    _logger.LogInformation("[서버 압축 해제 완료] DecompressedLength: {DecompressedLength}", bodyMemory.Length);
+                    (decompressedBuffer, decompressedLength) = session.DecompressDataToPool(bodyMemory.Span);
+                    bodyMemory = decompressedBuffer.AsMemory(0, decompressedLength);
+                    _logger.LogInformation("[서버 압축 해제 완료] DecompressedLength: {DecompressedLength}", decompressedLength);
                 }
 
                 // 3단계: MessagePack 역직렬화
@@ -179,8 +180,10 @@ public class ClientSocketMessageHandler : IClientSocketMessageHandler
                 {
                     System.Buffers.ArrayPool<byte>.Shared.Return(decryptedBuffer);
                 }
-                // 압축 해제 데이터는 GC에 맡김 (DecompressData가 ToArray() 사용)
-                decompressedData = null;
+                if (decompressedBuffer != null)
+                {
+                    System.Buffers.ArrayPool<byte>.Shared.Return(decompressedBuffer);
+                }
             }
         }
         catch (Exception ex)

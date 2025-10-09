@@ -152,6 +152,7 @@ try
 
     builder.Services.AddSingleton<ISessionManager, SessionManager>();
     builder.Services.AddSingleton<IClientSocketMessageHandler, ClientSocketMessageHandler>();
+    builder.Services.AddTransient<ISessionCompression, GZipSessionCompression>();
 
     // SuperSocket을 ASP.NET Core 호스트에 통합
     builder.Host
