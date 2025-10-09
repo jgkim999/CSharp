@@ -2,7 +2,7 @@ using Demo.Application.DTO.Socket;
 using SuperSocket.Connection;
 using SuperSocket.Server.Abstractions.Session;
 
-namespace Demo.SimpleSocket.SuperSocket;
+namespace Demo.SimpleSocket.SuperSocket.Interfaces;
 
 /// <summary>
 /// 세션 관리 인터페이스

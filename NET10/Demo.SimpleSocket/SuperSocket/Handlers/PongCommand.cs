@@ -1,4 +1,5 @@
 using Demo.Application.DTO.Socket;
+using Demo.SimpleSocket.SuperSocket.Interfaces;
 using LiteBus.Commands.Abstractions;
 
 namespace Demo.SimpleSocket.SuperSocket.Handlers;

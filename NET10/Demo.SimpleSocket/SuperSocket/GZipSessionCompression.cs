@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.IO.Compression;
+using Demo.SimpleSocket.SuperSocket.Interfaces;
 using Microsoft.IO;
 
 namespace Demo.SimpleSocket.SuperSocket;

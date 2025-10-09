@@ -1,4 +1,4 @@
-namespace Demo.SimpleSocket.SuperSocket.Handlers;
+namespace Demo.SimpleSocket.SuperSocket.Interfaces;
 
 /// <summary>
 /// 클라이언트 소켓 메시지 핸들러 인터페이스

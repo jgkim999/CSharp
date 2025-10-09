@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Security.Cryptography;
+using Demo.SimpleSocket.SuperSocket.Interfaces;
 
 namespace Demo.SimpleSocket.SuperSocket;
 

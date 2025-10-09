@@ -2,6 +2,7 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using Demo.Application.DTO;
 using Demo.Application.DTO.Socket;
+using Demo.SimpleSocket.SuperSocket.Interfaces;
 using MessagePack;
 using SuperSocket.Connection;
 using SuperSocket.Server.Abstractions.Session;

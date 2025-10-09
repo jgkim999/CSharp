@@ -6,6 +6,7 @@ using Bogus;
 using Demo.Application.DTO.Socket;
 using Demo.Application.Utils;
 using Demo.SimpleSocket.SuperSocket.Handlers;
+using Demo.SimpleSocket.SuperSocket.Interfaces;
 using MessagePack;
 using SuperSocket.Connection;
 using SuperSocket.ProtoBase;
@@ -26,6 +27,7 @@ public class DemoSession : AppSession, IDisposable
     private readonly SequenceGenerator _seqGenerator = new();
     private readonly Faker _faker = new("ko");
     private readonly ArrayBufferWriter<byte> _bufferWriter = new(4096);
+    private readonly SemaphoreSlim _bufferWriterLock = new(1, 1);  // ArrayBufferWriter 동기화용
     private readonly MsgPackPing _pingMsg = new();
     private Task? _processTask;
     private Task? _pingTask;
@@ -143,70 +145,81 @@ public class DemoSession : AppSession, IDisposable
 
     public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack, PacketFlags flags = PacketFlags.None, bool encrypt = false)
     {
-        _bufferWriter.Clear();  // 재사용을 위해 초기화
-        MessagePackSerializer.Serialize(_bufferWriter, msgPack);
-        ReadOnlyMemory<byte> bodyMemory = _bufferWriter.WrittenMemory;
-
-        byte[]? compressedBuffer = null;
-        byte[]? encryptedBuffer = null;
-        int encryptedLength = 0;
+        // ArrayBufferWriter 동기화 (thread-safe)
+        await _bufferWriterLock.WaitAsync(_cts.Token);
 
         try
         {
-            // 1단계: 압축 (512바이트 이상이면 자동 압축)
-            if (bodyMemory.Length > 512)
-            {
-                var originalSize = bodyMemory.Length;
-                int compressedLength;
-                (compressedBuffer, compressedLength) = _compression.Compress(bodyMemory.Span, ArrayPool);
-                bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
-                flags = flags.SetCompressed(true);
+            _bufferWriter.Clear();  // 재사용을 위해 초기화
+            MessagePackSerializer.Serialize(_bufferWriter, msgPack);
+            ReadOnlyMemory<byte> bodyMemory = _bufferWriter.WrittenMemory;
 
-                _logger.LogInformation("[서버 압축] 원본: {OriginalSize} 바이트 → 압축: {CompressedSize} 바이트 ({Ratio:F1}%)",
-                    originalSize, compressedLength, compressedLength * 100.0 / originalSize);
-            }
+            byte[]? compressedBuffer = null;
+            byte[]? encryptedBuffer = null;
+            int encryptedLength = 0;
 
-            // 2단계: 암호화 (encrypt=true이면 암호화)
-            if (encrypt)
+            try
             {
-                if (_encryption == null)
+                // 1단계: 압축 (512바이트 이상이면 자동 압축)
+                if (bodyMemory.Length > 512)
                 {
-                    throw new InvalidOperationException("암호화가 초기화되지 않았습니다. GenerateAndSetEncryption()를 먼저 호출하세요.");
+                    var originalSize = bodyMemory.Length;
+                    int compressedLength;
+                    (compressedBuffer, compressedLength) = _compression.Compress(bodyMemory.Span, ArrayPool);
+                    bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
+                    flags = flags.SetCompressed(true);
+
+                    _logger.LogInformation("[서버 압축] 원본: {OriginalSize} 바이트 → 압축: {CompressedSize} 바이트 ({Ratio:F1}%)",
+                        originalSize, compressedLength, compressedLength * 100.0 / originalSize);
                 }
 
-                (encryptedBuffer, encryptedLength) = _encryption.Encrypt(bodyMemory.Span, ArrayPool);
-                bodyMemory = encryptedBuffer.AsMemory(0, encryptedLength);
-                flags = flags.SetEncrypted(true);
-            }
-
-            ushort bodyLength = (ushort)bodyMemory.Length;
-            await Connection.SendAsync(
-                (writer) =>
+                // 2단계: 암호화 (encrypt=true이면 암호화)
+                if (encrypt)
                 {
-                    var headerSpan = writer.GetSpan(8);
-                    headerSpan[0] = (byte)flags;
-                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), _seqGenerator.GetNext());
-                    headerSpan[3] = _faker.Random.Byte();
-                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), (ushort)messageType);
-                    BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);
-                    writer.Advance(8);
+                    if (_encryption == null)
+                    {
+                        throw new InvalidOperationException("암호화가 초기화되지 않았습니다. GenerateAndSetEncryption()를 먼저 호출하세요.");
+                    }
 
-                    var bodySpan = writer.GetSpan(bodyLength);
-                    bodyMemory.Span.CopyTo(bodySpan);
-                    writer.Advance(bodyMemory.Length);
-                }, _cts.Token);
+                    (encryptedBuffer, encryptedLength) = _encryption.Encrypt(bodyMemory.Span, ArrayPool);
+                    bodyMemory = encryptedBuffer.AsMemory(0, encryptedLength);
+                    flags = flags.SetEncrypted(true);
+                }
+
+                ushort bodyLength = (ushort)bodyMemory.Length;
+                await Connection.SendAsync(
+                    (writer) =>
+                    {
+                        var headerSpan = writer.GetSpan(8);
+                        headerSpan[0] = (byte)flags;
+                        BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), _seqGenerator.GetNext());
+                        headerSpan[3] = _faker.Random.Byte();
+                        BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), (ushort)messageType);
+                        BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);
+                        writer.Advance(8);
+
+                        var bodySpan = writer.GetSpan(bodyLength);
+                        bodyMemory.Span.CopyTo(bodySpan);
+                        writer.Advance(bodyMemory.Length);
+                    }, _cts.Token);
+            }
+            finally
+            {
+                if (compressedBuffer != null)
+                {
+                    ArrayPool.Return(compressedBuffer);
+                }
+                // 암호화 버퍼 ArrayPool 반환
+                if (encryptedBuffer != null)
+                {
+                    ArrayPool.Return(encryptedBuffer);
+                }
+            }
         }
         finally
         {
-            if (compressedBuffer != null)
-            {
-                ArrayPool.Return(compressedBuffer);
-            }
-            // 암호화 버퍼 ArrayPool 반환
-            if (encryptedBuffer != null)
-            {
-                ArrayPool.Return(encryptedBuffer);
-            }
+            // SemaphoreSlim 해제
+            _bufferWriterLock.Release();
         }
     }
 
@@ -483,6 +496,16 @@ public class DemoSession : AppSession, IDisposable
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error disposing Encryption. SessionID: {SessionID}", SessionID);
+                }
+
+                // 3. SemaphoreSlim Dispose
+                try
+                {
+                    _bufferWriterLock?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error disposing SemaphoreSlim. SessionID: {SessionID}", SessionID);
                 }
 
                 _logger.LogInformation("DemoSession disposed successfully. SessionID: {SessionID}", SessionID);

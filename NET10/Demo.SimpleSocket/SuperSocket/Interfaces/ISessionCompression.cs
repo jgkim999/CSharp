@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace Demo.SimpleSocket.SuperSocket;
+namespace Demo.SimpleSocket.SuperSocket.Interfaces;
 
 /// <summary>
 /// 세션 압축 인터페이스

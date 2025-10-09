@@ -14,6 +14,7 @@ using Demo.Infra.Services;
 using Demo.SimpleSocket;
 using Demo.SimpleSocket.SuperSocket;
 using Demo.SimpleSocket.SuperSocket.Handlers;
+using Demo.SimpleSocket.SuperSocket.Interfaces;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using FluentValidation;

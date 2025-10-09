@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace Demo.SimpleSocket.SuperSocket;
+namespace Demo.SimpleSocket.SuperSocket.Interfaces;
 
 /// <summary>
 /// 세션 암호화 인터페이스
