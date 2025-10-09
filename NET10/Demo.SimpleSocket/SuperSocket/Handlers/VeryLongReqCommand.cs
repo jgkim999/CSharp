@@ -8,6 +8,7 @@ public record VeryLongReqCommand(VeryLongReq Packet, string SessionId) : IComman
 
 public class VeryLongReqCommandHandler : ICommandHandler<VeryLongReqCommand>
 {
+    private static readonly Faker _faker = new("ko");
     private readonly ILogger<VeryLongReqCommandHandler> _logger;
     private readonly ISessionManager _sessionManager;
 
@@ -33,12 +34,12 @@ public class VeryLongReqCommandHandler : ICommandHandler<VeryLongReqCommand>
                 command.SessionId, command.Packet.Data.Length);
 
             // Bogus를 사용하여 매우 긴 응답 데이터 생성 (약 2000~3000자)
-            Faker faker = new("ko");
+            // static 필드 재사용으로 매번 인스턴스 생성 방지
             var longText = string.Join("\n", new[]
             {
-                faker.Lorem.Paragraphs(10),  // 10개 문단
-                faker.Lorem.Paragraphs(10),  // 10개 문단
-                faker.Lorem.Paragraphs(10),  // 10개 문단
+                _faker.Lorem.Paragraphs(10),  // 10개 문단
+                _faker.Lorem.Paragraphs(10),  // 10개 문단
+                _faker.Lorem.Paragraphs(10),  // 10개 문단
             });
 
             var response = new VeryLongRes

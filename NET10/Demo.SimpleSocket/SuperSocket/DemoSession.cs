@@ -25,6 +25,8 @@ public class DemoSession : AppSession, IDisposable
     private readonly Channel<BinaryPackageInfo> _receiveChannel = Channel.CreateUnbounded<BinaryPackageInfo>();
     private readonly SequenceGenerator _seqGenerator = new();
     private readonly Faker _faker = new("ko");
+    private readonly ArrayBufferWriter<byte> _bufferWriter = new(4096);
+    private readonly MsgPackPing _pingMsg = new();
     private Task? _processTask;
     private Task? _pingTask;
     private bool _disposed;
@@ -141,9 +143,9 @@ public class DemoSession : AppSession, IDisposable
 
     public async ValueTask SendMessagePackAsync<T>(SocketMessageType messageType, T msgPack, PacketFlags flags = PacketFlags.None, bool encrypt = false)
     {
-        ArrayBufferWriter<byte> bufferWriter = new();
-        MessagePackSerializer.Serialize(bufferWriter, msgPack);
-        ReadOnlyMemory<byte> bodyMemory = bufferWriter.WrittenMemory;
+        _bufferWriter.Clear();  // 재사용을 위해 초기화
+        MessagePackSerializer.Serialize(_bufferWriter, msgPack);
+        ReadOnlyMemory<byte> bodyMemory = _bufferWriter.WrittenMemory;
 
         byte[]? compressedBuffer = null;
         byte[]? encryptedBuffer = null;
@@ -291,15 +293,13 @@ public class DemoSession : AppSession, IDisposable
             {
                 await Task.Delay(TimeSpan.FromSeconds(5), _cts.Token);
 
-                var pingMsg = new MsgPackPing
-                {
-                    ServerDt = DateTime.UtcNow
-                };
+                // 재사용 가능한 객체 사용 (매번 생성하지 않음)
+                _pingMsg.ServerDt = DateTime.UtcNow;
 
-                await SendMessagePackAsync(SocketMessageType.Ping, pingMsg);
+                await SendMessagePackAsync(SocketMessageType.Ping, _pingMsg);
 
                 _logger.LogDebug("Ping sent to client. SessionID: {SessionID}, ServerDt: {ServerDt}",
-                    SessionID, pingMsg.ServerDt);
+                    SessionID, _pingMsg.ServerDt);
             }
         }
         catch (OperationCanceledException)

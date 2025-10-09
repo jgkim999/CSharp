@@ -63,20 +63,22 @@ public class SendMessageEndpoint : Endpoint<SendMessageRequest, SendMessageRespo
 
             // 패킷 구성: Flags(1) + Sequence(2) + Reserved(1) + MessageType(2) + BodyLength(2) + Body
             ushort bodyLength = (ushort)messageBody.Length;
-            byte[] packet = new byte[8 + bodyLength];
+            var packet = System.Buffers.ArrayPool<byte>.Shared.Rent(8 + bodyLength);
 
-            // 헤더 작성 (8바이트)
-            packet[0] = (byte)PacketFlags.None;  // Flags (1바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), 0);  // Sequence (2바이트) - 기본값 0
-            packet[3] = 0;  // Reserved (1바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(4, 2), req.MessageType);  // MessageType (2바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(6, 2), bodyLength);  // BodyLength (2바이트)
-
-            // Body 복사
-            if (bodyLength > 0)
+            try
             {
-                Array.Copy(messageBody, 0, packet, 8, bodyLength);
-            }
+                // 헤더 작성 (8바이트)
+                packet[0] = (byte)PacketFlags.None;  // Flags (1바이트)
+                BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), 0);  // Sequence (2바이트) - 기본값 0
+                packet[3] = 0;  // Reserved (1바이트)
+                BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(4, 2), req.MessageType);  // MessageType (2바이트)
+                BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(6, 2), bodyLength);  // BodyLength (2바이트)
+
+                // Body 복사
+                if (bodyLength > 0)
+                {
+                    Array.Copy(messageBody, 0, packet, 8, bodyLength);
+                }
 
             // TCP 연결 및 메시지 전송
             var host = _configuration["serverOptions:listeners:0:ip"] ?? "127.0.0.1";
@@ -115,11 +117,11 @@ public class SendMessageEndpoint : Endpoint<SendMessageRequest, SendMessageRespo
             _logger.LogInformation("Received connection packet - Flags: {Flags}, Sequence: {Sequence}, MessageType: {MessageType}",
                 connectFlags, connectSequence, connectMessageType);
 
-            // 패킷 전송
-            await stream.WriteAsync(packet, ct);
-            _logger.LogInformation(
-                "Sent packet - MessageType: {MessageType}, BodyLength: {BodyLength}",
-                req.MessageType, bodyLength);
+                // 패킷 전송
+                await stream.WriteAsync(packet.AsMemory(0, 8 + bodyLength), ct);
+                _logger.LogInformation(
+                    "Sent packet - MessageType: {MessageType}, BodyLength: {BodyLength}",
+                    req.MessageType, bodyLength);
 
             // ECHO 응답 수신 (헤더 8바이트)
             byte[] headerBuffer = new byte[8];
@@ -172,14 +174,20 @@ public class SendMessageEndpoint : Endpoint<SendMessageRequest, SendMessageRespo
                 }
             }
 
-            // 성공 응답
-            Response = new SendMessageResponse
+                // 성공 응답
+                Response = new SendMessageResponse
+                {
+                    Success = true,
+                    MessageType = responseMessageType,
+                    BodyLength = responseBodyLength,
+                    ResponseMessage = Convert.ToBase64String(bodyBuffer)
+                };
+            }
+            finally
             {
-                Success = true,
-                MessageType = responseMessageType,
-                BodyLength = responseBodyLength,
-                ResponseMessage = Convert.ToBase64String(bodyBuffer)
-            };
+                // ArrayPool 버퍼 반환
+                System.Buffers.ArrayPool<byte>.Shared.Return(packet);
+            }
         }
         catch (SocketException ex)
         {
