@@ -2,7 +2,6 @@ using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using Demo.Application.DTO;
 using Demo.Application.DTO.Socket;
-using Demo.Application.Utils;
 using MessagePack;
 using SuperSocket.Connection;
 using SuperSocket.Server.Abstractions.Session;
@@ -19,6 +18,21 @@ public class SessionManager : IAsyncDisposable
     {
         _cancellationToken = lifetime.ApplicationStopping;
         _logger = logger;
+    }
+    
+    public DemoSession? GetSession(string sessionId)
+    {
+        if (_sessions.TryGetValue(sessionId, out DemoSession? session))
+        {
+            // Dispose된 세션은 null 반환
+            if (session.IsDisposed)
+            {
+                _logger.LogWarning("Session is already disposed. SessionId: {SessionId}", sessionId);
+                return null;
+            }
+            return session;
+        }
+        return null;
     }
 
     /// <summary>
@@ -37,9 +51,8 @@ public class SessionManager : IAsyncDisposable
 
         _sessions.TryAdd(session.SessionID, demoSession);
 
-        // AES Key/IV 생성
-        var (aesKey, aesIV) = AesHelper.GenerateKeyAndIV();
-        demoSession.SetAesKey(aesKey, aesIV);
+        // 암호화 초기화
+        var (aesKey, aesIV) = demoSession.GenerateAndSetEncryption();
 
         MsgConnectionSuccessNfy message = new()
         {

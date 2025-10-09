@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Bogus;
 using Demo.Application.DTO.Socket;
 using LiteBus.Commands.Abstractions;
 
@@ -10,26 +9,31 @@ namespace Demo.SimpleSocket.SuperSocket.Handlers;
 /// </summary>
 public class ClientSocketMessageHandler
 {
-    private readonly ConcurrentDictionary<ushort, Func<BinaryPackageInfo, DemoSession, Task>> _handlers = new();
+    private readonly ConcurrentDictionary<ushort, Func<BinaryPackageInfo, string, Task>> _handlers = new();
     private readonly ILogger<ClientSocketMessageHandler> _logger;
     private readonly ICommandMediator _mediator;
+    private readonly SessionManager _sessionManager;
 
-    public ClientSocketMessageHandler(ILogger<ClientSocketMessageHandler> logger, ICommandMediator mediator)
+    public ClientSocketMessageHandler(
+        ILogger<ClientSocketMessageHandler> logger,
+        ICommandMediator mediator,
+        SessionManager sessionManager)
     {
         _logger = logger;
         _mediator = mediator;
+        _sessionManager = sessionManager;
+        
         RegisterHandler(SocketMessageType.Pong, OnPongAsync);
         RegisterHandler(SocketMessageType.MsgPackRequest, OnSocketMsgPackReqAsync);
         RegisterHandler(SocketMessageType.VeryLongReq, OnVeryLongReqAsync);
     }
-
 
     /// <summary>
     /// MessageType에 대한 핸들러 등록
     /// </summary>
     /// <param name="messageType">메시지 타입</param>
     /// <param name="handler">처리 함수 (BinaryPackageInfo, DemoSession) => Task</param>
-    public void RegisterHandler(SocketMessageType messageType, Func<BinaryPackageInfo, DemoSession, Task> handler)
+    private void RegisterHandler(SocketMessageType messageType, Func<BinaryPackageInfo, string, Task> handler)
     {
         RegisterHandler((ushort)messageType, handler);
     }
@@ -39,7 +43,7 @@ public class ClientSocketMessageHandler
     /// </summary>
     /// <param name="messageType">메시지 타입</param>
     /// <param name="handler">처리 함수 (BinaryPackageInfo, DemoSession) => Task</param>
-    public void RegisterHandler(ushort messageType, Func<BinaryPackageInfo, DemoSession, Task> handler)
+    private void RegisterHandler(ushort messageType, Func<BinaryPackageInfo, string, Task> handler)
     {
         if (_handlers.TryAdd(messageType, handler))
         {
@@ -55,7 +59,7 @@ public class ClientSocketMessageHandler
     /// <summary>
     /// 여러 MessageType에 대한 핸들러를 한 번에 등록
     /// </summary>
-    public void RegisterHandlers(Dictionary<ushort, Func<BinaryPackageInfo, DemoSession, Task>> handlers)
+    public void RegisterHandlers(Dictionary<ushort, Func<BinaryPackageInfo, string, Task>> handlers)
     {
         foreach (var kvp in handlers)
         {
@@ -67,22 +71,22 @@ public class ClientSocketMessageHandler
     /// MessageType에 해당하는 핸들러 실행
     /// </summary>
     /// <param name="package">패킷 정보</param>
-    /// <param name="session">세션</param>
+    /// <param name="sessionId">세션</param>
     /// <returns>핸들러를 찾아 실행했으면 true, 없으면 false</returns>
-    public async Task<bool> HandleAsync(BinaryPackageInfo package, DemoSession session)
+    public async Task<bool> HandleAsync(BinaryPackageInfo package, string sessionId)
     {
         if (_handlers.TryGetValue(package.MessageType, out var handler))
         {
             try
             {
-                await handler(package, session);
+                await handler(package, sessionId);
                 return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
                     "Error handling message. SessionId: {SessionId}, MessageType: {MessageType}",
-                    session.SessionID, package.MessageType);
+                    sessionId, package.MessageType);
                 throw;
             }
         }
@@ -117,8 +121,15 @@ public class ClientSocketMessageHandler
     /// </summary>
     public int HandlerCount => _handlers.Count;
     
-    private T? CheckPackage<T>(BinaryPackageInfo package, DemoSession session) where T : class
+    private T? CheckPackage<T>(BinaryPackageInfo package, string sessionId) where T : class
     {
+        var session = _sessionManager.GetSession(sessionId);
+        if (session == null)
+        {
+            _logger.LogWarning("Session not found. SessionID: {SessionID}", sessionId);
+            return null;
+        }
+        
         if (package.BodyLength == 0)
         {
             _logger.LogWarning("Received package with empty body. SessionID: {SessionID}", session.SessionID);
@@ -174,62 +185,39 @@ public class ClientSocketMessageHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deserializing package. SessionID: {SessionID}, MessageType: {MessageType}, BodyLength: {BodyLength}, Flags: {Flags}",
+            _logger.LogError(
+                ex,
+                "Error deserializing package. SessionID: {SessionID}, MessageType: {MessageType}, BodyLength: {BodyLength}, Flags: {Flags}",
                 session.SessionID, package.MessageType, package.BodyLength, package.Flags);
             return null;
         }
     }
     
-    private async Task OnSocketMsgPackReqAsync(BinaryPackageInfo package, DemoSession session)
+    private async Task OnSocketMsgPackReqAsync(BinaryPackageInfo package, string sessionId)
     {
-        var request = CheckPackage<MsgPackReq>(package, session);
+        var request = CheckPackage<MsgPackReq>(package, sessionId);
         if (request == null)
             return;
-        await _mediator.SendAsync(new MsgPackReqCommand(request, session));
+        await _mediator.SendAsync(new MsgPackReqCommand(request, sessionId));
     }
     
-    private async Task OnPongAsync(BinaryPackageInfo package, DemoSession session)
+    private async Task OnPongAsync(BinaryPackageInfo package, string sessionId)
     {
-        var request = CheckPackage<MsgPackPing>(package, session);
+        var request = CheckPackage<MsgPackPing>(package, sessionId);
         if (request == null)
             return;
-        var utcNow = DateTime.UtcNow;
-        var rtt = (utcNow - request.ServerDt).TotalMilliseconds;
-        session.SetLastPong(utcNow, rtt);
-        _logger.LogInformation("Pong 수신. {MilliSeconds}ms", rtt);
-        await Task.CompletedTask;
+        await _mediator.SendAsync(new PongCommand(request, sessionId));
     }
 
     /// <summary>
     /// VeryLongReq 메시지 처리 핸들러
     /// 압축 테스트를 위해 매우 긴 텍스트를 응답으로 전송
     /// </summary>
-    private async Task OnVeryLongReqAsync(BinaryPackageInfo package, DemoSession session)
+    private async Task OnVeryLongReqAsync(BinaryPackageInfo package, string sessionId)
     {
-        var request = CheckPackage<VeryLongReq>(package, session);
+        var request = CheckPackage<VeryLongReq>(package, sessionId);
         if (request == null)
             return;
-
-        _logger.LogInformation("VeryLongReq 수신. SessionID: {SessionID}, DataLength: {DataLength}, Compressed: {Compressed}",
-            session.SessionID, request.Data?.Length ?? 0, package.Flags.IsCompressed());
-
-        // Bogus를 사용하여 매우 긴 응답 데이터 생성 (약 2000~3000자)
-        var faker = new Faker("ko");
-        var longText = string.Join("\n", new[]
-        {
-            faker.Lorem.Paragraphs(10),  // 10개 문단
-            faker.Lorem.Paragraphs(10),  // 10개 문단
-            faker.Lorem.Paragraphs(10),  // 10개 문단
-        });
-
-        var response = new VeryLongRes
-        {
-            Data = $"[서버 응답] 수신한 데이터 길이: {request.Data?.Length ?? 0}자\n\n{longText}"
-        };
-
-        await session.SendMessagePackAsync(SocketMessageType.VeryLongRes, response);
-
-        _logger.LogInformation("VeryLongRes 전송 완료. SessionID: {SessionID}, ResponseLength: {ResponseLength}",
-            session.SessionID, response.Data.Length);
+        await _mediator.SendAsync(new VeryLongReqCommand(request, sessionId));
     }
 }
