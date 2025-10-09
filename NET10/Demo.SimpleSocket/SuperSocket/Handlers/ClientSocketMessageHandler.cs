@@ -131,24 +131,34 @@ public class ClientSocketMessageHandler
             byte[]? decryptedData = null;
             byte[]? decompressedData = null;
 
+            _logger.LogInformation("[서버 수신] MessageType: {MessageType}, BodyLength: {BodyLength}, Flags: {Flags}, IsEncrypted: {IsEncrypted}, IsCompressed: {IsCompressed}",
+                package.MessageType, package.BodyLength, package.Flags, package.Flags.IsEncrypted(), package.Flags.IsCompressed());
+
             try
             {
                 // 1단계: 암호화된 데이터인 경우 먼저 복호화
-                if (package.Flags.HasFlag(PacketFlags.Encrypted))
+                if (package.Flags.IsEncrypted())
                 {
+                    _logger.LogInformation("[서버 복호화 시작] BodyLength: {BodyLength}", bodyMemory.Length);
                     decryptedData = session.DecryptData(bodyMemory.Span);
                     bodyMemory = decryptedData.AsMemory();
+                    _logger.LogInformation("[서버 복호화 완료] DecryptedLength: {DecryptedLength}", bodyMemory.Length);
                 }
 
                 // 2단계: 압축된 데이터인 경우 압축 해제
-                if (package.Flags.HasFlag(PacketFlags.Compressed))
+                if (package.Flags.IsCompressed())
                 {
+                    _logger.LogInformation("[서버 압축 해제 시작] BodyLength: {BodyLength}", bodyMemory.Length);
                     decompressedData = session.DecompressData(bodyMemory.Span);
                     bodyMemory = decompressedData.AsMemory();
+                    _logger.LogInformation("[서버 압축 해제 완료] DecompressedLength: {DecompressedLength}", bodyMemory.Length);
                 }
 
                 // 3단계: MessagePack 역직렬화
-                return MessagePack.MessagePackSerializer.Deserialize<T>(bodyMemory);
+                _logger.LogInformation("[서버 역직렬화 시작] FinalBodyLength: {FinalBodyLength}", bodyMemory.Length);
+                var result = MessagePack.MessagePackSerializer.Deserialize<T>(bodyMemory);
+                _logger.LogInformation("[서버 역직렬화 완료] Type: {TypeName}", typeof(T).Name);
+                return result;
             }
             finally
             {
@@ -159,7 +169,8 @@ public class ClientSocketMessageHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deserializing package. SessionID: {SessionID}", session.SessionID);
+            _logger.LogError(ex, "Error deserializing package. SessionID: {SessionID}, MessageType: {MessageType}, BodyLength: {BodyLength}, Flags: {Flags}",
+                session.SessionID, package.MessageType, package.BodyLength, package.Flags);
             return null;
         }
     }
@@ -195,7 +206,7 @@ public class ClientSocketMessageHandler
             return;
 
         _logger.LogInformation("VeryLongReq 수신. SessionID: {SessionID}, DataLength: {DataLength}, Compressed: {Compressed}",
-            session.SessionID, request.Data?.Length ?? 0, package.Flags.HasFlag(PacketFlags.Compressed));
+            session.SessionID, request.Data?.Length ?? 0, package.Flags.IsCompressed());
 
         // Bogus를 사용하여 매우 긴 응답 데이터 생성 (약 2000~3000자)
         var faker = new Faker("ko");

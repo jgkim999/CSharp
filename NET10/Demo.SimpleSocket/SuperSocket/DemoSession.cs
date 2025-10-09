@@ -149,7 +149,7 @@ public class DemoSession : AppSession, IDisposable
                 int compressedLength;
                 (compressedBuffer, compressedLength) = CompressData(bodyMemory.Span);
                 bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
-                flags |= PacketFlags.Compressed;
+                flags = flags.SetCompressed(true);
 
                 _logger.LogInformation("[서버 압축] 원본: {OriginalSize} 바이트 → 압축: {CompressedSize} 바이트 ({Ratio:F1}%)",
                     originalSize, compressedLength, compressedLength * 100.0 / originalSize);
@@ -158,9 +158,12 @@ public class DemoSession : AppSession, IDisposable
             // 2단계: 암호화 (encrypt=true이면 암호화)
             if (encrypt)
             {
+                var originalSize = bodyMemory.Length;
                 encryptedBuffer = EncryptData(bodyMemory.Span);
                 bodyMemory = encryptedBuffer.AsMemory();
-                flags |= PacketFlags.Encrypted;
+                flags = flags.SetEncrypted(true);
+                _logger.LogInformation("[서버 암호화] 원본: {OriginalSize} 바이트 → 암호화: {EncryptedSize} 바이트",
+                    originalSize, encryptedBuffer.Length);
             }
 
             ushort bodyLength = (ushort)bodyMemory.Length;
@@ -186,6 +189,8 @@ public class DemoSession : AppSession, IDisposable
             {
                 _arrayPool.Return(compressedBuffer);
             }
+            // 암호화 버퍼가 heap 할당된 경우 null로 설정하여 GC가 회수하도록 함
+            encryptedBuffer = null;
         }
     }
 
@@ -550,16 +555,28 @@ public class DemoSession : AppSession, IDisposable
     {
         var compressedSize = compressedData.Length;
 
-        using var input = _memoryStreamManager.GetStream("DemoSession-Decompress-Input", compressedData);
-        using var gzip = new GZipStream(input, CompressionMode.Decompress);
-        using var output = _memoryStreamManager.GetStream("DemoSession-Decompress-Output");
+        try
+        {
+            using var input = _memoryStreamManager.GetStream("DemoSession-Decompress-Input", compressedData);
+            using var gzip = new GZipStream(input, CompressionMode.Decompress);
+            using var output = _memoryStreamManager.GetStream("DemoSession-Decompress-Output");
 
-        gzip.CopyTo(output);
-        var decompressed = output.ToArray();
+            gzip.CopyTo(output);
+            var decompressed = output.ToArray();
 
-        _logger.LogInformation("[서버 압축 해제] 압축: {CompressedSize} 바이트 → 원본: {OriginalSize} 바이트 ({Ratio:F1}%)",
-            compressedSize, decompressed.Length, compressedSize * 100.0 / decompressed.Length);
+            _logger.LogInformation("[서버 압축 해제] 압축: {CompressedSize} 바이트 → 원본: {OriginalSize} 바이트 ({Ratio:F1}%)",
+                compressedSize, decompressed.Length, compressedSize * 100.0 / decompressed.Length);
 
-        return decompressed;
+            return decompressed;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[서버 압축 해제 실패] CompressedSize: {CompressedSize}, 처음 16바이트: {FirstBytes}",
+                compressedSize,
+                compressedSize >= 16
+                    ? BitConverter.ToString(compressedData.Slice(0, 16).ToArray())
+                    : BitConverter.ToString(compressedData.ToArray()));
+            throw;
+        }
     }
 }
