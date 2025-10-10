@@ -53,18 +53,18 @@ SuperSocket 기반의 고성능 TCP 소켓 서버입니다. 메시지 압축, AE
 
 | Type | 이름 | 설명 |
 |------|------|------|
-| 0x0001 | ConnectionSuccess | 연결 성공 (AES Key/IV 포함) |
-| 0x0003 | Ping | 서버 → 클라이언트 핑 |
-| 0x0011 | MsgPackResponse | MessagePack 응답 |
-| 0x0031 | VeryLongRes | 긴 텍스트 응답 (압축 테스트용) |
+| 1    | ConnectionSuccess | 연결 성공 (AES Key/IV 포함) |
+| 2    | Ping | 서버 → 클라이언트 핑 |
+| 6    | MsgPackResponse | MessagePack 응답 |
+| 8    | VeryLongRes | 긴 텍스트 응답 (압축 테스트용) |
 
 ### 클라이언트 → 서버
 
 | Type | 이름 | 설명 |
 |------|------|------|
-| 0x0004 | Pong | 클라이언트 → 서버 퐁 |
-| 0x0010 | MsgPackRequest | MessagePack 요청 |
-| 0x0030 | VeryLongReq | 긴 텍스트 요청 (압축 테스트용) |
+| 3    | Pong | 클라이언트 → 서버 퐁 |
+| 5    | MsgPackRequest | MessagePack 요청 |
+| 7    | VeryLongReq | 긴 텍스트 요청 (압축 테스트용) |
 
 ## 설정
 
@@ -82,7 +82,6 @@ SuperSocket 기반의 고성능 TCP 소켓 서버입니다. 메시지 압축, AE
     ]
   },
   "CustomServerOption": {
-    "EnablePing": true,
     "PingIntervalSeconds": 30
   }
 }
@@ -91,7 +90,6 @@ SuperSocket 기반의 고성능 TCP 소켓 서버입니다. 메시지 압축, AE
 ### 주요 설정 옵션
 
 - **ServerOptions.Listeners**: 리스닝 IP와 포트
-- **CustomServerOption.EnablePing**: 서버 Ping 활성화 여부
 - **CustomServerOption.PingIntervalSeconds**: Ping 전송 간격 (초)
 
 ## 실행 방법
