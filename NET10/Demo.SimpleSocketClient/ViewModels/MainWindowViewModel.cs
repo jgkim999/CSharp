@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 
 namespace Demo.SimpleSocketClient.ViewModels;
 
@@ -11,6 +12,7 @@ namespace Demo.SimpleSocketClient.ViewModels;
 /// </summary>
 public partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
+    private readonly ILoggerFactory? _loggerFactory;
     private int _nextClientId = 1;
 
     [ObservableProperty]
@@ -27,8 +29,13 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
 
     public ObservableCollection<ClientConnectionViewModel> Clients { get; } = new();
 
-    public MainWindowViewModel()
+    public MainWindowViewModel() : this(null)
     {
+    }
+
+    public MainWindowViewModel(ILoggerFactory? loggerFactory)
+    {
+        _loggerFactory = loggerFactory;
     }
 
     /// <summary>
@@ -39,7 +46,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            var client = new ClientConnectionViewModel(_nextClientId++, ServerIp, ServerPort);
+            var logger = _loggerFactory?.CreateLogger<ClientConnectionViewModel>();
+            var client = new ClientConnectionViewModel(_nextClientId++, ServerIp, ServerPort, logger);
             Clients.Add(client);
 
             // 첫 번째 클라이언트는 자동 선택
@@ -71,7 +79,8 @@ public partial class MainWindowViewModel : ViewModelBase, IDisposable
         {
             for (int i = 0; i < ClientCount; i++)
             {
-                var client = new ClientConnectionViewModel(_nextClientId++, ServerIp, ServerPort);
+                var logger = _loggerFactory?.CreateLogger<ClientConnectionViewModel>();
+                var client = new ClientConnectionViewModel(_nextClientId++, ServerIp, ServerPort, logger);
                 Clients.Add(client);
             }
 

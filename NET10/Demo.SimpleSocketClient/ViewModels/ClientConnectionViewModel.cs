@@ -8,7 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using Demo.SimpleSocketClient.Services;
 using Demo.SimpleSocketShare;
 using Demo.SimpleSocketShare.Messages;
-using Serilog;
+using Microsoft.Extensions.Logging;
 
 namespace Demo.SimpleSocketClient.ViewModels;
 
@@ -19,8 +19,9 @@ public partial class ClientConnectionViewModel : ViewModelBase, IDisposable
 {
     private readonly SocketClient _socketClient;
     private readonly ClientMessageHandler _messageHandler;
-    private readonly Faker _faker = new();
+    private readonly Faker _faker = new("ko");
     private readonly int _clientId;
+    private readonly ILogger<ClientConnectionViewModel>? _logger;
 
     [ObservableProperty]
     private string _clientName;
@@ -39,10 +40,11 @@ public partial class ClientConnectionViewModel : ViewModelBase, IDisposable
 
     public ObservableCollection<string> ReceivedMessages { get; } = new();
 
-    public ClientConnectionViewModel(int clientId, string serverIp, int serverPort)
+    public ClientConnectionViewModel(int clientId, string serverIp, int serverPort, ILogger<ClientConnectionViewModel>? logger = null)
     {
         _clientId = clientId;
         _clientName = $"클라이언트 #{clientId}";
+        _logger = logger;
 
         _socketClient = new SocketClient();
         _socketClient.MessageReceived += OnMessageReceived;
@@ -227,11 +229,10 @@ public partial class ClientConnectionViewModel : ViewModelBase, IDisposable
 
         try
         {
-            var faker = new Faker("ko");
             var longText = string.Join("\n", new[]
             {
-                faker.Lorem.Paragraphs(5),
-                faker.Lorem.Paragraphs(5),
+                _faker.Lorem.Paragraphs(5),
+                _faker.Lorem.Paragraphs(5),
             });
 
             var request = new VeryLongReq
@@ -291,22 +292,25 @@ public partial class ClientConnectionViewModel : ViewModelBase, IDisposable
 
     private void AddReceivedMessage(string message)
     {
-        // Serilog 로깅 (메시지 종류에 따라 로그 레벨 결정)
-        if (message.Contains("[오류]") || message.Contains("오류 발생") || message.Contains("실패"))
+        // ILogger를 사용한 로깅 (메시지 종류에 따라 로그 레벨 결정)
+        if (_logger != null)
         {
-            Log.Error("[{ClientName}] {Message}", ClientName, message);
-        }
-        else if (message.Contains("[시스템]"))
-        {
-            Log.Information("[{ClientName}] {Message}", ClientName, message);
-        }
-        else if (message.Contains("[전송]") || message.Contains("[수신]"))
-        {
-            Log.Debug("[{ClientName}] {Message}", ClientName, message);
-        }
-        else
-        {
-            Log.Debug("[{ClientName}] {Message}", ClientName, message);
+            if (message.Contains("[오류]") || message.Contains("오류 발생") || message.Contains("실패"))
+            {
+                _logger.LogError("[{ClientName}] {Message}", ClientName, message);
+            }
+            else if (message.Contains("[시스템]"))
+            {
+                _logger.LogInformation("[{ClientName}] {Message}", ClientName, message);
+            }
+            else if (message.Contains("[전송]") || message.Contains("[수신]"))
+            {
+                _logger.LogDebug("[{ClientName}] {Message}", ClientName, message);
+            }
+            else
+            {
+                _logger.LogDebug("[{ClientName}] {Message}", ClientName, message);
+            }
         }
 
         // UI 스레드에서 실행
