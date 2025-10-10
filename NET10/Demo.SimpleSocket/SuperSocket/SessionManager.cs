@@ -1,9 +1,7 @@
-using System.Buffers.Binary;
 using System.Collections.Concurrent;
-using Demo.Application.DTO;
-using Demo.Application.DTO.Socket;
 using Demo.SimpleSocket.SuperSocket.Interfaces;
-using MessagePack;
+using Demo.SimpleSocketShare;
+using Demo.SimpleSocketShare.Messages;
 using SuperSocket.Connection;
 using SuperSocket.Server.Abstractions.Session;
 
@@ -53,18 +51,18 @@ public class SessionManager : ISessionManager
         _sessions.TryAdd(session.SessionID, demoSession);
 
         // 암호화 초기화
-        var (aesKey, aesIV) = demoSession.GenerateAndSetEncryption();
+        var (aesKey, aesIv) = demoSession.GenerateAndSetEncryption();
 
         MsgConnectionSuccessNfy message = new()
         {
             ConnectionId = session.SessionID,
             ServerUtcTime = DateTime.UtcNow,
             AesKey = aesKey,
-            AesIV = aesIV
+            AesIV = aesIv
         };
 
         _logger.LogInformation("AES Key/IV generated and sent. SessionId: {SessionId}, KeySize: {KeySize}, IVSize: {IVSize}",
-            session.SessionID, aesKey.Length, aesIV.Length);
+            session.SessionID, aesKey.Length, aesIv.Length);
 
         await demoSession.SendMessagePackAsync(SocketMessageType.ConnectionSuccess, message);
     }

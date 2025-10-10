@@ -1,4 +1,4 @@
-namespace Demo.Application.DTO.Socket;
+namespace Demo.SimpleSocketShare;
 
 /// <summary>
 /// 패킷 플래그 (1바이트)

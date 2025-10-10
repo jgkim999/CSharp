@@ -1,6 +1,7 @@
 using System.Buffers;
+
 using System.Buffers.Binary;
-using Demo.Application.DTO.Socket;
+using Demo.SimpleSocketShare;
 using SuperSocket.ProtoBase;
 
 namespace Demo.SimpleSocket.SuperSocket;
@@ -21,7 +22,7 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
     /// 생성자
     /// 헤더 크기는 8바이트 (플래그 1 + 시퀀스 2 + 예약 1 + 메시지타입 2 + 바디길이 2)
     /// </summary>
-    public FixedHeaderPipelineFilter() : base(8)
+    public FixedHeaderPipelineFilter() : base(SocketConst.HeadSize)
     {
     }
 
@@ -36,17 +37,17 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
         if (buffer.IsSingleSegment)
         {
             // 플래그(1) + 시퀀스(2) + 예약(1) + 메시지타입(2) = 6바이트 건너뛰고 바디 길이(2) 읽기
-            return BinaryPrimitives.ReadUInt16BigEndian(buffer.FirstSpan.Slice(6, 2));
+            return BinaryPrimitives.ReadUInt16BigEndian(buffer.FirstSpan.Slice(SocketConst.BodySizeStart, SocketConst.BodySize));
         }
 
         // 여러 세그먼트인 경우 (드문 경우)
         var reader = new SequenceReader<byte>(buffer);
 
         // 플래그(1) + 시퀀스(2) + 예약(1) + 메시지타입(2) = 6바이트 건너뜀
-        reader.Advance(6);
+        reader.Advance(SocketConst.BodySizeStart);
 
         // 다음 2바이트에서 바디 길이를 읽음 (BigEndian)
-        Span<byte> lengthBytes = stackalloc byte[2];
+        Span<byte> lengthBytes = stackalloc byte[SocketConst.BodySize];
         reader.TryCopyTo(lengthBytes);
 
         return BinaryPrimitives.ReadUInt16BigEndian(lengthBytes);
@@ -73,25 +74,25 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
             var span = buffer.FirstSpan;
 
             // 플래그 읽기 (오프셋 0, 1바이트)
-            flags = (PacketFlags)span[0];
+            flags = (PacketFlags)span[SocketConst.FlagStart];
 
             // 시퀀스 번호 읽기 (오프셋 1, 2바이트)
-            sequence = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(1, 2));
+            sequence = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(SocketConst.SequenceStart, SocketConst.SequenceSize));
 
             // 예약 필드 읽기 (오프셋 3, 1바이트)
-            reserved = span[3];
+            reserved = span[SocketConst.ReservedStart];
 
             // 메시지 타입 읽기 (오프셋 4, 2바이트)
-            messageType = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(4, 2));
+            messageType = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(SocketConst.MessageTypeStart, SocketConst.MessageTypeSize));
 
             // 바디 길이 읽기 (오프셋 6, 2바이트)
-            bodyLength = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(6, 2));
+            bodyLength = BinaryPrimitives.ReadUInt16BigEndian(span.Slice(SocketConst.BodySizeStart, SocketConst.BodySize));
 
             // 바디 데이터 - ArrayPool에서 빌려서 복사 (오프셋 8부터)
             if (bodyLength > 0)
             {
                 packageInfo.RentBody(bodyLength);
-                span.Slice(8, bodyLength).CopyTo(packageInfo.Body);
+                span.Slice(SocketConst.HeadSize, bodyLength).CopyTo(packageInfo.Body);
             }
             else
             {
@@ -108,25 +109,25 @@ public class FixedHeaderPipelineFilter : FixedHeaderPipelineFilter<BinaryPackage
             flags = (PacketFlags)flagsByte;
 
             // 시퀀스 번호 읽기
-            Span<byte> sequenceBytes = stackalloc byte[2];
+            Span<byte> sequenceBytes = stackalloc byte[SocketConst.SequenceSize];
             reader.TryCopyTo(sequenceBytes);
             sequence = BinaryPrimitives.ReadUInt16BigEndian(sequenceBytes);
-            reader.Advance(2);
+            reader.Advance(SocketConst.SequenceSize);
 
             // 예약 필드 읽기
             reader.TryRead(out reserved);
 
             // 메시지 타입 읽기
-            Span<byte> messageTypeBytes = stackalloc byte[2];
+            Span<byte> messageTypeBytes = stackalloc byte[SocketConst.MessageTypeSize];
             reader.TryCopyTo(messageTypeBytes);
             messageType = BinaryPrimitives.ReadUInt16BigEndian(messageTypeBytes);
-            reader.Advance(2);
+            reader.Advance(SocketConst.MessageTypeSize);
 
             // 바디 길이 읽기
-            Span<byte> bodyLengthBytes = stackalloc byte[2];
+            Span<byte> bodyLengthBytes = stackalloc byte[SocketConst.BodySize];
             reader.TryCopyTo(bodyLengthBytes);
             bodyLength = BinaryPrimitives.ReadUInt16BigEndian(bodyLengthBytes);
-            reader.Advance(2);
+            reader.Advance(SocketConst.BodySize);
 
             // 바디 데이터 읽기 - ArrayPool에서 빌려서 복사
             if (bodyLength > 0)

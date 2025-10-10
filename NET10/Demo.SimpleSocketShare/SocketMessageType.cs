@@ -1,4 +1,4 @@
-namespace Demo.Application.DTO.Socket;
+namespace Demo.SimpleSocketShare;
 
 /// <summary>
 /// 소켓 메시지 타입 정의
@@ -12,16 +12,21 @@ public enum SocketMessageType : ushort
     
     Ping = 2,
     Pong = 3,
+    
+    /// <summary>
+    /// Handler가 없을때 테스트용 Echo 
+    /// </summary>
+    Echo,
 
     /// <summary>
     /// MsgPackReq 메시지 (클라이언트 -> 서버)
     /// </summary>
-    MsgPackRequest = 4,
+    MsgPackRequest,
 
     /// <summary>
     /// MsgPackRes 메시지 (서버 -> 클라이언트)
     /// </summary>
-    MsgPackResponse = 5,
+    MsgPackResponse,
     
     VeryLongReq,
     VeryLongRes,

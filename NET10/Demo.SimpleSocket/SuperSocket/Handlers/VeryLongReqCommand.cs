@@ -1,8 +1,9 @@
 using System.Diagnostics;
 using Bogus;
-using Demo.Application.DTO.Socket;
 using Demo.Application.Services;
 using Demo.SimpleSocket.SuperSocket.Interfaces;
+using Demo.SimpleSocketShare;
+using Demo.SimpleSocketShare.Messages;
 using LiteBus.Commands.Abstractions;
 
 namespace Demo.SimpleSocket.SuperSocket.Handlers;

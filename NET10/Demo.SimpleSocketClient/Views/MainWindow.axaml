@@ -212,7 +212,7 @@
                                 <TextBlock Text="{Binding}"
                                            TextWrapping="Wrap"
                                            FontFamily="Consolas,Courier New,monospace"
-                                           FontSize="11"/>
+                                           FontSize="10"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

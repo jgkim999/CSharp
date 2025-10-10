@@ -1,4 +1,4 @@
-using Demo.Application.DTO.Socket;
+using Demo.SimpleSocketShare;
 using SuperSocket.Connection;
 using SuperSocket.Server.Abstractions.Session;
 

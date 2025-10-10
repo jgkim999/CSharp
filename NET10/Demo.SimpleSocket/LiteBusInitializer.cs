@@ -1,3 +1,4 @@
+using System.Reflection;
 using Demo.Application.ErrorHandlers;
 using LiteBus.Commands.Abstractions;
 using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
@@ -36,7 +37,13 @@ public static class LiteBusInitializer
         appBuilder.Services.AddTransient<IEventPreHandler, EventPreHandler>();
         appBuilder.Services.AddTransient<IEventPostHandler, EventPostHandler>();
     
-        // 모든 로드된 Assembly 가져오기
+        // Command, Query, Event Handler 등록
+        //RegisterAllDll(appBuilder);
+        RegisterCurrentDll(appBuilder);
+    }
+    
+    private static void RegisterAllDll(WebApplicationBuilder appBuilder)
+    {
         var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
         appBuilder.Services.AddLiteBus(liteBus =>
@@ -63,6 +70,29 @@ public static class LiteBusInitializer
                 {
                     module.RegisterFromAssembly(assembly);
                 }
+            });
+        });
+    }
+
+    private static void RegisterCurrentDll(WebApplicationBuilder appBuilder)
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+
+        appBuilder.Services.AddLiteBus(liteBus =>
+        {
+            liteBus.AddCommandModule(module =>
+            {
+                module.RegisterFromAssembly(assembly);
+            });
+
+            liteBus.AddQueryModule(module =>
+            {
+                module.RegisterFromAssembly(assembly);
+            });
+
+            liteBus.AddEventModule(module =>
+            {
+                module.RegisterFromAssembly(assembly);
             });
         });
     }

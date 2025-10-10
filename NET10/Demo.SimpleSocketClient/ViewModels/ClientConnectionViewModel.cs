@@ -1,12 +1,13 @@
 using System;
+
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Bogus;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Demo.Application.DTO;
-using Demo.Application.DTO.Socket;
 using Demo.SimpleSocketClient.Services;
+using Demo.SimpleSocketShare;
+using Demo.SimpleSocketShare.Messages;
 
 namespace Demo.SimpleSocketClient.ViewModels;
 
@@ -17,6 +18,7 @@ public partial class ClientConnectionViewModel : ViewModelBase, IDisposable
 {
     private readonly SocketClient _socketClient;
     private readonly ClientMessageHandler _messageHandler;
+    private readonly Faker _faker = new();
     private readonly int _clientId;
 
     [ObservableProperty]
@@ -45,6 +47,7 @@ public partial class ClientConnectionViewModel : ViewModelBase, IDisposable
         _socketClient.MessageReceived += OnMessageReceived;
         _socketClient.Disconnected += OnDisconnected;
         _socketClient.ErrorOccurred += OnErrorOccurred;
+        _socketClient.LogHandler = AddReceivedMessage;
 
         _messageHandler = new ClientMessageHandler();
         RegisterMessageHandlers();
@@ -255,7 +258,7 @@ public partial class ClientConnectionViewModel : ViewModelBase, IDisposable
             var request = new MsgPackReq
             {
                 Name = $"{ClientName} - 암호화 테스트",
-                Message = "이 메시지는 AES-256으로 암호화되어 전송됩니다."
+                Message = "AES-256 암호화. " + _faker.Lorem.Sentence(512) 
             };
 
             await _socketClient.SendMessagePackAsync(SocketMessageType.MsgPackRequest, request, encrypt: true);

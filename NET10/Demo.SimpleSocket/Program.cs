@@ -12,6 +12,7 @@ using Demo.Infra.Extensions;
 using Demo.Infra.Repositories;
 using Demo.Infra.Services;
 using Demo.SimpleSocket;
+using Demo.SimpleSocket.Configs;
 using Demo.SimpleSocket.SuperSocket;
 using Demo.SimpleSocket.SuperSocket.Handlers;
 using Demo.SimpleSocket.SuperSocket.Interfaces;
@@ -25,6 +26,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using SuperSocket;
 using SuperSocket.Kestrel;
+using SuperSocket.Server.Abstractions;
 using SuperSocket.Server.Host;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -60,7 +62,7 @@ try
     builder.AddOpenTelemetryApplication(Log.Logger);
 
     #region RabbitMQ
-
+    /*
     var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
     if (rabbitMqConfig is null)
         throw new NullReferenceException();
@@ -69,23 +71,23 @@ try
     builder.Services.AddSingleton<RabbitMqHandler>();
     builder.Services.AddSingleton<IMqMessageHandler, MqMessageHandler>();
     builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
-
+    */
     #endregion
 
     #region RateLimit
-
+    /*
     // RateLimit 설정을 DI 컨테이너에 등록
     builder.Services.Configure<RateLimitConfig>(builder.Configuration.GetSection("RateLimit"));
-
+    */
     #endregion
 
     #region Redis
-
+    /*
     var redisConfig = builder.Configuration.GetSection("Redis").Get<RedisConfig>();
     if (redisConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<RedisConfig>(builder.Configuration.GetSection("Redis"));
-
+    */
     #endregion
 
     builder.Services.AddFastEndpoints();
@@ -126,7 +128,7 @@ try
     #endregion
 
     #region Infra
-
+    /*
     var postgresConfig = builder.Configuration.GetSection("Postgres").Get<PostgresConfig>();
     if (postgresConfig is null)
         throw new NullReferenceException();
@@ -146,11 +148,21 @@ try
 
     // FusionCache 설정 추가
     builder.Services.AddIpToNationFusionCache(builder.Configuration);
-
+    */
     #endregion
 
     #region SuperSocket
 
+    var serverOptions = builder.Configuration.GetSection("ServerOptions").Get<ServerOptions>();
+    if (serverOptions is null)
+        throw new NullReferenceException();
+    builder.Services.Configure<ServerOptions>(builder.Configuration.GetSection("ServerOptions"));
+
+    var customServerOption = builder.Configuration.GetSection("CustomServerOption").Get<CustomServerOption>();
+    if (customServerOption is null)
+        throw new NullReferenceException();
+    builder.Services.Configure<CustomServerOption>(builder.Configuration.GetSection("CustomServerOption"));
+    
     builder.Services.AddSingleton<ISessionManager, SessionManager>();
     builder.Services.AddSingleton<IClientSocketMessageHandler, ClientSocketMessageHandler>();
     builder.Services.AddTransient<ISessionCompression, GZipSessionCompression>();
@@ -186,16 +198,16 @@ try
         .AsMinimalApiHostBuilder()
         .ConfigureHostBuilder();
     #endregion
-
+    /*
     builder.Services.AddHostedService<RabbitMqConsumerService>();
-
+    */
     var app = builder.Build();
 
     // CORS 미들웨어 등록 (가장 먼저 등록)
     app.UseCors("DefaultPolicy");
 
     // Rate Limit 미들웨어 등록 (FastEndpoints보다 먼저 등록)
-    app.UseMiddleware<RateLimitMiddleware>();
+    //app.UseMiddleware<RateLimitMiddleware>();
 
     app.UseFastEndpointsInitialize();
 

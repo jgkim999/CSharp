@@ -1,6 +1,7 @@
 using System;
+
 using System.Text;
-using Demo.Application.DTO.Socket;
+using Demo.SimpleSocketShare;
 using MessagePack;
 
 namespace Demo.SimpleSocketClient.Services;

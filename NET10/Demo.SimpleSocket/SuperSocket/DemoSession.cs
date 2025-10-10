@@ -4,12 +4,14 @@ using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Threading.Channels;
 using Bogus;
-using Demo.Application.DTO.Socket;
 using Demo.Application.Services;
 using Demo.Application.Utils;
-using Demo.SimpleSocket.SuperSocket.Handlers;
+using Demo.SimpleSocket.Configs;
 using Demo.SimpleSocket.SuperSocket.Interfaces;
+using Demo.SimpleSocketShare;
+using Demo.SimpleSocketShare.Messages;
 using MessagePack;
+using Microsoft.Extensions.Options;
 using SuperSocket.Connection;
 using SuperSocket.ProtoBase;
 using SuperSocket.Server;
@@ -38,6 +40,7 @@ public partial class DemoSession : AppSession, IDisposable
     private DateTime _lastPongUtc;
     private double _rttMs;
     private ISessionEncryption? _encryption;
+    private readonly CustomServerOption _option;
 
     /// <summary>
     /// 마지막 pong도달 시간
@@ -66,13 +69,15 @@ public partial class DemoSession : AppSession, IDisposable
         IClientSocketMessageHandler messageHandler,
         ILoggerFactory loggerFactory,
         ISessionCompression compression,
-        ITelemetryService telemetryService)
+        ITelemetryService telemetryService,
+        IOptions<CustomServerOption> option)
     {
         _logger = logger;
         _messageHandler = messageHandler;
         _loggerFactory = loggerFactory;
         _compression = compression;
         _telemetryService = telemetryService;
+        _option = option.Value;
     }
 
     /// <summary>
@@ -189,7 +194,7 @@ public partial class DemoSession : AppSession, IDisposable
             try
             {
                 // 1단계: 압축 (512바이트 이상이면 자동 압축)
-                if (bodyMemory.Length > 512)
+                if (bodyMemory.Length > SocketConst.AutoCompressThreshold)
                 {
                     int compressedLength;
                     (compressedBuffer, compressedLength) = _compression.Compress(bodyMemory.Span, ArrayPool);
@@ -224,13 +229,13 @@ public partial class DemoSession : AppSession, IDisposable
                 await Connection.SendAsync(
                     (writer) =>
                     {
-                        var headerSpan = writer.GetSpan(8);
-                        headerSpan[0] = (byte)flags;
-                        BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), _seqGenerator.GetNext());
-                        headerSpan[3] = _faker.Random.Byte();
-                        BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), (ushort)messageType);
-                        BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);
-                        writer.Advance(8);
+                        var headerSpan = writer.GetSpan(SocketConst.HeadSize);
+                        headerSpan[SocketConst.FlagStart] = (byte)flags;
+                        BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(SocketConst.SequenceStart, SocketConst.SequenceSize), _seqGenerator.GetNext());
+                        headerSpan[SocketConst.ReservedStart] = _faker.Random.Byte();
+                        BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(SocketConst.MessageTypeStart, SocketConst.MessageTypeSize), (ushort)messageType);
+                        BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(SocketConst.BodySizeStart, SocketConst.BodySize), bodyLength);
+                        writer.Advance(SocketConst.HeadSize);
 
                         var bodySpan = writer.GetSpan(bodyLength);
                         bodyMemory.Span.CopyTo(bodySpan);
@@ -343,7 +348,7 @@ public partial class DemoSession : AppSession, IDisposable
         {
             while (!_cts.Token.IsCancellationRequested)
             {
-                await Task.Delay(TimeSpan.FromSeconds(5), _cts.Token);
+                await Task.Delay(TimeSpan.FromSeconds(_option.PingInterval), _cts.Token);
 
                 // 재사용 가능한 객체 사용 (매번 생성하지 않음)
                 _pingMsg.ServerDt = DateTime.UtcNow;
@@ -432,13 +437,13 @@ public partial class DemoSession : AppSession, IDisposable
         await SendAsync(writer =>
         {
             // 헤더 작성 (8바이트)
-            var headerSpan = writer.GetSpan(8);
-            headerSpan[0] = (byte)flags;  // 플래그 (1바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(1, 2), sequence);  // 시퀀스 (2바이트)
-            headerSpan[3] = reserved;  // 예약 (1바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(4, 2), messageType);  // 메시지 타입 (2바이트)
-            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(6, 2), bodyLength);   // 바디 길이 (2바이트)
-            writer.Advance(8);
+            Span<byte> headerSpan = writer.GetSpan(SocketConst.HeadSize);
+            headerSpan[SocketConst.FlagStart] = (byte)flags;  // 플래그 (1바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(SocketConst.SequenceStart, SocketConst.SequenceSize), sequence);  // 시퀀스 (2바이트)
+            headerSpan[SocketConst.ReservedStart] = reserved;  // 예약 (1바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(SocketConst.MessageTypeStart, SocketConst.MessageTypeSize), messageType);  // 메시지 타입 (2바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(headerSpan.Slice(SocketConst.BodySizeStart, SocketConst.BodySize), bodyLength);   // 바디 길이 (2바이트)
+            writer.Advance(SocketConst.HeadSize);
 
             // Body 복사 - PipeWriter에 직접 쓰기 (복사 1번만)
             if (bodyLength > 0)

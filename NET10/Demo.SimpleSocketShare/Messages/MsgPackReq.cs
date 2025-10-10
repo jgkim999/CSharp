@@ -1,6 +1,6 @@
 using MessagePack;
 
-namespace Demo.Application.DTO.Socket;
+namespace Demo.SimpleSocketShare.Messages;
 
 [MessagePackObject]
 public class MsgPackReq

@@ -1,15 +1,15 @@
 using System;
+
 using System.Buffers;
 using System.Buffers.Binary;
-using System.IO;
 using System.IO.Compression;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Bogus;
-using Demo.Application.DTO.Socket;
 using Demo.Application.Utils;
+using Demo.SimpleSocketShare;
 using MessagePack;
 using Microsoft.IO;
 
@@ -52,6 +52,11 @@ public class SocketClient : IDisposable
     /// 에러 발생 이벤트
     /// </summary>
     public event EventHandler<Exception>? ErrorOccurred;
+
+    /// <summary>
+    /// 로그 메시지 핸들러 (Console 출력 대신 사용)
+    /// </summary>
+    public Action<string>? LogHandler { get; set; }
 
     /// <summary>
     /// 서버에 연결
@@ -109,70 +114,6 @@ public class SocketClient : IDisposable
         }
     }
     
-    /// <summary>
-    /// 메시지 전송 (플래그 + 시퀀스 포함, ushort 버전)
-    /// ReadOnlyMemory를 사용하여 불필요한 복사 제거 (async 호환)
-    /// 512바이트 이상의 바디는 자동으로 GZip 압축
-    /// </summary>
-    private async Task SendMessageAsync(ushort messageType, ReadOnlyMemory<byte> body, PacketFlags flags, CancellationToken cancellationToken = default)
-    {
-        if (!IsConnected || _stream == null)
-            throw new InvalidOperationException("서버에 연결되어 있지 않습니다.");
-
-        // 512바이트 이상이면 압축 수행
-        ReadOnlyMemory<byte> processedBody = body;
-        byte[]? compressedBuffer = null;
-
-        if (body.Length > 512)
-        {
-            var originalSize = body.Length;
-            (compressedBuffer, var compressedSize) = CompressData(body.Span);
-            processedBody = compressedBuffer.AsMemory(0, compressedSize);
-            flags = flags.SetCompressed(true);  // 압축 플래그 설정
-
-            Console.WriteLine($"[클라이언트 압축] 원본: {originalSize} 바이트 → 압축: {compressedSize} 바이트 ({compressedSize * 100.0 / originalSize:F1}%)");
-        }
-
-        try
-        {
-            var bodyLength = (ushort)processedBody.Length;
-            var packetLength = 8 + bodyLength;
-
-            // ArrayPool에서 버퍼 빌리기 (GC 압력 감소)
-            var packet = _arrayPool.Rent(packetLength);
-
-            try
-            {
-                // 헤더 작성 (8바이트)
-                packet[0] = (byte)flags;  // 플래그 (1바이트)
-                BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(1, 2), _sendSequence.GetNext());  // 시퀀스 (2바이트)
-                packet[3] = _faker.Random.Byte(1, 255);  // 예약 (1바이트)
-                BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(4, 2), messageType);  // 메시지 타입 (2바이트)
-                BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(6, 2), bodyLength);   // 바디 길이 (2바이트)
-
-                // 바디 복사 (ReadOnlyMemory -> Span 직접 복사)
-                if (bodyLength > 0)
-                    processedBody.Span.CopyTo(packet.AsSpan(8));
-
-                // 실제 사용하는 크기만큼만 전송
-                await _stream.WriteAsync(packet.AsMemory(0, packetLength), cancellationToken);
-                await _stream.FlushAsync(cancellationToken);
-            }
-            finally
-            {
-                // ArrayPool에 버퍼 반납
-                _arrayPool.Return(packet);
-            }
-        }
-        finally
-        {
-            // 압축 버퍼 해제
-            if (compressedBuffer != null)
-            {
-                _arrayPool.Return(compressedBuffer);
-            }
-        }
-    }
 
     /// <summary>
     /// GZip을 사용하여 데이터 압축
@@ -215,7 +156,7 @@ public class SocketClient : IDisposable
         gzip.CopyTo(output);
         var decompressed = output.ToArray();
 
-        Console.WriteLine($"[압축 해제] 압축: {compressedSize} 바이트 → 원본: {decompressed.Length} 바이트 ({compressedSize * 100.0 / decompressed.Length:F1}%)");
+        LogHandler?.Invoke($"[서버 압축 해제] 압축: {compressedSize} 바이트 → 원본: {decompressed.Length} 바이트 ({compressedSize * 100.0 / decompressed.Length:F1}%)");
 
         return decompressed;
     }
@@ -248,7 +189,7 @@ public class SocketClient : IDisposable
     private async Task ReceiveLoopAsync(CancellationToken cancellationToken)
     {
         // 헤더 버퍼는 수신 루프 전체에서 재사용 (8바이트 고정)
-        var headerBuffer = new byte[8];
+        var headerBuffer = new byte[SocketConst.HeadSize];
 
         try
         {
@@ -256,10 +197,10 @@ public class SocketClient : IDisposable
             {
                 // 헤더 수신 (8바이트) - 완전히 읽을 때까지 반복
                 var headerBytesRead = 0;
-                while (headerBytesRead < 8)
+                while (headerBytesRead < SocketConst.HeadSize)
                 {
                     var read = await _stream.ReadAsync(
-                        headerBuffer.AsMemory(headerBytesRead, 8 - headerBytesRead),
+                        headerBuffer.AsMemory(headerBytesRead, SocketConst.HeadSize - headerBytesRead),
                         cancellationToken);
 
                     if (read == 0)
@@ -273,11 +214,11 @@ public class SocketClient : IDisposable
                 }
 
                 // 헤더 파싱
-                var flags = (PacketFlags)headerBuffer[0];
-                var sequence = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(1, 2));
-                var reserved = headerBuffer[3];
-                var messageType = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(4, 2));
-                var bodyLength = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(6, 2));
+                var flags = (PacketFlags)headerBuffer[SocketConst.FlagStart];
+                var sequence = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(SocketConst.SequenceStart, SocketConst.SequenceSize));
+                var reserved = headerBuffer[SocketConst.ReservedStart];
+                var messageType = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(SocketConst.MessageTypeStart, SocketConst.MessageTypeSize));
+                var bodyLength = BinaryPrimitives.ReadUInt16BigEndian(headerBuffer.AsSpan(SocketConst.BodySizeStart, SocketConst.BodySize));
 
                 // 바디 수신 - ArrayPool 사용으로 GC 압력 감소
                 byte[] body;
@@ -384,7 +325,7 @@ public class SocketClient : IDisposable
         _aes.Mode = CipherMode.CBC;
         _aes.Padding = PaddingMode.PKCS7;
 
-        Console.WriteLine($"[클라이언트 AES 초기화] KeySize: {key.Length}, IVSize: {iv.Length}");
+        LogHandler?.Invoke($"[클라이언트 AES 초기화] KeySize: {key.Length}, IVSize: {iv.Length}");
     }
 
     /// <summary>
@@ -412,7 +353,7 @@ public class SocketClient : IDisposable
         try
         {
             // 1단계: 압축 (512바이트 이상이면 자동 압축)
-            if (bodyMemory.Length > 512)
+            if (bodyMemory.Length > SocketConst.AutoCompressThreshold)
             {
                 var originalSize = bodyMemory.Length;
                 int compressedLength;
@@ -420,7 +361,7 @@ public class SocketClient : IDisposable
                 bodyMemory = compressedBuffer.AsMemory(0, compressedLength);
                 flags = flags.SetCompressed(true);  // 압축 플래그 설정
 
-                Console.WriteLine($"[클라이언트 압축] 원본: {originalSize} 바이트 → 압축: {compressedLength} 바이트 ({compressedLength * 100.0 / originalSize:F1}%)");
+                LogHandler?.Invoke($"[클라이언트 압축] 원본: {originalSize} 바이트 → 압축: {compressedLength} 바이트 ({compressedLength * 100.0 / originalSize:F1}%)");
             }
 
             // 2단계: 암호화 (encrypt=true이면 암호화) - Aes 인스턴스 재사용
@@ -435,7 +376,7 @@ public class SocketClient : IDisposable
                 (encryptedBuffer, encryptedLength) = EncryptDataToPool(bodyMemory.Span);
                 bodyMemory = encryptedBuffer.AsMemory(0, encryptedLength);
                 flags = flags.SetEncrypted(true);
-                Console.WriteLine($"[클라이언트 암호화] 원본: {originalSize} 바이트 → 암호화: {encryptedLength} 바이트");
+                LogHandler?.Invoke($"[클라이언트 암호화] 원본: {originalSize} 바이트 → 암호화: {encryptedLength} 바이트");
             }
 
             await SendMessageAsync(messageType, bodyMemory, flags, cancellationToken);
@@ -454,6 +395,45 @@ public class SocketClient : IDisposable
         }
     }
 
+    /// <summary>
+    /// 메시지 전송 (플래그 + 시퀀스 포함, ushort 버전)
+    /// ReadOnlyMemory를 사용하여 불필요한 복사 제거 (async 호환)
+    /// </summary>
+    private async Task SendMessageAsync(ushort messageType, ReadOnlyMemory<byte> body, PacketFlags flags, CancellationToken cancellationToken = default)
+    {
+        if (!IsConnected || _stream == null)
+            throw new InvalidOperationException("서버에 연결되어 있지 않습니다.");
+
+        ReadOnlyMemory<byte> processedBody = body;
+        var bodyLength = (ushort)processedBody.Length;
+        var packetLength = SocketConst.HeadSize + bodyLength;
+
+        // ArrayPool에서 버퍼 빌리기 (GC 압력 감소)
+        var packet = _arrayPool.Rent(packetLength);
+        try
+        {
+            // 헤더 작성 (8바이트)
+            packet[SocketConst.FlagStart] = (byte)flags;  // 플래그 (1바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(SocketConst.SequenceStart, SocketConst.SequenceSize), _sendSequence.GetNext());  // 시퀀스 (2바이트)
+            packet[SocketConst.ReservedStart] = _faker.Random.Byte(1, 255);  // 예약 (1바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(SocketConst.MessageTypeStart, SocketConst.MessageTypeSize), messageType);  // 메시지 타입 (2바이트)
+            BinaryPrimitives.WriteUInt16BigEndian(packet.AsSpan(SocketConst.BodySizeStart, SocketConst.BodySize), bodyLength);   // 바디 길이 (2바이트)
+
+            // 바디 복사 (ReadOnlyMemory -> Span 직접 복사)
+            if (bodyLength > 0)
+                processedBody.Span.CopyTo(packet.AsSpan(SocketConst.HeadSize));
+
+            // 실제 사용하는 크기만큼만 전송
+            await _stream.WriteAsync(packet.AsMemory(0, packetLength), cancellationToken);
+            await _stream.FlushAsync(cancellationToken);
+        }
+        finally
+        {
+            // ArrayPool에 버퍼 반납
+            _arrayPool.Return(packet);
+        }
+    }
+    
     /// <summary>
     /// 데이터 암호화 (ArrayPool 사용, Aes 인스턴스 재사용)
     /// 반환된 배열은 반드시 ArrayPool에 반환해야 함
@@ -510,7 +490,7 @@ public class SocketClient : IDisposable
             var outputBuffer = _arrayPool.Rent(decrypted.Length);
             decrypted.CopyTo(outputBuffer, 0);
 
-            Console.WriteLine($"[클라이언트 복호화] 암호화: {encryptedData.Length} 바이트 → 원본: {decrypted.Length} 바이트");
+            LogHandler?.Invoke($"[클라이언트 복호화] 암호화: {encryptedData.Length} 바이트 → 원본: {decrypted.Length} 바이트");
 
             return (outputBuffer, decrypted.Length);
         }

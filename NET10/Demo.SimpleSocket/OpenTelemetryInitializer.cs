@@ -159,6 +159,7 @@ public static class OpenTelemetryInitializer
             });
 
             // 데이터베이스 자동 계측
+            /*
             tracing.AddNpgsql(); // PostgreSQL (Npgsql) 계측
             tracing.AddSqlClientInstrumentation(options =>
             {
@@ -166,7 +167,8 @@ public static class OpenTelemetryInitializer
                 options.SetDbStatementForText = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
                 options.RecordException = true;
             });
-
+            */
+            /*
             StackExchangeRedisInstrumentation? redisInstrumentation = null;
 
             // 추적 인프라 설정
@@ -182,6 +184,7 @@ public static class OpenTelemetryInitializer
             {
                 appBuilder.Services.AddSingleton(redisInstrumentation);
             }
+            */
         });
 
         // 메트릭 설정
