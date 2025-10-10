@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using Demo.SimpleSocketClient.Services;
 using Demo.SimpleSocketShare;
 using Demo.SimpleSocketShare.Messages;
+using Serilog;
 
 namespace Demo.SimpleSocketClient.ViewModels;
 
@@ -290,6 +291,24 @@ public partial class ClientConnectionViewModel : ViewModelBase, IDisposable
 
     private void AddReceivedMessage(string message)
     {
+        // Serilog 로깅 (메시지 종류에 따라 로그 레벨 결정)
+        if (message.Contains("[오류]") || message.Contains("오류 발생") || message.Contains("실패"))
+        {
+            Log.Error("[{ClientName}] {Message}", ClientName, message);
+        }
+        else if (message.Contains("[시스템]"))
+        {
+            Log.Information("[{ClientName}] {Message}", ClientName, message);
+        }
+        else if (message.Contains("[전송]") || message.Contains("[수신]"))
+        {
+            Log.Debug("[{ClientName}] {Message}", ClientName, message);
+        }
+        else
+        {
+            Log.Debug("[{ClientName}] {Message}", ClientName, message);
+        }
+
         // UI 스레드에서 실행
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
