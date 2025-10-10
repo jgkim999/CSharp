@@ -10,11 +10,17 @@ Apple M4, 1 CPU, 10 logical and 10 physical cores
 ```
 
 Method: 벤치마크로 측정한 함수(메서드) 이름입니다.
+
 Mean: 평균 실행 시간(ns, 나노초)입니다. 여러 번 반복 측정한 값의 평균입니다.
+
 Error: 신뢰 구간(99.9%)의 절반 값으로, 측정값의 오차 범위를 나타냅니다.
+
 StdDev: 표준편차로, 측정값의 분산(흩어짐) 정도를 나타냅니다.
+
 Median: 중앙값(50% 지점)으로, 전체 측정값 중 중간에 위치한 값입니다.
+
 Gen0: GC(가비지 컬렉션) 0세대가 1000번 실행당 몇 번 발생했는지 나타냅니다. 메모리 관리 효율을 볼 수 있습니다.
+
 Allocated: 한 번 실행할 때 할당된 메모리 크기(바이트)입니다.
 
 | Method                  | Mean      | Error    | StdDev   | Median    | Gen0   | Allocated |
