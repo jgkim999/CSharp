@@ -1,388 +1,455 @@
-# SocketClient 사용 가이드
+# Demo.SimpleSocketClient
 
-## 개요
+Avalonia UI 기반의 크로스 플랫폼 TCP 소켓 클라이언트입니다. 다중 클라이언트 연결을 지원하며, 메시지 압축, AES 암호화, MessagePack 직렬화를 지원합니다.
 
-`SocketClient`는 SuperSocket 서버와 통신하는 TCP 클라이언트입니다. 5바이트 고정 헤더(플래그 + 메시지 타입 + 길이) 프로토콜을 사용합니다.
+## 주요 기능
 
-## 패킷 구조
+- **Avalonia UI**: 크로스 플랫폼 GUI (Windows, macOS, Linux)
+- **다중 클라이언트**: 동시에 여러 클라이언트 연결 관리
+- **실시간 모니터링**: 각 클라이언트별 메시지 수신/전송 로그
+- **메시지 압축**: GZip 압축 자동 처리 (512바이트 이상)
+- **AES-256 암호화**: 서버로부터 받은 Key/IV를 사용한 암호화 통신
+- **MessagePack**: 바이너리 직렬화
+- **Dependency Injection**: `ILogger` 의존성 주입
+- **Serilog 통합**: 파일 로깅 지원
+
+## 스크린샷
+
+![screen1](./screen1.png)
+
+메인 화면에서 다음 작업을 수행할 수 있습니다:
+
+- 서버 IP/Port 설정
+- 단일/다중 클라이언트 추가
+- 각 클라이언트별 메시지 전송/수신 모니터링
+- MessagePack 메시지 전송
+- 긴 텍스트 메시지 전송 (압축 테스트)
+- 암호화된 메시지 전송
+
+## 시스템 요구사항
+
+- **.NET 9.0** 이상
+- **지원 플랫폼**: Windows, macOS, Linux
+
+## 설치 및 실행
+
+### 1. 프로젝트 복원 및 빌드
+
+```bash
+dotnet restore Demo.SimpleSocketClient/Demo.SimpleSocketClient.csproj
+dotnet build Demo.SimpleSocketClient/Demo.SimpleSocketClient.csproj
+```
+
+### 2. 애플리케이션 실행
+
+```bash
+cd Demo.SimpleSocketClient
+dotnet run
+```
+
+또는 릴리즈 모드로 실행:
+
+```bash
+dotnet run --configuration Release
+```
+
+## 사용법
+
+### 1. 서버 연결
+
+1. **서버 IP** 입력 (기본값: `127.0.0.1`)
+2. **서버 Port** 입력 (기본값: `4040`)
+3. **클라이언트 추가** 버튼 클릭
+
+> 여러 클라이언트를 동시에 추가하려면 **클라이언트 개수**를 입력한 후 **여러 클라이언트 추가** 버튼을 클릭합니다.
+
+### 2. 메시지 전송
+
+선택된 클라이언트에서 다음 메시지를 전송할 수 있습니다:
+
+#### MessagePack 전송
+- **이름**과 **메시지** 입력
+- **MsgPack 전송** 버튼 클릭
+- 서버에서 처리 후 응답 수신
+
+#### 긴 텍스트 전송 (압축 테스트)
+- **VeryLongReq 전송** 버튼 클릭
+- 자동으로 긴 더미 텍스트 생성 및 전송
+- 512바이트 이상이면 자동으로 GZip 압축됨
+
+#### 암호화 메시지 전송
+- **암호화 MsgPack 전송** 버튼 클릭
+- AES-256으로 암호화된 메시지 전송
+- 서버에서 복호화 후 처리
+
+### 3. 일괄 작업
+
+모든 연결된 클라이언트에 대해 일괄 작업을 수행할 수 있습니다:
+
+- **모든 클라이언트 연결 해제**
+- **모두에게 MsgPack 전송**
+- **모두에게 VeryLongReq 전송**
+- **모두에게 암호화 MsgPack 전송**
+
+### 4. 로그 확인
+
+#### UI 로그
+각 클라이언트별로 최근 100개의 메시지가 UI에 표시됩니다:
+
+- `[시스템]`: 연결/해제 등 시스템 이벤트
+- `[전송]`: 서버로 전송한 메시지
+- `[수신]`: 서버로부터 수신한 메시지
+- `[오류]`: 에러 메시지
+- `[클라이언트 압축/암호화]`: 압축/암호화 로그
+- `[서버 압축 해제]`: 서버 응답 압축 해제 로그
+
+#### 파일 로그
+애플리케이션 실행 디렉토리의 `logs/` 폴더에 일별 로그 파일이 생성됩니다:
+
+```bash
+logs/socketclient-20251010.log
+```
+
+로그 레벨:
+- **Debug**: 메시지 송수신 상세 로그
+- **Information**: 시스템 이벤트
+- **Error**: 오류 발생
+
+## 프로젝트 구조
 
 ```
-+--------+--------+--------+--------+--------+--------+--------+
-| Flags  | Message Type    | Body Length     | Body Data      |
-| 1 byte | 2 bytes         | 2 bytes         | N bytes        |
-+--------+--------+--------+--------+--------+--------+--------+
+Demo.SimpleSocketClient/
+├── Services/
+│   ├── SocketClient.cs              # TCP 소켓 통신 핵심 로직
+│   └── ClientMessageHandler.cs      # 메시지 타입별 핸들러
+├── ViewModels/
+│   ├── MainWindowViewModel.cs       # 메인 창 ViewModel
+│   └── ClientConnectionViewModel.cs # 개별 클라이언트 ViewModel
+├── Views/
+│   └── MainWindow.axaml            # 메인 UI
+├── Program.cs                       # 애플리케이션 진입점 및 DI 설정
+└── App.axaml.cs                    # Avalonia 앱 초기화
 ```
 
-### 플래그 비트
-- 비트 0: 압축 여부
-- 비트 1: 암호화 여부
-- 비트 2-7: 예약됨
+## 주요 클래스
 
-## 기본 사용법
+### SocketClient
 
-### 1. 연결 및 기본 메시지 송수신
+TCP 소켓 통신을 처리하는 핵심 클래스입니다.
 
 ```csharp
-using Demo.SimpleSocketClient.Services;
-using Demo.SimpleSocket.SuperSocket;
-
-// 클라이언트 생성
-var client = new SocketClient();
-
-// 이벤트 핸들러 등록
-client.MessageReceived += (sender, e) =>
+public class SocketClient : IDisposable
 {
-    Console.WriteLine($"메시지 타입: {e.MessageType}");
-    Console.WriteLine($"압축됨: {e.IsCompressed}");
-    Console.WriteLine($"암호화됨: {e.IsEncrypted}");
-    Console.WriteLine($"내용: {e.BodyText}");
-};
+    // 서버 연결
+    Task ConnectAsync(string host, int port);
 
-client.Disconnected += (sender, e) =>
-{
-    Console.WriteLine("연결 해제됨");
-};
+    // 연결 해제
+    void Disconnect();
 
-client.ErrorOccurred += (sender, ex) =>
-{
-    Console.WriteLine($"에러 발생: {ex.Message}");
-};
+    // MessagePack 전송
+    Task SendMessagePackAsync<T>(SocketMessageType messageType, T obj);
 
-// 서버 연결
-await client.ConnectAsync("localhost", 4040);
+    // 암호화 MessagePack 전송
+    Task SendMessagePackAsync<T>(SocketMessageType messageType, T obj, bool encrypt);
 
-// 일반 메시지 전송 (플래그 없음)
-await client.SendTextMessageAsync(SocketMessageType.Echo, "Hello, Server!");
+    // AES Key/IV 설정
+    void SetAesKey(byte[] key, byte[] iv);
 
-// 연결 해제
-client.Disconnect();
-```
+    // 이벤트
+    event EventHandler<MessageReceivedEventArgs> MessageReceived;
+    event EventHandler Disconnected;
+    event EventHandler<Exception> ErrorOccurred;
 
-### 2. 플래그를 사용한 메시지 전송
-
-```csharp
-// 압축된 메시지 전송
-var flags = PacketFlags.Compressed;
-var body = Encoding.UTF8.GetBytes("압축된 메시지");
-await client.SendMessageAsync(SocketMessageType.Echo, body, flags);
-
-// 암호화된 메시지 전송
-flags = PacketFlags.Encrypted;
-body = Encoding.UTF8.GetBytes("암호화된 메시지");
-await client.SendMessageAsync(SocketMessageType.Echo, body, flags);
-
-// 압축 + 암호화된 메시지 전송
-flags = PacketFlags.Compressed | PacketFlags.Encrypted;
-body = Encoding.UTF8.GetBytes("압축 및 암호화된 메시지");
-await client.SendMessageAsync(SocketMessageType.Echo, body, flags);
-
-// 확장 메서드 사용
-flags = PacketFlags.None
-    .SetCompressed(true)
-    .SetEncrypted(true);
-await client.SendMessageAsync(SocketMessageType.Echo, body, flags);
-```
-
-### 3. MessagePack 객체 전송
-
-```csharp
-using MessagePack;
-
-[MessagePackObject]
-public class ChatMessage
-{
-    [Key(0)]
-    public string Name { get; set; }
-
-    [Key(1)]
-    public string Message { get; set; }
-}
-
-// MessagePack 객체 전송
-var message = new ChatMessage
-{
-    Name = "홍길동",
-    Message = "안녕하세요"
-};
-
-await client.SendMessagePackAsync(SocketMessageType.MsgPack, message);
-```
-
-### 4. 메시지 수신 처리
-
-```csharp
-client.MessageReceived += (sender, e) =>
-{
-    // 플래그 확인
-    if (e.IsCompressed)
-    {
-        Console.WriteLine("압축된 메시지 수신");
-        // TODO: 압축 해제 로직
-    }
-
-    if (e.IsEncrypted)
-    {
-        Console.WriteLine("암호화된 메시지 수신");
-        // TODO: 복호화 로직
-    }
-
-    // 메시지 타입별 처리
-    switch ((SocketMessageType)e.MessageType)
-    {
-        case SocketMessageType.Echo:
-            Console.WriteLine($"Echo: {e.BodyText}");
-            break;
-
-        case SocketMessageType.MsgPack:
-            var chatMsg = e.DeserializeMessagePack<ChatMessage>();
-            Console.WriteLine($"{chatMsg?.Name}: {chatMsg?.Message}");
-            break;
-
-        case SocketMessageType.Ping:
-            // Pong 응답
-            await client.SendTextMessageAsync(SocketMessageType.Pong, "pong");
-            break;
-    }
-};
-```
-
-## API 레퍼런스
-
-### 메서드
-
-#### ConnectAsync
-서버에 연결합니다.
-
-```csharp
-Task ConnectAsync(string host, int port, CancellationToken cancellationToken = default)
-```
-
-#### Disconnect
-서버 연결을 해제합니다.
-
-```csharp
-void Disconnect()
-```
-
-#### SendMessageAsync
-바이너리 메시지를 전송합니다.
-
-```csharp
-// 플래그 없이 전송 (기본값: PacketFlags.None)
-Task SendMessageAsync(SocketMessageType messageType, byte[] body, CancellationToken cancellationToken = default)
-Task SendMessageAsync(ushort messageType, byte[] body, CancellationToken cancellationToken = default)
-
-// 플래그 포함 전송
-Task SendMessageAsync(SocketMessageType messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
-Task SendMessageAsync(ushort messageType, byte[] body, PacketFlags flags, CancellationToken cancellationToken = default)
-```
-
-#### SendTextMessageAsync
-UTF-8 텍스트 메시지를 전송합니다.
-
-```csharp
-Task SendTextMessageAsync(SocketMessageType messageType, string text, CancellationToken cancellationToken = default)
-Task SendTextMessageAsync(ushort messageType, string text, CancellationToken cancellationToken = default)
-```
-
-#### SendMessagePackAsync
-MessagePack 직렬화된 객체를 전송합니다.
-
-```csharp
-Task SendMessagePackAsync<T>(SocketMessageType messageType, T obj, CancellationToken cancellationToken = default)
-Task SendMessagePackAsync<T>(ushort messageType, T obj, CancellationToken cancellationToken = default)
-```
-
-### 이벤트
-
-#### MessageReceived
-메시지 수신 시 발생합니다.
-
-```csharp
-event EventHandler<MessageReceivedEventArgs>? MessageReceived
-```
-
-**MessageReceivedEventArgs 속성:**
-- `PacketFlags Flags`: 패킷 플래그
-- `ushort MessageType`: 메시지 타입
-- `byte[] Body`: 메시지 바디
-- `string BodyText`: UTF-8 텍스트로 변환된 바디
-- `bool IsCompressed`: 압축 여부
-- `bool IsEncrypted`: 암호화 여부
-- `T? DeserializeMessagePack<T>()`: MessagePack 역직렬화 메서드
-
-#### Disconnected
-연결 해제 시 발생합니다.
-
-```csharp
-event EventHandler? Disconnected
-```
-
-#### ErrorOccurred
-에러 발생 시 발생합니다.
-
-```csharp
-event EventHandler<Exception>? ErrorOccurred
-```
-
-### 속성
-
-#### IsConnected
-현재 연결 상태를 반환합니다.
-
-```csharp
-bool IsConnected { get; }
-```
-
-## 고급 사용 예제
-
-### 압축/암호화 처리
-
-```csharp
-using System.IO.Compression;
-
-client.MessageReceived += async (sender, e) =>
-{
-    var body = e.Body;
-
-    // 복호화
-    if (e.IsEncrypted)
-    {
-        body = DecryptData(body);
-    }
-
-    // 압축 해제
-    if (e.IsCompressed)
-    {
-        body = DecompressData(body);
-    }
-
-    var text = Encoding.UTF8.GetString(body);
-    Console.WriteLine($"처리된 메시지: {text}");
-};
-
-byte[] CompressData(byte[] data)
-{
-    using var output = new MemoryStream();
-    using (var gzip = new GZipStream(output, CompressionMode.Compress))
-    {
-        gzip.Write(data);
-    }
-    return output.ToArray();
-}
-
-byte[] DecompressData(byte[] data)
-{
-    using var input = new MemoryStream(data);
-    using var gzip = new GZipStream(input, CompressionMode.Decompress);
-    using var output = new MemoryStream();
-    gzip.CopyTo(output);
-    return output.ToArray();
-}
-
-byte[] DecryptData(byte[] data)
-{
-    // TODO: 실제 복호화 로직 구현
-    return data;
-}
-
-byte[] EncryptData(byte[] data)
-{
-    // TODO: 실제 암호화 로직 구현
-    return data;
+    // 로그 핸들러
+    Action<string>? LogHandler { get; set; }
 }
 ```
 
-### 재연결 로직
+### ClientConnectionViewModel
+
+개별 클라이언트 연결을 관리하는 ViewModel입니다.
 
 ```csharp
-public async Task ConnectWithRetryAsync(string host, int port, int maxRetries = 3)
+public partial class ClientConnectionViewModel : ViewModelBase, IDisposable
 {
-    for (int i = 0; i < maxRetries; i++)
-    {
-        try
-        {
-            await client.ConnectAsync(host, port);
-            Console.WriteLine("연결 성공");
-            return;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"연결 실패 ({i + 1}/{maxRetries}): {ex.Message}");
-            if (i < maxRetries - 1)
-            {
-                await Task.Delay(1000 * (i + 1)); // 지수 백오프
-            }
-        }
-    }
+    // 생성자: ILogger 의존성 주입
+    public ClientConnectionViewModel(
+        int clientId,
+        string serverIp,
+        int serverPort,
+        ILogger<ClientConnectionViewModel>? logger = null);
 
-    throw new Exception("최대 재시도 횟수 초과");
+    // 명령
+    void Disconnect();
+    Task SendMsgPackAsync();
+    Task SendVeryLongReqAsync();
+    Task SendEncryptedMsgPackAsync();
+
+    // 속성
+    string ClientName { get; }
+    bool IsConnected { get; }
+    ObservableCollection<string> ReceivedMessages { get; }
 }
 ```
 
-### Ping/Pong 구현
+### MainWindowViewModel
+
+메인 창과 여러 클라이언트를 관리하는 ViewModel입니다.
 
 ```csharp
-var pingTimer = new Timer(async _ =>
+public partial class MainWindowViewModel : ViewModelBase, IDisposable
 {
-    if (client.IsConnected)
-    {
-        await client.SendTextMessageAsync(SocketMessageType.Ping, "ping");
-    }
-}, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+    // 생성자: ILoggerFactory 의존성 주입
+    public MainWindowViewModel(ILoggerFactory? loggerFactory = null);
 
-client.MessageReceived += async (sender, e) =>
-{
-    if ((SocketMessageType)e.MessageType == SocketMessageType.Pong)
-    {
-        Console.WriteLine("Pong 수신");
-    }
-};
+    // 명령
+    void AddClient();
+    void AddMultipleClients();
+    void RemoveClient();
+    void RemoveAllClients();
+    void DisconnectAllClients();
+    void SendMsgPackToAll();
+    void SendVeryLongReqToAll();
+    void SendEncryptedMsgPackToAll();
+
+    // 속성
+    ObservableCollection<ClientConnectionViewModel> Clients { get; }
+    ClientConnectionViewModel? SelectedClient { get; }
+}
 ```
 
-## 자동 압축 기능
+## 프로토콜
 
-`SocketClient`는 **512바이트 이상**의 메시지를 전송할 때 자동으로 GZip 압축을 수행하고 `Compressed` 플래그를 설정합니다.
+Demo.SimpleSocket 서버와 동일한 프로토콜을 사용합니다.
 
-- 압축 알고리즘: GZip (CompressionLevel.Fastest)
-- 압축 임계값: 512 바이트
-- 자동 압축 해제: 수신 시 `Compressed` 플래그가 설정되어 있으면 자동으로 압축 해제
+### 패킷 구조
 
-이 기능은 대용량 메시지 전송 시 네트워크 대역폭을 절약하고 전송 속도를 향상시킵니다.
+```
+헤더 (8바이트) + 바디 (가변 길이)
+```
 
-## 메모리 최적화
+**헤더:**
+- Flags (1바이트): 압축/암호화 플래그
+- Sequence (2바이트): 메시지 순서
+- Reserved (1바이트): 예약
+- Message Type (2바이트): 메시지 타입
+- Body Length (2바이트): 바디 길이
 
-`SocketClient`는 여러 메모리 최적화 기법을 적용하여 GC 압력을 최소화합니다:
+**바디:**
+- MessagePack 직렬화된 데이터
+- 512바이트 이상이면 GZip 압축
+- 요청 시 AES-256 암호화
 
-### 1. **ArrayPool<byte>**
-- 송수신 패킷 버퍼를 ArrayPool에서 관리
-- 메시지 바디 수신 시 ArrayPool 사용
-- GC 할당 최소화 및 재사용 극대화
+## 메시지 처리 흐름
 
-### 2. **RecyclableMemoryStream**
-- GZip 압축/해제 시 RecyclableMemoryStream 사용
-- 기존 MemoryStream 대비 대량 할당 방지
-- 메모리 풀링을 통한 재사용
+### 송신 (클라이언트 → 서버)
 
-### 3. **ReadOnlyMemory<byte>**
-- 메시지 전송 시 ReadOnlyMemory<byte> 사용
-- Zero-copy 전송으로 불필요한 메모리 복사 제거
-- ArrayBufferWriter와 결합하여 추가 최적화
+1. **직렬화**: MessagePack으로 객체를 바이너리로 변환
+2. **압축**: 512바이트 이상이면 GZip 압축
+3. **암호화**: 요청 시 AES-256 암호화
+4. **헤더 생성**: 플래그, 시퀀스, 타입, 길이 포함
+5. **전송**: TCP 소켓으로 전송
 
-### 4. **버퍼 재사용**
-- 헤더 버퍼(8바이트) 수신 루프에서 재사용
-- 단일 할당으로 수천 개의 메시지 처리 가능
+### 수신 (서버 → 클라이언트)
 
-이러한 최적화를 통해 **고처리량, 저지연, 낮은 GC 압력**을 달성합니다.
+1. **헤더 파싱**: 8바이트 헤더 읽기
+2. **바디 수신**: 헤더의 Body Length만큼 읽기
+3. **복호화**: 암호화 플래그가 있으면 AES 복호화
+4. **압축 해제**: 압축 플래그가 있으면 GZip 압축 해제
+5. **역직렬화**: MessagePack으로 객체 복원
+6. **핸들러 호출**: 메시지 타입별 핸들러 실행
 
-## 주의사항
+## 성능 최적화
 
-1. **Dispose 호출**: 사용 후 반드시 `Dispose()`를 호출하거나 `using` 구문을 사용하세요.
+### ArrayPool 사용
 
-2. **스레드 안전성**: 여러 스레드에서 동시에 메시지를 전송할 경우 동기화가 필요할 수 있습니다.
+메모리 할당을 최소화하기 위해 `ArrayPool<byte>.Shared`를 사용합니다.
 
-3. **바디 크기 제한**: 바디 길이는 ushort(0-65535)로 제한됩니다.
+```csharp
+var buffer = ArrayPool<byte>.Shared.Rent(size);
+try
+{
+    // 버퍼 사용
+}
+finally
+{
+    ArrayPool<byte>.Shared.Return(buffer);
+}
+```
 
-4. **빅 엔디안**: 메시지 타입과 바디 길이는 빅 엔디안으로 인코딩됩니다.
+### RecyclableMemoryStream
 
-5. **자동 압축**: 512바이트 이상의 메시지는 자동으로 압축됩니다. 서버에서도 `Compressed` 플래그를 확인하고 압축 해제를 처리해야 합니다.
+압축/압축 해제 작업에서 `RecyclableMemoryStreamManager`를 사용하여 GC 압력을 줄입니다.
+
+### 메모리 효율
+
+- 헤더 버퍼 재사용
+- 불필요한 복사 제거 (ReadOnlyMemory, Span 사용)
+- ArrayBufferWriter를 통한 zero-copy 직렬화
+
+## 의존성 주입
+
+애플리케이션은 Microsoft.Extensions.DependencyInjection을 사용합니다.
+
+### Program.cs
+
+```csharp
+// ServiceProvider 설정
+var services = new ServiceCollection();
+ConfigureServices(services);
+var serviceProvider = services.BuildServiceProvider();
+
+// Serilog를 Microsoft.Extensions.Logging으로 브릿지
+services.AddLogging(builder =>
+{
+    builder.ClearProviders();
+    builder.AddSerilog(Log.Logger, dispose: true);
+});
+```
+
+### App.axaml.cs
+
+```csharp
+// ServiceProvider 주입
+public App(IServiceProvider? serviceProvider)
+{
+    _serviceProvider = serviceProvider;
+}
+
+// ILoggerFactory 가져오기
+var loggerFactory = _serviceProvider?.GetService<ILoggerFactory>();
+```
+
+### ViewModel
+
+```csharp
+// ILogger 주입
+public ClientConnectionViewModel(
+    int clientId,
+    string serverIp,
+    int serverPort,
+    ILogger<ClientConnectionViewModel>? logger = null)
+{
+    _logger = logger;
+}
+
+// 로깅 사용
+_logger?.LogInformation("Connected to server: {Host}:{Port}", host, port);
+_logger?.LogError("Connection failed: {Message}", ex.Message);
+```
+
+## 로깅
+
+### Serilog 설정
+
+```csharp
+Log.Logger = new LoggerConfiguration()
+#if DEBUG
+    .MinimumLevel.Debug()
+#else
+    .MinimumLevel.Information()
+#endif
+    .WriteTo.Console()
+    .WriteTo.Debug()
+    .WriteTo.File(
+        Path.Combine("logs", "socketclient-.log"),
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 7)
+    .CreateLogger();
+```
+
+### 로그 레벨
+
+- **Debug**: 메시지 송수신, 압축/암호화 상세 정보
+- **Information**: 연결/해제 등 중요 이벤트
+- **Error**: 오류 발생
+
+## 문제 해결
+
+### 연결 실패
+
+1. **서버 실행 확인**: Demo.SimpleSocket이 실행 중인지 확인
+2. **IP/Port 확인**: 올바른 서버 IP와 포트 입력
+3. **방화벽 확인**: 포트가 열려있는지 확인
+4. **로그 확인**: `logs/socketclient-*.log` 파일 확인
+
+### 메시지 전송 실패
+
+1. **연결 상태 확인**: IsConnected가 true인지 확인
+2. **로그 확인**: UI 또는 파일 로그에서 오류 메시지 확인
+3. **서버 로그 확인**: 서버 측 로그에서 오류 확인
+
+### 암호화 오류
+
+1. **AES Key/IV 확인**: 연결 성공 메시지에서 Key/IV를 받았는지 확인
+2. **로그 확인**: "[클라이언트 AES 초기화]" 메시지 확인
+3. **서버 설정 확인**: 서버에서 암호화를 지원하는지 확인
+
+## 개발 가이드
+
+### 새로운 메시지 타입 추가
+
+1. `Demo.SimpleSocketShare/SocketMessageType.cs`에 타입 정의
+2. `Demo.SimpleSocketShare/Messages/`에 메시지 DTO 추가
+3. `ClientMessageHandler.cs`에 핸들러 등록
+
+```csharp
+_messageHandler.RegisterHandler(SocketMessageType.NewMessage, OnNewMessage);
+
+private string OnNewMessage(MessageReceivedEventArgs arg)
+{
+    var message = arg.DeserializeMessagePack<NewMessageDto>();
+    // 처리 로직
+    return "처리 완료 메시지";
+}
+```
+
+### UI 확장
+
+Avalonia XAML을 사용하여 UI를 확장할 수 있습니다.
+
+```xml
+<!-- MainWindow.axaml -->
+<Button Command="{Binding NewCommand}">
+    새 기능
+</Button>
+```
+
+```csharp
+// MainWindowViewModel.cs
+[RelayCommand]
+private void NewFeature()
+{
+    // 새 기능 구현
+}
+```
+
+## 테스트
+
+### 단일 클라이언트 테스트
+
+1. 클라이언트 1개 추가
+2. 각 메시지 타입별로 전송 테스트
+3. 로그에서 정상 처리 확인
+
+### 다중 클라이언트 테스트
+
+1. 클라이언트 10개 추가
+2. **모두에게 MsgPack 전송** 실행
+3. 모든 클라이언트에서 응답 수신 확인
+
+### 압축 테스트
+
+1. **VeryLongReq 전송** 실행
+2. 로그에서 "[클라이언트 압축]" 메시지 확인
+3. 압축률 확인 (예: 원본 1000바이트 → 압축 300바이트)
+
+### 암호화 테스트
+
+1. **암호화 MsgPack 전송** 실행
+2. 로그에서 "[클라이언트 암호화]" 메시지 확인
+3. 서버에서 정상 복호화 및 응답 확인
+
+## 라이선스
+
+이 프로젝트는 교육 목적으로 작성되었습니다.
