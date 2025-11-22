@@ -6,8 +6,8 @@ namespace Demo.SimpleSocketShare.Messages;
 public class MsgPackReq
 {
     [Key(0)]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [Key(1)]
-    public string Message { get; set; }
+    public string Message { get; set; } = string.Empty;
 }

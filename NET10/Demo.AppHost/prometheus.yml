@@ -1,0 +1,89 @@
+# Prometheus 설정 파일
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'demo-cluster'
+    environment: 'development'
+
+# Alertmanager 설정 (선택사항)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Rule 파일 로드 (선택사항)
+# rule_files:
+#   - "alerts/*.yml"
+
+# Scrape 설정
+scrape_configs:
+  # Prometheus 자체 메트릭 수집
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # OpenTelemetry Collector 메트릭 수집
+  - job_name: 'otel-collector'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['otel-collector:8889']
+        labels:
+          service: 'otel-collector'
+          type: 'application-metrics'
+
+  # Demo.Web 애플리케이션 직접 수집 (백업용)
+  - job_name: 'demo-web'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['demo-web:8080']
+        labels:
+          service: 'demo-web'
+          application: 'aspnet-core'
+
+# Remote Write 설정 - 다른 Prometheus, Grafana Cloud, Mimir 등으로 전송
+remote_write:
+  # 예시: Grafana Cloud로 전송
+  # - url: https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push
+  #   basic_auth:
+  #     username: <your-username>
+  #     password: <your-api-key>
+  #   write_relabel_configs:
+  #     - source_labels: [__name__]
+  #       regex: 'expensive_metric.*'
+  #       action: drop
+
+  # 예시: Thanos Receiver로 전송
+  # - url: http://thanos-receiver:19291/api/v1/receive
+  #   remote_timeout: 30s
+  #   queue_config:
+  #     capacity: 10000
+  #     max_shards: 50
+  #     min_shards: 1
+  #     max_samples_per_send: 5000
+  #     batch_send_deadline: 5s
+  #     min_backoff: 30ms
+  #     max_backoff: 100ms
+
+  # 로컬 테스트용: 다른 Prometheus 인스턴스로 전송
+  - url: http://localhost:19090/api/v1/write
+    queue_config:
+      capacity: 2500
+      max_shards: 10
+      min_shards: 1
+      max_samples_per_send: 500
+      batch_send_deadline: 5s
+    write_relabel_configs:
+      # 모든 메트릭 전송 (필터 없음)
+      - source_labels: [__name__]
+        regex: '.*'
+        action: keep
+
+# Remote Read 설정 (선택사항)
+# remote_read:
+#   - url: http://prometheus-long-term:9090/api/v1/read
+#     read_recent: true

@@ -166,7 +166,7 @@ try
                 .WithTitle(app.Environment.ApplicationName)
                 .WithTheme(ScalarTheme.None)
                 .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
-                .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
+                .WithBundleUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
         });
     //}
     #endregion

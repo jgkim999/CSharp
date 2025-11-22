@@ -41,7 +41,7 @@ public class SerializationBenchmarks
     [Benchmark]
     public SampleModel ProtoBuf_Deserialize()
     {
-        using var ms = new MemoryStream(_protoBufBytes);
+        using var ms = new MemoryStream(_protoBufBytes!);
         return ProtoBuf.Serializer.Deserialize<SampleModel>(ms);
     }
 

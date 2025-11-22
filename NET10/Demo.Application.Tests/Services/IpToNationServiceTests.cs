@@ -168,7 +168,7 @@ public class IpToNationServiceTests
 
         _mockRepository
             .Setup(x => x.GetAsync(clientIp))
-            .ReturnsAsync(null as string);
+            .ReturnsAsync((string?)null);
 
         // Act
         var result = await _service.GetNationCodeAsync(clientIp, cancellationToken);

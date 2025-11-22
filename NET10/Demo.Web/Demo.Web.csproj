@@ -43,6 +43,9 @@
         <!-- Database Instrumentation -->
         
         <!-- Additional Instrumentation -->
+        
+        <!-- Microsoft Service Discovery -->
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.0.0" />
     </ItemGroup>
 
     <ItemGroup>

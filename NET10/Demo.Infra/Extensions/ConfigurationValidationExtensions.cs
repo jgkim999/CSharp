@@ -107,7 +107,7 @@ public class ConfigurationChangeMonitor : IConfigurationChangeMonitor, IDisposab
 {
     private readonly IOptionsMonitor<FusionCacheConfig> _optionsMonitor;
     private readonly ILogger<ConfigurationChangeMonitor> _logger;
-    private readonly IDisposable _changeListener;
+    private readonly IDisposable? _changeListener;
 
     public event Action<FusionCacheConfig>? ConfigurationChanged;
 

@@ -5,6 +5,12 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "C#: Demo.AppHost Debug",
+      "type": "dotnet",
+      "request": "launch",
+      "projectPath": "${workspaceFolder}/Demo.AppHost/Demo.AppHost.csproj"
+    },
+    {
       "type": "coreclr",
       "request": "launch",
       "name": "Launch Demo.Web",

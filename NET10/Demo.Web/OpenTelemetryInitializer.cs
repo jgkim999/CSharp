@@ -59,6 +59,14 @@ public static class OpenTelemetryInitializer
         var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT") ?? openTelemetryConfig.Endpoint;
         logger.Information("OpenTelemetryEndpoint {OpenTelemetryEndpoint}", otlpEndpoint);
 
+        var otlpProtocol = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_PROTOCOL") ?? "http/protobuf";
+        OpenTelemetry.Exporter.OtlpExportProtocol otlpExportProtocol = otlpProtocol.ToLower() switch
+        {
+            "grpc" => OpenTelemetry.Exporter.OtlpExportProtocol.Grpc,
+            "http/protobuf" => OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf,
+            _ => OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
+        };
+
         var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME") ?? openTelemetryConfig.ServiceName;
         var serviceVersion = Environment.GetEnvironmentVariable("OTEL_SERVICE_VERSION") ?? openTelemetryConfig.ServiceVersion;
         var serviceNamespace = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAMESPACE") ?? openTelemetryConfig.ServiceNamespace;
@@ -212,7 +220,7 @@ public static class OpenTelemetryInitializer
         });
 
         openTelemetryBuilder.UseOtlpExporter(
-            OpenTelemetry.Exporter.OtlpExportProtocol.Grpc,
+            otlpExportProtocol,
             new Uri(otlpEndpoint));
     }
 }

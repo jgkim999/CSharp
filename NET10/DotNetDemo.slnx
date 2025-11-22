@@ -10,6 +10,7 @@
     <Configuration Solution="Release|x64" Project="Release|Any CPU" />
     <Configuration Solution="Release|x86" Project="Release|Any CPU" />
   </Project>
+  <Project Path="Demo.AppHost/Demo.AppHost.csproj" />
   <Project Path="Demo.Application.Tests/Demo.Application.Tests.csproj" />
   <Project Path="Demo.Application/Demo.Application.csproj" />
   <Project Path="Demo.Consumer\Demo.Consumer.csproj">
@@ -22,26 +23,26 @@
   <Project Path="Demo.Domain/Demo.Domain.csproj" />
   <Project Path="Demo.Infra.Tests/Demo.Infra.Tests.csproj" />
   <Project Path="Demo.Infra/Demo.Infra.csproj" />
-  <Project Path="Demo.SimpleSocketClient\Demo.SimpleSocketClient.csproj" Type="C#">
+  <Project Path="Demo.SimpleSocketClient\Demo.SimpleSocketClient.csproj">
     <Configuration Solution="Debug|x64" Project="Debug|Any CPU" />
     <Configuration Solution="Debug|x86" Project="Debug|Any CPU" />
     <Configuration Solution="Release|x64" Project="Release|Any CPU" />
     <Configuration Solution="Release|x86" Project="Release|Any CPU" />
   </Project>
-  <Project Path="Demo.SimpleSocketShare\Demo.SimpleSocketShare.csproj" Type="Classic C#">
+  <Project Path="Demo.SimpleSocketShare\Demo.SimpleSocketShare.csproj" Type="C#">
     <Configuration Solution="Debug|x64" Project="Debug|Any CPU" />
     <Configuration Solution="Debug|x86" Project="Debug|Any CPU" />
     <Configuration Solution="Release|x64" Project="Release|Any CPU" />
     <Configuration Solution="Release|x86" Project="Release|Any CPU" />
   </Project>
-  <Project Path="Demo.SimpleSocket\Demo.SimpleSocket.csproj" Type="C#">
+  <Project Path="Demo.SimpleSocket\Demo.SimpleSocket.csproj">
     <Configuration Solution="Debug|x64" Project="Debug|Any CPU" />
     <Configuration Solution="Debug|x86" Project="Debug|Any CPU" />
     <Configuration Solution="Release|x64" Project="Release|Any CPU" />
     <Configuration Solution="Release|x86" Project="Release|Any CPU" />
   </Project>
   <Project Path="Demo.Web/Demo.Web.csproj" />
-  <Project Path="Demo.Zen\Demo.Zen.csproj" Type="Classic C#">
+  <Project Path="Demo.Zen\Demo.Zen.csproj" Type="C#">
     <Configuration Solution="Debug|x64" Project="Debug|Any CPU" />
     <Configuration Solution="Debug|x86" Project="Debug|Any CPU" />
     <Configuration Solution="Release|x64" Project="Release|Any CPU" />

@@ -49,6 +49,9 @@ try
     
     Log.Information("Starting application");
 
+    // Aspire 서비스 디스커버리 추가
+    builder.Services.AddServiceDiscovery();
+    
     // OpenTelemetry 서비스 등록
     builder.AddOpenTelemetryApplication(Log.Logger);
 
@@ -57,6 +60,8 @@ try
     var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
     if (rabbitMqConfig is null)
         throw new NullReferenceException();
+    Log.Information("RabbitMQ Host: {Host}, Port: {Port}, User: {User}", rabbitMqConfig.HostName, rabbitMqConfig.Port, rabbitMqConfig.UserName);
+    
     builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
     builder.Services.AddSingleton<RabbitMqConnection>();
     builder.Services.AddSingleton<RabbitMqHandler>();

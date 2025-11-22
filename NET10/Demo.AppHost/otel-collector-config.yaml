@@ -1,0 +1,80 @@
+# OpenTelemetry Collector 설정 파일
+# Demo.AppHost용 기본 설정
+
+receivers:
+  # OTLP 수신기 - HTTP 및 gRPC 프로토콜 지원
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "http://*"
+            - "https://*"
+
+processors:
+  # 배치 처리기 - 성능 최적화를 위해 텔레메트리 데이터를 배치로 처리
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+
+  # 메모리 제한 처리기 - 메모리 사용량 제어
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  # 리소스 감지 처리기 - 환경 정보 자동 수집
+  resourcedetection:
+    detectors: [env, system, docker]
+    timeout: 5s
+
+exporters:
+  # 콘솔 로깅 - 디버깅용
+  debug:
+    verbosity: basic
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+  # Prometheus Remote Write exporter - Prometheus로 메트릭 전송
+  prometheusremotewrite:
+    endpoint: "http://prometheus:9090/api/v1/write"
+    tls:
+      insecure: true
+
+# 확장 기능 설정
+extensions:
+  # Health check 엔드포인트
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+# 서비스 파이프라인 설정
+service:
+  extensions: [health_check]
+
+  pipelines:
+    # 트레이스 파이프라인
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [debug]
+
+    # 메트릭 파이프라인
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [debug, prometheusremotewrite]
+
+    # 로그 파이프라인
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [debug]
+
+  # 텔레메트리 설정 - Collector 자체의 로깅
+  telemetry:
+    logs:
+      level: info
+      encoding: console

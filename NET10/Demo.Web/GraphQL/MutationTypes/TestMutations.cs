@@ -35,7 +35,7 @@ public class TestMutations
         try
         {
             using var activity = telemetryService.StartActivity("test.mutations.publish.mq.any");
-            await mqPublishService.PublishMessagePackAnyAsync("consumer-any-queue", input.Message, cancellationToken);
+            await mqPublishService.PublishMessagePackAnyAsync("consumer-any-queue", input.Message ?? string.Empty, cancellationToken);
 
             return new TestMqPayload(
                 "MQ 테스트가 완료되었습니다. 콘솔 로그를 확인해주세요.",
