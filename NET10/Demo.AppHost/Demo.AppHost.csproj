@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Demo.SimpleSocket\Demo.SimpleSocket.csproj" />
     <ProjectReference Include="..\Demo.Web\Demo.Web.csproj" />
   </ItemGroup>
 

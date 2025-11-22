@@ -2,7 +2,10 @@ using FastEndpoints;
 
 namespace Demo.Web.Endpoints.Company;
 
-public class CompanyGroup : Group
+/// <summary>
+/// Company 그룹 엔드포인트
+/// </summary>
+public sealed class CompanyGroup : Group
 {
     /// <summary>
     /// Company group

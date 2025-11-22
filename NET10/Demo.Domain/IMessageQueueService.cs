@@ -9,7 +9,7 @@ public interface IMqPublishService
         string exchangeName,
         T messagePack,
         CancellationToken ct = default,
-        string? correlationId = null) where T : class;
+        string? correlationId = null) where T : class?;
 
     ValueTask PublishProtoBufMultiAsync<T>(
         string exchangeName,

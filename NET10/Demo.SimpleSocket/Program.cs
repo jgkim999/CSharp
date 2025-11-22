@@ -25,7 +25,6 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
 using SuperSocket;
-using SuperSocket.Kestrel;
 using SuperSocket.Server.Abstractions;
 using SuperSocket.Server.Host;
 
@@ -153,21 +152,18 @@ try
 
     #region SuperSocket
 
-    var serverOptions = builder.Configuration.GetSection("ServerOptions").Get<ServerOptions>();
-    if (serverOptions is null)
-        throw new NullReferenceException();
-    builder.Services.Configure<ServerOptions>(builder.Configuration.GetSection("ServerOptions"));
-
+    // CustomServerOption만 수동으로 등록 (SuperSocket이 인식하지 못하는 커스텀 설정)
     var customServerOption = builder.Configuration.GetSection("CustomServerOption").Get<CustomServerOption>();
     if (customServerOption is null)
         throw new NullReferenceException();
     builder.Services.Configure<CustomServerOption>(builder.Configuration.GetSection("CustomServerOption"));
-    
+
     builder.Services.AddSingleton<ISessionManager, SessionManager>();
     builder.Services.AddSingleton<IClientSocketMessageHandler, ClientSocketMessageHandler>();
     builder.Services.AddTransient<ISessionCompression, GZipSessionCompression>();
 
     // SuperSocket을 ASP.NET Core 호스트에 통합
+    // ServerOptions는 appsettings.json의 "serverOptions"에서 자동으로 로드됨
     builder.Host
         .AsSuperSocketHostBuilder<BinaryPackageInfo, FixedHeaderPipelineFilter>()
         .UseSessionHandler(async (session) =>
@@ -194,7 +190,6 @@ try
                 }
             })
         .UseSession<DemoSession>()
-        .UseKestrelPipeConnection()
         .AsMinimalApiHostBuilder()
         .ConfigureHostBuilder();
     #endregion
@@ -222,7 +217,7 @@ try
             .WithTitle(app.Environment.ApplicationName)
             .WithTheme(ScalarTheme.None)
             .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.RestSharp)
-            .WithCdnUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
+            .WithBundleUrl("https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/browser/standalone.js");
     });
 
     //app.MapDefaultEndpoints();

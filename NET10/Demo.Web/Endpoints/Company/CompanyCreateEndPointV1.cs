@@ -9,8 +9,14 @@ using Microsoft.Extensions.Options;
 
 namespace Demo.Web.Endpoints.Company;
 
+/// <summary>
+/// Company 생성
+/// </summary>
 public class CompanyCreateSummary : Summary<CompanyCreateEndpointV1>
 {
+    /// <summary>
+    /// Company 생성
+    /// </summary>
     public CompanyCreateSummary()
     {
         Summary = "회사 생성";

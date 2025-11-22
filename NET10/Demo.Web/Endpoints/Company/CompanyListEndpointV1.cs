@@ -6,8 +6,14 @@ using Demo.Application.Models;
 
 namespace Demo.Web.Endpoints.Company;
 
+/// <summary>
+/// 회사 목록 조회를 위한 요약 클래스
+/// </summary>
 public class CompanyListSummary : Summary<CompanyListEndpointV1>
 {
+    /// <summary>
+    /// 회사 목록 조회
+    /// </summary>
     public CompanyListSummary()
     {
         Summary = "회사 목록";

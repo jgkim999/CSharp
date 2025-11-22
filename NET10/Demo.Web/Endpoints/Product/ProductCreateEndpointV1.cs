@@ -7,8 +7,14 @@ using Demo.Application.Handlers.Commands;
 
 namespace Demo.Web.Endpoints.Product;
 
+/// <summary>
+/// 제품 생성 요약
+/// </summary>
 public class ProductCreateSummary : Summary<ProductCreateEndpointV1>
 {
+    /// <summary>
+    /// 제품 생성
+    /// </summary>
     public ProductCreateSummary()
     {
         Summary = "상품 생성";

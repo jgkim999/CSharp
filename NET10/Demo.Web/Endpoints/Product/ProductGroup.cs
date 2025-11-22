@@ -2,7 +2,11 @@ using FastEndpoints;
 
 namespace Demo.Web.Endpoints.Product;
 
-public class ProductGroup : Group
+/// <summary>
+/// Product group
+/// </summary>
+/// <seealso cref="Group" />
+public sealed class ProductGroup : Group
 {
     /// <summary>
     /// Product group

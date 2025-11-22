@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Socket Run" type="com.intellij.execution.configurations.multilaunch" factoryName="MultiLaunchConfiguration">
+  <configuration default="false" name="Simple Socket" type="com.intellij.execution.configurations.multilaunch" factoryName="MultiLaunchConfiguration">
     <rows>
       <ExecutableRowSnapshot>
         <option name="condition">
