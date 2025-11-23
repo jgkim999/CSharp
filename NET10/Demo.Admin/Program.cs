@@ -11,6 +11,7 @@ using Demo.Infra.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Demo.Admin.Services;
+using Demo.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,12 +45,21 @@ try
     builder.AddOpenTelemetryApplication(Log.Logger);
     
     #region RabbitMQ
+    
+    // System.AggregateException: Some services are not able to be constructed
+    // (Error while validating the service descriptor
+    // 'ServiceType: Demo.Domain.IMqPublishService
+    // Lifetime: Singleton
+    // ImplementationType: Demo.Infra.Services.RabbitMqPublishService': Unable to resolve service for type 'Demo.Infra.Services.RabbitMqHandler' while attempting to activate 'Demo.Infra.Services.RabbitMqPublishService'.)
     var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ").Get<RabbitMqConfig>();
     if (rabbitMqConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<RabbitMqConfig>(builder.Configuration.GetSection("RabbitMQ"));
     builder.Services.AddSingleton<RabbitMqConnection>();
+    builder.Services.AddSingleton<RabbitMqHandler>();
+    builder.Services.AddSingleton<IMqMessageHandler, AdminMqMessageHandler>();
     builder.Services.AddSingleton<IMqPublishService, RabbitMqPublishService>();
+    
     #endregion
 
     #region Redis

@@ -52,6 +52,28 @@ var valkeyEndpoint = valkey.GetEndpoint("tcp");
 var postgresEndpoint = postgresServer.GetEndpoint("tcp");
 var mysqlEndpoint = mysqlServer.GetEndpoint("tcp");
 
+// Demo.Admin
+builder.AddProject<Demo_Admin>("demo-admin")
+    .WithReference(rabbitmq)
+    .WithReference(postgres)
+    .WithReference(mysqlDatabase)
+    .WithEnvironment("RabbitMQ__HostName", rabbitMqEndpoint.Property(EndpointProperty.Host))
+    .WithEnvironment("RabbitMQ__Port", rabbitMqEndpoint.Property(EndpointProperty.Port))
+    .WithEnvironment("RabbitMQ__UserName", rabbitUser)
+    .WithEnvironment("RabbitMQ__Password", rabbitPassword)
+    .WithEnvironment("RabbitMQ__VirtualHost", "/")
+    .WithEnvironment("RabbitMQ__UseSsl", "false")
+    .WithEnvironment("RabbitMQ__UseTls", "false")
+    .WithEnvironment("RabbitMQ__UseTlsCertificateValidation", "false")
+    .WithEnvironment("Redis__JwtConnectionString", $"{valkeyEndpoint.Property(EndpointProperty.Host)}:{valkeyEndpoint.Property(EndpointProperty.Port)},allowAdmin=true,abortConnect=false")
+    .WithEnvironment("Redis__IpToNationConnectionString", $"{valkeyEndpoint.Property(EndpointProperty.Host)}:{valkeyEndpoint.Property(EndpointProperty.Port)},allowAdmin=true,abortConnect=false")
+    .WithEnvironment("Postgres__ConnectionString", $"Host={postgresEndpoint.Property(EndpointProperty.Host)};Port={postgresEndpoint.Property(EndpointProperty.Port)};Database=mydatabase;Username=postgres;Password={postgresPassword};Maximum Pool Size=8;Minimum Pool Size=2;")
+    .WithEnvironment("MySQL__ConnectionString", $"Server={mysqlEndpoint.Property(EndpointProperty.Host)};Port={mysqlEndpoint.Property(EndpointProperty.Port)};Database=mydb;User=root;Password={mysqlPassword};")
+    .WaitFor(rabbitmq)        // RabbitMQ가 준비될 때까지 대기
+    .WaitFor(valkey)          // Redis 컨테이너가 준비될 때까지 대기
+    .WaitFor(postgres)        // PostgreSQL이 준비될 때까지 대기
+    .WaitFor(mysqlDatabase);  // MySQL이 준비될 때까지 대기
+
 // Demo.Web
 builder.AddProject<Demo_Web>("demo-web")
        .WithReference(rabbitmq)
