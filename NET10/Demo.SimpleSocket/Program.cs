@@ -116,8 +116,6 @@ try
         });
     });
 
-    builder.AddLiteBusApplication();
-
     #region Mapster
 
     builder.Services.AddMapster();
@@ -149,6 +147,8 @@ try
     builder.Services.AddIpToNationFusionCache(builder.Configuration);
     */
     #endregion
+
+    builder.AddLiteBusApplication();
 
     #region SuperSocket
 

@@ -130,8 +130,6 @@ try
 
     builder.Services.AddValidatorsFromAssemblyContaining<UserCreateRequestRequestValidator>();
 
-    builder.AddLiteBusApplication();
-    
     #region Mapster
     builder.Services.AddMapster();
     var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
@@ -143,23 +141,25 @@ try
     if (postgresConfig is null)
         throw new NullReferenceException();
     builder.Services.Configure<PostgresConfig>(builder.Configuration.GetSection("Postgres"));
-    
+
     // DbContextFactory 등록
     builder.Services.AddDbContextFactory<DemoDbContext>(options =>
         options.UseNpgsql(postgresConfig.ConnectionString, npgsqlOptions =>
         {
             npgsqlOptions.CommandTimeout(10); // 명령 타임아웃 10초로 제한
         }));
-    
+
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
     builder.Services.AddTransient<IUserRepository, UserRepositoryPostgre>();
     builder.Services.AddTransient<ICompanyRepository, CompanyRepositoryPostgre>();
     builder.Services.AddTransient<IProductRepository, ProductRepositoryPostgre>();
-    
+
     // FusionCache 설정 추가
     builder.Services.AddIpToNationFusionCache(builder.Configuration);
-    
+
     #endregion
+
+    builder.AddLiteBusApplication();
     
     builder.Services.AddHostedService<RabbitMqConsumerService>();
     

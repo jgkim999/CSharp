@@ -67,6 +67,14 @@ builder.AddProject<Demo_Consumer>("demo-consumer")
     .WithMySqlEnvironment(mysqlServer, mysqlPassword)
     .WaitForInfrastructure(rabbitmq, valkey, postgres, mysqlDatabase);
 
+// Demo.SimpleSocket
+builder.AddProject<Demo_SimpleSocket>("demo-simple-socket")
+    .WithReference(rabbitmq)
+    .WithRabbitMqEnvironment(rabbitmq, rabbitUser, rabbitPassword)
+    .WithRedisEnvironment(valkey)
+    .WithMySqlEnvironment(mysqlServer, mysqlPassword)
+    .WaitForInfrastructure(rabbitmq, valkey, mysql: mysqlDatabase);
+
 // Demo.Web
 builder.AddProject<Demo_Web>("demo-web")
     .WithReference(rabbitmq)
@@ -77,12 +85,16 @@ builder.AddProject<Demo_Web>("demo-web")
     .WithPostgresEnvironment(postgresServer, postgresPassword)
     .WithMySqlEnvironment(mysqlServer, mysqlPassword)
     .WaitForInfrastructure(rabbitmq, valkey, postgres, mysqlDatabase);
-
-// Demo.SimpleSocket
-builder.AddProject<Demo_SimpleSocket>("demo-simple-socket")
+    
+// GamePulse
+builder.AddProject<GamePulse>("game-pulse")
     .WithReference(rabbitmq)
+    .WithReference(postgres)
+    .WithReference(mysqlDatabase)
     .WithRabbitMqEnvironment(rabbitmq, rabbitUser, rabbitPassword)
     .WithRedisEnvironment(valkey)
+    .WithPostgresEnvironment(postgresServer, postgresPassword)
     .WithMySqlEnvironment(mysqlServer, mysqlPassword)
-    .WaitForInfrastructure(rabbitmq, valkey, mysql: mysqlDatabase);
+    .WaitForInfrastructure(rabbitmq, valkey, postgres, mysqlDatabase);
+
 builder.Build().Run();

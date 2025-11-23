@@ -72,6 +72,8 @@ try
     builder.Services.AddSingleton<IIpToNationService, IpToNationService>();
     builder.Services.AddTransient<IJwtRepository, RedisJwtRepository>();
     builder.Services.AddTransient<IUserRepository, UserRepositoryPostgre>();
+    builder.Services.AddTransient<ICompanyRepository, CompanyRepositoryPostgre>();
+    builder.Services.AddTransient<IProductRepository, ProductRepositoryPostgre>();
 
     // ITelemetryService 및 TelemetryService를 Singleton으로 등록
     builder.Services.AddSingleton<ITelemetryService>(serviceProvider =>
