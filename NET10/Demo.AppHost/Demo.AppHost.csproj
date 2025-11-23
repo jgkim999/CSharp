@@ -19,8 +19,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Demo.Admin\Demo.Admin.csproj" />
+    <ProjectReference Include="..\Demo.Consumer\Demo.Consumer.csproj" />
     <ProjectReference Include="..\Demo.SimpleSocket\Demo.SimpleSocket.csproj" />
     <ProjectReference Include="..\Demo.Web\Demo.Web.csproj" />
+    <ProjectReference Include="..\Demo.Zen\Demo.Zen.csproj" />
+    <ProjectReference Include="..\GamePulse\GamePulse.csproj" />
   </ItemGroup>
 
 </Project>

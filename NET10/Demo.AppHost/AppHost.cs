@@ -1,4 +1,3 @@
-using Aspire.Hosting;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -46,71 +45,44 @@ var prometheus = builder.AddContainer("prometheus", "prom/prometheus")
               "--web.enable-lifecycle",                                    // API로 설정 리로드 가능
               "--web.enable-remote-write-receiver");                       // Remote Write 수신 활성화
 
-// RabbitMQ 실제 연결 정보 가져오기
-var rabbitMqEndpoint = rabbitmq.GetEndpoint("tcp");
-var valkeyEndpoint = valkey.GetEndpoint("tcp");
-var postgresEndpoint = postgresServer.GetEndpoint("tcp");
-var mysqlEndpoint = mysqlServer.GetEndpoint("tcp");
-
 // Demo.Admin
 builder.AddProject<Demo_Admin>("demo-admin")
     .WithReference(rabbitmq)
     .WithReference(postgres)
     .WithReference(mysqlDatabase)
-    .WithEnvironment("RabbitMQ__HostName", rabbitMqEndpoint.Property(EndpointProperty.Host))
-    .WithEnvironment("RabbitMQ__Port", rabbitMqEndpoint.Property(EndpointProperty.Port))
-    .WithEnvironment("RabbitMQ__UserName", rabbitUser)
-    .WithEnvironment("RabbitMQ__Password", rabbitPassword)
-    .WithEnvironment("RabbitMQ__VirtualHost", "/")
-    .WithEnvironment("RabbitMQ__UseSsl", "false")
-    .WithEnvironment("RabbitMQ__UseTls", "false")
-    .WithEnvironment("RabbitMQ__UseTlsCertificateValidation", "false")
-    .WithEnvironment("Redis__JwtConnectionString", $"{valkeyEndpoint.Property(EndpointProperty.Host)}:{valkeyEndpoint.Property(EndpointProperty.Port)},allowAdmin=true,abortConnect=false")
-    .WithEnvironment("Redis__IpToNationConnectionString", $"{valkeyEndpoint.Property(EndpointProperty.Host)}:{valkeyEndpoint.Property(EndpointProperty.Port)},allowAdmin=true,abortConnect=false")
-    .WithEnvironment("Postgres__ConnectionString", $"Host={postgresEndpoint.Property(EndpointProperty.Host)};Port={postgresEndpoint.Property(EndpointProperty.Port)};Database=mydatabase;Username=postgres;Password={postgresPassword};Maximum Pool Size=8;Minimum Pool Size=2;")
-    .WithEnvironment("MySQL__ConnectionString", $"Server={mysqlEndpoint.Property(EndpointProperty.Host)};Port={mysqlEndpoint.Property(EndpointProperty.Port)};Database=mydb;User=root;Password={mysqlPassword};")
-    .WaitFor(rabbitmq)        // RabbitMQ가 준비될 때까지 대기
-    .WaitFor(valkey)          // Redis 컨테이너가 준비될 때까지 대기
-    .WaitFor(postgres)        // PostgreSQL이 준비될 때까지 대기
-    .WaitFor(mysqlDatabase);  // MySQL이 준비될 때까지 대기
+    .WithRabbitMqEnvironment(rabbitmq, rabbitUser, rabbitPassword)
+    .WithRedisEnvironment(valkey)
+    .WithPostgresEnvironment(postgresServer, postgresPassword)
+    .WithMySqlEnvironment(mysqlServer, mysqlPassword)
+    .WaitForInfrastructure(rabbitmq, valkey, postgres, mysqlDatabase);
+
+// Demo.Consumer
+builder.AddProject<Demo_Consumer>("demo-consumer")
+    .WithReference(rabbitmq)
+    .WithReference(postgres)
+    .WithReference(mysqlDatabase)
+    .WithRabbitMqEnvironment(rabbitmq, rabbitUser, rabbitPassword)
+    .WithRedisEnvironment(valkey)
+    .WithPostgresEnvironment(postgresServer, postgresPassword)
+    .WithMySqlEnvironment(mysqlServer, mysqlPassword)
+    .WaitForInfrastructure(rabbitmq, valkey, postgres, mysqlDatabase);
 
 // Demo.Web
 builder.AddProject<Demo_Web>("demo-web")
-       .WithReference(rabbitmq)
-       .WithReference(postgres)
-       .WithReference(mysqlDatabase)
-       .WithEnvironment("RabbitMQ__HostName", rabbitMqEndpoint.Property(EndpointProperty.Host))
-       .WithEnvironment("RabbitMQ__Port", rabbitMqEndpoint.Property(EndpointProperty.Port))
-       .WithEnvironment("RabbitMQ__UserName", rabbitUser)
-       .WithEnvironment("RabbitMQ__Password", rabbitPassword)
-       .WithEnvironment("RabbitMQ__VirtualHost", "/")
-       .WithEnvironment("RabbitMQ__UseSsl", "false")
-       .WithEnvironment("RabbitMQ__UseTls", "false")
-       .WithEnvironment("RabbitMQ__UseTlsCertificateValidation", "false")
-       .WithEnvironment("Redis__JwtConnectionString", $"{valkeyEndpoint.Property(EndpointProperty.Host)}:{valkeyEndpoint.Property(EndpointProperty.Port)},allowAdmin=true,abortConnect=false")
-       .WithEnvironment("Redis__IpToNationConnectionString", $"{valkeyEndpoint.Property(EndpointProperty.Host)}:{valkeyEndpoint.Property(EndpointProperty.Port)},allowAdmin=true,abortConnect=false")
-       .WithEnvironment("Postgres__ConnectionString", $"Host={postgresEndpoint.Property(EndpointProperty.Host)};Port={postgresEndpoint.Property(EndpointProperty.Port)};Database=mydatabase;Username=postgres;Password={postgresPassword};Maximum Pool Size=8;Minimum Pool Size=2;")
-       .WithEnvironment("MySQL__ConnectionString", $"Server={mysqlEndpoint.Property(EndpointProperty.Host)};Port={mysqlEndpoint.Property(EndpointProperty.Port)};Database=mydb;User=root;Password={mysqlPassword};")
-       .WaitFor(rabbitmq)        // RabbitMQ가 준비될 때까지 대기
-       .WaitFor(valkey)          // Redis 컨테이너가 준비될 때까지 대기
-       .WaitFor(postgres)        // PostgreSQL이 준비될 때까지 대기
-       .WaitFor(mysqlDatabase);  // MySQL이 준비될 때까지 대기
+    .WithReference(rabbitmq)
+    .WithReference(postgres)
+    .WithReference(mysqlDatabase)
+    .WithRabbitMqEnvironment(rabbitmq, rabbitUser, rabbitPassword)
+    .WithRedisEnvironment(valkey)
+    .WithPostgresEnvironment(postgresServer, postgresPassword)
+    .WithMySqlEnvironment(mysqlServer, mysqlPassword)
+    .WaitForInfrastructure(rabbitmq, valkey, postgres, mysqlDatabase);
 
 // Demo.SimpleSocket
 builder.AddProject<Demo_SimpleSocket>("demo-simple-socket")
-       .WithReference(rabbitmq)
-       .WithEnvironment("RabbitMQ__HostName", rabbitMqEndpoint.Property(EndpointProperty.Host))
-       .WithEnvironment("RabbitMQ__Port", rabbitMqEndpoint.Property(EndpointProperty.Port))
-       .WithEnvironment("RabbitMQ__UserName", rabbitUser)
-       .WithEnvironment("RabbitMQ__Password", rabbitPassword)
-       .WithEnvironment("RabbitMQ__VirtualHost", "/")
-       .WithEnvironment("RabbitMQ__UseSsl", "false")
-       .WithEnvironment("RabbitMQ__UseTls", "false")
-       .WithEnvironment("RabbitMQ__UseTlsCertificateValidation", "false")
-       .WithEnvironment("Redis__JwtConnectionString", $"{valkeyEndpoint.Property(EndpointProperty.Host)}:{valkeyEndpoint.Property(EndpointProperty.Port)},allowAdmin=true,abortConnect=false")
-       .WithEnvironment("Redis__IpToNationConnectionString", $"{valkeyEndpoint.Property(EndpointProperty.Host)}:{valkeyEndpoint.Property(EndpointProperty.Port)},allowAdmin=true,abortConnect=false")
-       .WithEnvironment("MySQL__ConnectionString", $"Server={mysqlEndpoint.Property(EndpointProperty.Host)};Port={mysqlEndpoint.Property(EndpointProperty.Port)};Database=mydb;User=root;Password={mysqlPassword};")
-       .WaitFor(rabbitmq)        // RabbitMQ가 준비될 때까지 대기
-       .WaitFor(valkey)          // Redis 컨테이너가 준비될 때까지 대기
-       .WaitFor(mysqlDatabase);  // MySQL이 준비될 때까지 대기
+    .WithReference(rabbitmq)
+    .WithRabbitMqEnvironment(rabbitmq, rabbitUser, rabbitPassword)
+    .WithRedisEnvironment(valkey)
+    .WithMySqlEnvironment(mysqlServer, mysqlPassword)
+    .WaitForInfrastructure(rabbitmq, valkey, mysql: mysqlDatabase);
 builder.Build().Run();

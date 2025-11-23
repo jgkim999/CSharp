@@ -2,7 +2,6 @@ using Demo.Infra.Configs;
 using Demo.Infra.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace Demo.Infra.Services;

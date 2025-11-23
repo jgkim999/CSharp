@@ -10,10 +10,8 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Demo.Domain.Enums;
-using System.Buffers;
 using MessagePack;
 using Microsoft.IO;
-using YamlDotNet.Serialization;
 
 namespace Demo.Infra.Services;
 
@@ -275,11 +273,14 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
     }
 
     public async ValueTask PublishMessagePackMultiAsync<T>(
-        string exchangeName, T messagePack, CancellationToken ct = default, string? correlationId = null) where T : class
+        string exchangeName,
+        T messagePack,
+        CancellationToken ct = default,
+        string? correlationId = null) where T : class
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         // RecyclableMemoryStream을 사용한 메모리 최적화 (동기 Dispose이므로 using 사용)
-        using var memoryStream = MemoryStreamManager.GetStream();
+        await using var memoryStream = MemoryStreamManager.GetStream();
         await MessagePackSerializer.SerializeAsync(memoryStream, messagePack, cancellationToken: ct);
 
         // GetBuffer()와 Length를 사용하여 불필요한 배열 복사 제거
@@ -516,7 +517,7 @@ public class RabbitMqPublishService : IMqPublishService, IDisposable
         try
         {
             // MemoryPack 직렬화
-            using var memoryStream = MemoryStreamManager.GetStream();
+            await using var memoryStream = MemoryStreamManager.GetStream();
             await MemoryPack.MemoryPackSerializer.SerializeAsync(memoryStream, request, cancellationToken: ct);
             var requestBytes = memoryStream.ToArray();
 
