@@ -20,6 +20,7 @@ builder.Configuration
     .AddEnvironmentVariables(); // 환경 변수가 JSON 설정을 오버라이드
 
 Log.Logger = new LoggerConfiguration()
+    .WriteTo.OpenTelemetry()
     .WriteTo.Console()
     .CreateLogger();
 try

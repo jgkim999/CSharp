@@ -163,7 +163,6 @@ public static class OpenTelemetryInitializer
             });
 
             // 데이터베이스 자동 계측
-            tracing.AddNpgsql(); // PostgreSQL (Npgsql) 계측
             tracing.AddSqlClientInstrumentation(options =>
             {
                 // SQL 명령문 텍스트 기록 (개발 환경에서만)
@@ -215,8 +214,8 @@ public static class OpenTelemetryInitializer
         // TelemetryService 등록
         appBuilder.Services.AddSingleton<ITelemetryService>(provider =>
         {
-            var logger = provider.GetRequiredService<ILogger<TelemetryService>>();
-            return new TelemetryService(serviceName, serviceVersion, logger);
+            var telemetryLogger = provider.GetRequiredService<ILogger<TelemetryService>>();
+            return new TelemetryService(serviceName, serviceVersion, telemetryLogger);
         });
 
         openTelemetryBuilder.UseOtlpExporter(

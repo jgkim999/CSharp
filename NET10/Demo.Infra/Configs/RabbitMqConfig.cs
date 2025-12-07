@@ -22,10 +22,5 @@ public class RabbitMqConfig
     public long NetworkRecoveryInterval { get; set; } = 5;
     public bool TopologyRecoveryEnabled { get; set; } = true;
     
-    public string MultiExchange { get; set; } = string.Empty;
-    public string MultiQueue { get; set; } = string.Empty;
-    
-    public string AnyQueue { get; set; } = string.Empty;
-    
-    public string UniqueQueue { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
 }

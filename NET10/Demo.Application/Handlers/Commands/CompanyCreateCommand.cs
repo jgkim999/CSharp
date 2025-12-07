@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Demo.Domain;
 using Demo.Domain.Repositories;
 using FluentResults;
 using LiteBus.Commands.Abstractions;
@@ -27,14 +28,14 @@ public class CompanyCreateCommandValidator : ICommandValidator<CompanyCreateComm
 
 public class CompanyCreateCommandHandler : ICommandHandler<CompanyCreateCommand, CompanyCreateCommandResult>
 {
-    private readonly ICompanyRepository _repository;
+    private readonly IMqPublishService _mqPublishService;
     
     /// <summary>
     /// 지정된 회사 리포지토리로 CompanyCreateCommandHandler 클래스의 새 인스턴스를 초기화합니다.
     /// </summary>
-    public CompanyCreateCommandHandler(ICompanyRepository repository)
+    public CompanyCreateCommandHandler(IMqPublishService mqPublishService)
     {
-        _repository = repository;
+        _mqPublishService = mqPublishService;
     }
     
     /// <summary>
@@ -45,7 +46,7 @@ public class CompanyCreateCommandHandler : ICommandHandler<CompanyCreateCommand,
     /// <returns>회사 생성 작업의 결과를 나타내는 결과 개체.</returns>
     public async Task<CompanyCreateCommandResult> HandleAsync(CompanyCreateCommand command, CancellationToken cancellationToken = default)
     {
-        var result = await _repository.CreateAsync(command.Name, cancellationToken);
+        await _mqPublishService.PublishMessagePackAnyAsync<>()
         return new CompanyCreateCommandResult(result);
     }
 }
