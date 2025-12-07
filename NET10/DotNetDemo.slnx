@@ -39,6 +39,7 @@
     <Configuration Solution="Release|x86" Project="Release|Any CPU" />
   </Project>
   <Project Path="Demo.Web/Demo.Web.csproj" />
+  <Project Path="Demo.WebApi/Demo.WebApi.csproj" />
   <Project Path="Demo.Zen\Demo.Zen.csproj">
     <Configuration Solution="Debug|x64" Project="Debug|Any CPU" />
     <Configuration Solution="Debug|x86" Project="Debug|Any CPU" />
