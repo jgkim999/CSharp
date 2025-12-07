@@ -1,8 +1,12 @@
+using System.Collections;
 using System.Collections.Frozen;
+using Dapper;
 using Demo.Application.DTO;
+using Demo.Application.DTO.Mq;
 using Demo.Application.Models;
 using Demo.Domain;
 using Demo.Domain.Enums;
+using SqlKata.Compilers;
 
 namespace Demo.Consumer;
 
@@ -23,6 +27,7 @@ public class ConsumerMessageHandler : IMqMessageHandler
 
         _handlers = new Dictionary<string, Func<MqSenderType, string?, string?, string?, object, Type, CancellationToken, ValueTask<object?>>>(4)
         {
+            { typeof(CompanyCreateReq).FullName!, OnCompanyCreateReqAsync },
             { typeof(MqPublishRequest).FullName!, OnMqPublishRequestAsync },
             { typeof(MqPublishRequest2).FullName!, OnMqPublishRequest2Async },
             { typeof(MessagePackRequest).FullName!, OnMessagePackRequestAsync },
@@ -30,7 +35,32 @@ public class ConsumerMessageHandler : IMqMessageHandler
             { typeof(MemoryPackRequest).FullName!, OnMemoryPackRequestAsync}
         }.ToFrozenDictionary();
     }
-    
+
+    private async ValueTask<object?> OnCompanyCreateReqAsync(
+        MqSenderType senderType,
+        string? sender,
+        string? correlationId,
+        string? messageId,
+        object messageObject,
+        Type messageType,
+        CancellationToken ct)
+    {
+        if (messageObject is not CompanyCreateReq message)
+        {
+            CompanyCreateRes res = new();
+            res.Res.ResultCode = ResultCode.Error;
+            res.Res.Message = "Object is not CompanyCreateReq";
+            return res;
+        }
+
+        var query = new SqlKata.Query("companies").AsInsert(
+            new { company_name = message.Name });
+        MySqlCompiler compiler = new();
+        var sqlResult = compiler.Compile(query);
+        var sql = sqlResult.Sql;
+        var parameters = new DynamicParameters(sqlResult.NamedBindings);
+    }
+
     /// <summary>
     /// 메시지 큐에서 수신된 메시지를 비동기적으로 처리합니다
     /// ReplyTo가 있는 경우 응답 메시지를 반환합니다

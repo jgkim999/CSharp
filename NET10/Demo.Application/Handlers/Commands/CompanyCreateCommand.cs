@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using Demo.Application.DTO.Mq;
 using Demo.Domain;
-using Demo.Domain.Repositories;
+using Demo.Domain.Enums;
 using FluentResults;
 using LiteBus.Commands.Abstractions;
 
@@ -46,7 +47,12 @@ public class CompanyCreateCommandHandler : ICommandHandler<CompanyCreateCommand,
     /// <returns>회사 생성 작업의 결과를 나타내는 결과 개체.</returns>
     public async Task<CompanyCreateCommandResult> HandleAsync(CompanyCreateCommand command, CancellationToken cancellationToken = default)
     {
-        await _mqPublishService.PublishMessagePackAnyAsync<>()
+        CompanyCreateRes res = await _mqPublishService.PublishAnyAndWaitForResponseAsync<CompanyCreateReq, CompanyCreateRes>(
+            "consumer",
+            new CompanyCreateReq(),
+            MqBinaryType.MessagePack,
+            TimeSpan.FromSeconds(15),
+            cancellationToken);
         return new CompanyCreateCommandResult(result);
     }
 }
