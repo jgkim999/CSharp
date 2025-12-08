@@ -10,20 +10,20 @@
     <ItemGroup>
       <PackageReference Include="FastEndpoints" Version="7.1.1" />
       <PackageReference Include="FluentResults" Version="4.0.0" />
-      <PackageReference Include="FluentValidation" Version="12.1.0" />
-      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.0" />
-      <PackageReference Include="LiteBus" Version="3.1.0" />
-      <PackageReference Include="LiteBus.Commands" Version="3.1.0" />
-      <PackageReference Include="LiteBus.Commands.Abstractions" Version="3.1.0" />
+      <PackageReference Include="FluentValidation" Version="12.1.1" />
+      <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+      <PackageReference Include="LiteBus" Version="4.2.0" />
+      <PackageReference Include="LiteBus.Commands" Version="4.2.0" />
+      <PackageReference Include="LiteBus.Commands.Abstractions" Version="4.2.0" />
       <PackageReference Include="LiteBus.Commands.Extensions.MicrosoftDependencyInjection" Version="3.1.0" />
-      <PackageReference Include="LiteBus.Events" Version="3.1.0" />
-      <PackageReference Include="LiteBus.Events.Abstractions" Version="3.1.0" />
+      <PackageReference Include="LiteBus.Events" Version="4.2.0" />
+      <PackageReference Include="LiteBus.Events.Abstractions" Version="4.2.0" />
       <PackageReference Include="LiteBus.Events.Extensions.MicrosoftDependencyInjection" Version="3.1.0" />
-      <PackageReference Include="LiteBus.Messaging" Version="3.1.0" />
-      <PackageReference Include="LiteBus.Messaging.Abstractions" Version="3.1.0" />
+      <PackageReference Include="LiteBus.Messaging" Version="4.2.0" />
+      <PackageReference Include="LiteBus.Messaging.Abstractions" Version="4.2.0" />
       <PackageReference Include="LiteBus.Messaging.Extensions.MicrosoftDependencyInjection" Version="3.1.0" />
-      <PackageReference Include="LiteBus.Queries" Version="3.1.0" />
-      <PackageReference Include="LiteBus.Queries.Abstractions" Version="3.1.0" />
+      <PackageReference Include="LiteBus.Queries" Version="4.2.0" />
+      <PackageReference Include="LiteBus.Queries.Abstractions" Version="4.2.0" />
       <PackageReference Include="LiteBus.Queries.Extensions.MicrosoftDependencyInjection" Version="3.1.0" />
       <PackageReference Include="Mapster" Version="7.4.0" />
       <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
@@ -37,8 +37,8 @@
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
       <PackageReference Include="NodaTime" Version="3.2.2" />
-      <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.4" />
-      <PackageReference Include="OpenTelemetry.AutoInstrumentation.Runtime.Native" Version="1.12.0" />
+      <PackageReference Include="Npgsql.OpenTelemetry" Version="10.0.0" />
+      <PackageReference Include="OpenTelemetry.AutoInstrumentation.Runtime.Native" Version="1.13.0" />
       <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.14.0" />
       <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0" />
       <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0" />
@@ -48,12 +48,12 @@
       <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.12.0-beta.2" />
       <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" Version="1.12.0-beta.2" />
       <PackageReference Include="protobuf-net" Version="3.2.56" />
-      <PackageReference Include="Scalar.AspNetCore" Version="2.10.3" />
-      <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+      <PackageReference Include="Scalar.AspNetCore" Version="2.11.1" />
+      <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
       <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-      <PackageReference Include="StackExchange.Redis" Version="2.9.32" />
+      <PackageReference Include="StackExchange.Redis" Version="2.10.1" />
       <PackageReference Include="Serilog" Version="4.3.0" />
-      <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
+      <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
       <PackageReference Include="FastEndpoints.Security" Version="7.1.1" />
       <PackageReference Include="FastEndpoints.Swagger" Version="7.1.1" />

@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Npgsql;
 using Polly;
+using SqlKata;
+using SqlKata.Compilers;
 
 namespace Demo.Infra.Repositories;
 
@@ -18,6 +20,7 @@ public class CompanyRepositoryPostgre : ICompanyRepository
     private readonly ILogger<CompanyRepositoryPostgre> _logger;
     private readonly ITelemetryService _telemetryService;
     private readonly IAsyncPolicy _retryPolicy;
+    private readonly PostgresCompiler _compiler;
     
     /// <summary>
     /// Initializes a new instance of the CompanyRepositoryPostgre class with the specified configuration, mapper, logger, and telemetry service.
@@ -26,11 +29,14 @@ public class CompanyRepositoryPostgre : ICompanyRepository
         IOptions<PostgresConfig> config,
         IMapper mapper,
         ILogger<CompanyRepositoryPostgre> logger,
-        ITelemetryService telemetryService)
+        ITelemetryService telemetryService,
+        PostgresCompiler compiler)
     {
         _config = config.Value;
         _logger = logger;
         _telemetryService = telemetryService;
+        _compiler = compiler;
+        
         _retryPolicy = Policy
             .Handle<NpgsqlException>()
             .Or<TimeoutException>()
@@ -54,16 +60,16 @@ public class CompanyRepositoryPostgre : ICompanyRepository
         using var activity = _telemetryService.StartActivity(nameof(CreateAsync));
         try
         {
+            Query? query = CompanyQueryBuilder.Insert(name);
+            var sqlResult = _compiler.Compile(query);
+            
+            var sql = sqlResult.Sql;
+            var parameters = new DynamicParameters(sqlResult.NamedBindings);
+            
             await using var connection = new NpgsqlConnection(_config.ConnectionString);
             await connection.OpenAsync(ct);
-
-            const string sqlQuery = "INSERT INTO companies (name) VALUES (@name);";
-
-            DynamicParameters dp = new();
-            dp.Add("@name", name);
-
-            var rowsAffected = await _retryPolicy.ExecuteAsync(() => connection.ExecuteAsync(sqlQuery, dp));
-
+            
+            var rowsAffected = await _retryPolicy.ExecuteAsync(() => connection.ExecuteAsync(sql, parameters));
             if (rowsAffected == 1)
             {
                 return Result.Ok();
@@ -100,30 +106,19 @@ public class CompanyRepositoryPostgre : ICompanyRepository
 
         try
         {
-            var whereClause = string.IsNullOrWhiteSpace(searchTerm) ? "" : "WHERE name ILIKE @searchTerm";
-            var searchPattern = string.IsNullOrWhiteSpace(searchTerm) ? null : $"%{searchTerm}%";
-
-            var countQuery = $"SELECT COUNT(*) FROM companies {whereClause};";
-            var dataQuery = $"SELECT id, name, created_at FROM companies {whereClause} ORDER BY id OFFSET @offset LIMIT @limit;";
-
-            DynamicParameters countParams = new();
-            DynamicParameters dataParams = new();
+            var countQuery = CompanyQueryBuilder.Count(searchTerm);
+            var countQueryResult = _compiler.Compile(countQuery);
+            DynamicParameters countParams = new(countQueryResult.Bindings);
             
-            if (!string.IsNullOrWhiteSpace(searchPattern))
-            {
-                countParams.Add("@searchTerm", searchPattern);
-                dataParams.Add("@searchTerm", searchPattern);
-            }
+            var dataQuery = CompanyQueryBuilder.Select(searchTerm, page, pageSize);
+            var dataQueryResult = _compiler.Compile(dataQuery);
+            DynamicParameters dataParams = new(dataQueryResult.Bindings);
             
-            dataParams.Add("@offset", page * pageSize);
-            dataParams.Add("@limit", pageSize);
-
             await using var connection = new NpgsqlConnection(_config.ConnectionString);
             await connection.OpenAsync(ct);
             
-            var totalCount = await _retryPolicy.ExecuteAsync(() => connection.QuerySingleAsync<int>(countQuery, countParams));
-
-            var companies = await _retryPolicy.ExecuteAsync(() => connection.QueryAsync<CompanyEntity>(dataQuery, dataParams));
+            var totalCount = await _retryPolicy.ExecuteAsync(() => connection.QuerySingleAsync<int>(countQueryResult.Sql, countParams));
+            var companies = await _retryPolicy.ExecuteAsync(() => connection.QueryAsync<CompanyEntity>(dataQueryResult.Sql, dataParams));
             
             return (companies, totalCount);
         }
