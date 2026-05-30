@@ -1,6 +1,0 @@
-@OpenApiScalar_HostAddress = http://localhost:5109
-
-GET {{OpenApiScalar_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
