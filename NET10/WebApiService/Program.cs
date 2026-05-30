@@ -19,10 +19,15 @@ try
     builder.Services.AddSerilog();
 
     builder.Services.AddFastEndpoints();
-    
+
     // Add services to the container.
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-    builder.Services.AddOpenApi();
+    builder.Services.AddOpenApi(options =>
+    {
+        // Scalar의 기본 코드 생성 언어를 C# RestSharp으로 설정
+        // (Scalar 대시보드에서 표시되는 기본값)
+        // Note: Scalar SDK 버전에 따라 이 설정이 다를 수 있습니다
+    });
     
     // Valkey 연결 (문자열로 접속)
     // 개발 환경: Aspire가 자동으로 주입
@@ -52,7 +57,10 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();
-        app.MapScalarApiReference();
+        app.MapScalarApiReference(options =>
+        {
+            options.DefaultHttpClient = new KeyValuePair<ScalarTarget, ScalarClient>(ScalarTarget.CSharp, ScalarClient.RestSharp);
+        });
     }
 
     app.UseFastEndpoints();
