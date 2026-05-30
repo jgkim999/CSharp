@@ -22,6 +22,12 @@ builder.AddProject<Projects.AspireApp_Web>("webfrontend")
     .WaitFor(apiService);
 
 builder.AddProject<Projects.WebApiService>("WebApiService")
+    .WithUrlForEndpoint("http", url =>
+    {
+        url.DisplayText = "Scalar (HTTP)";
+        url.Url = "/scalar";
+    })
+    .WithHttpHealthCheck("/health")
     .WithReference(valkey)
     .WaitFor(valkey);
 
