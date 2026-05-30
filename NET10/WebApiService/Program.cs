@@ -1,4 +1,5 @@
 using FastEndpoints;
+using FastEndpoints.Swagger;
 using Microsoft.Extensions.Caching.Redis;
 using Scalar.AspNetCore;
 using Serilog;
@@ -18,7 +19,8 @@ try
 
     builder.Services.AddSerilog();
 
-    builder.Services.AddFastEndpoints();
+    // FastEndpoints 설정
+    builder.Services.AddFastEndpoints().SwaggerDocument();
 
     // Add services to the container.
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -53,18 +55,19 @@ try
 
     app.MapDefaultEndpoints();
 
+    // FastEndpoints 먼저 등록
+    app.UseFastEndpoints();
+
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
     {
-        app.MapOpenApi();
+        app.UseOpenApi(c => c.Path = "/openapi/{documentName}.json");
         app.MapScalarApiReference(options =>
         {
             options.DefaultHttpClient = new KeyValuePair<ScalarTarget, ScalarClient>(ScalarTarget.CSharp, ScalarClient.RestSharp);
         });
     }
 
-    app.UseFastEndpoints();
-    
     app.Run();
 }
 catch (Exception ex)
