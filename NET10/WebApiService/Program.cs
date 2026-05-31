@@ -1,10 +1,6 @@
 using Demo.Application;
 using FastEndpoints;
 using FastEndpoints.Swagger;
-using LiteBus.Commands;
-using LiteBus.Events;
-using LiteBus.Extensions.Microsoft.DependencyInjection;
-using LiteBus.Queries;
 using Microsoft.Extensions.Caching.Redis;
 using Scalar.AspNetCore;
 using Serilog;
