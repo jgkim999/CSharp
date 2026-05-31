@@ -1,7 +1,11 @@
 <Solution>
+  <Folder Name="/솔루션 항목/">
+    <File Path=".editorconfig" />
+  </Folder>
   <Project Path="AspireApp/AspireApp.ApiService/AspireApp.ApiService.csproj" />
   <Project Path="AspireApp/AspireApp.AppHost/AspireApp.AppHost.csproj" Id="e7447573-f270-43e4-8f1c-b21584f27e83" />
   <Project Path="AspireApp/AspireApp.ServiceDefaults/AspireApp.ServiceDefaults.csproj" />
   <Project Path="AspireApp/AspireApp.Web/AspireApp.Web.csproj" />
+  <Project Path="Demo.Application/Demo.Application.csproj" Id="9a5c3304-5102-4cde-892f-61a3deb986cb" />
   <Project Path="WebApiService/WebApiService.csproj" />
 </Solution>

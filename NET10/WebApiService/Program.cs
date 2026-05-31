@@ -1,5 +1,10 @@
+using Demo.Application;
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using LiteBus.Commands;
+using LiteBus.Events;
+using LiteBus.Extensions.Microsoft.DependencyInjection;
+using LiteBus.Queries;
 using Microsoft.Extensions.Caching.Redis;
 using Scalar.AspNetCore;
 using Serilog;
@@ -19,17 +24,14 @@ try
 
     builder.Services.AddSerilog();
 
+    builder.Services.AddLiteBusApplication();
+
     // FastEndpoints 설정
     builder.Services.AddFastEndpoints().SwaggerDocument();
 
     // Add services to the container.
     // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-    builder.Services.AddOpenApi(options =>
-    {
-        // Scalar의 기본 코드 생성 언어를 C# RestSharp으로 설정
-        // (Scalar 대시보드에서 표시되는 기본값)
-        // Note: Scalar SDK 버전에 따라 이 설정이 다를 수 있습니다
-    });
+    builder.Services.AddOpenApi();
     
     // Valkey 연결 (문자열로 접속)
     // 개발 환경: Aspire가 자동으로 주입

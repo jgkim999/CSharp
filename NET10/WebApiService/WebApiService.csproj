@@ -10,6 +10,9 @@
   <ItemGroup>
     <PackageReference Include="FastEndpoints" Version="8.1.0" />
     <PackageReference Include="FastEndpoints.Swagger" Version="8.1.0" />
+    <PackageReference Include="LiteBus.Commands.Extensions.Microsoft.DependencyInjection" Version="5.0.0" />
+    <PackageReference Include="LiteBus.Events.Extensions.Microsoft.DependencyInjection" Version="5.0.0" />
+    <PackageReference Include="LiteBus.Queries.Extensions.Microsoft.DependencyInjection" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.6.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Redis" Version="2.3.0" />
@@ -26,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AspireApp\AspireApp.ServiceDefaults\AspireApp.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Demo.Application\Demo.Application.csproj" />
   </ItemGroup>
 
 </Project>
