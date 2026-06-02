@@ -4,6 +4,9 @@ var cache = builder.AddRedis("cache");
 
 var valkey = builder.AddValkey("valkey");
 
+var mysql = builder.AddMySql("mysql").WithLifetime(ContainerLifetime.Persistent);
+var mysqldb = mysql.AddDatabase("mydb");
+
 var apiService = builder.AddProject<Projects.AspireApp_ApiService>("apiservice")
     .WithHttpHealthCheck("/health")
     .WithReference(cache)
@@ -29,6 +32,8 @@ builder.AddProject<Projects.WebApiService>("WebApiService")
     })
     .WithHttpHealthCheck("/health")
     .WithReference(valkey)
-    .WaitFor(valkey);
+    .WaitFor(valkey)
+    .WithReference(mysqldb)
+    .WaitFor(mysqldb); ;
 
 builder.Build().Run();

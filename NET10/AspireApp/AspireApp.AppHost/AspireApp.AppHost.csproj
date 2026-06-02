@@ -15,8 +15,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.Redis" Version="13.3.5" />
-    <PackageReference Include="Aspire.Hosting.Valkey" Version="13.3.5" />
+    <PackageReference Include="Aspire.Hosting.MySql" Version="13.4.0" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="13.4.0" />
+    <PackageReference Include="Aspire.Hosting.Valkey" Version="13.4.0" />
   </ItemGroup>
 
 </Project>
