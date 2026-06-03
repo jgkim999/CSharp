@@ -4,9 +4,14 @@ var cache = builder.AddRedis("cache");
 
 var valkey = builder.AddValkey("valkey");
 
-var mysql = builder.AddMySql("mysql").WithLifetime(ContainerLifetime.Persistent);
-var mysqldb = mysql.AddDatabase("mydb");
+var mysqlPassword = builder.AddParameter("password", secret: true);
 
+var mysql = builder.AddMySql("mysql", mysqlPassword)
+    //.WithLifetime(ContainerLifetime.Persistent)
+    .WithEndpoint(port: 3306, targetPort: 3306, name: "tcp")
+    .WithInitFiles(Path.Combine(AppContext.BaseDirectory, "data", "init.sql"))
+    .WithPhpMyAdmin();
+    
 var apiService = builder.AddProject<Projects.AspireApp_ApiService>("apiservice")
     .WithHttpHealthCheck("/health")
     .WithReference(cache)
@@ -33,7 +38,7 @@ builder.AddProject<Projects.WebApiService>("WebApiService")
     .WithHttpHealthCheck("/health")
     .WithReference(valkey)
     .WaitFor(valkey)
-    .WithReference(mysqldb)
-    .WaitFor(mysqldb); ;
+    .WithReference(mysql)
+    .WaitFor(mysql);
 
 builder.Build().Run();
