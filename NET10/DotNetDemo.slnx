@@ -7,5 +7,7 @@
   <Project Path="AspireApp/AspireApp.ServiceDefaults/AspireApp.ServiceDefaults.csproj" />
   <Project Path="AspireApp/AspireApp.Web/AspireApp.Web.csproj" />
   <Project Path="Demo.Application/Demo.Application.csproj" Id="9a5c3304-5102-4cde-892f-61a3deb986cb" />
+  <Project Path="Demo.Domain/Demo.Domain.csproj" Id="c6c7001b-579f-4d6a-9971-1f7ae27bb838" />
+  <Project Path="Demo.Infra/Demo.Infra.csproj" Id="4eb9c8b6-2e90-42ab-bf57-d01bb5de2334" />
   <Project Path="WebApiService/WebApiService.csproj" />
 </Solution>

@@ -6,7 +6,7 @@ namespace WebApiService.Endpoints.WeatherForecast;
 
 public class WeatherForecastEndpoint : Endpoint<EmptyRequest, WeatherForecastRes[]>
 {
-    private ICommandMediator _command;
+    private readonly ICommandMediator _command;
     
     public WeatherForecastEndpoint(ICommandMediator command)
     {

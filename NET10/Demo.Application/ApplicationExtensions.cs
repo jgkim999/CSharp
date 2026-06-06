@@ -1,4 +1,5 @@
-﻿using Demo.Application.WeatherForecast;
+﻿using Demo.Application.Account;
+using Demo.Application.WeatherForecast;
 using LiteBus.Commands;
 using LiteBus.Extensions.Microsoft.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +13,12 @@ public static class ApplicationExtensions
         // Register LiteBus with all modules
         services.AddLiteBus(liteBus =>
         {
-            liteBus.AddCommandModule(module => module.Register(typeof(WeatherForecastHandler)));
+            // Register both handlers in a single command module to avoid duplicate module keys
+            liteBus.AddCommandModule(module => {
+                module.Register(typeof(WeatherForecastHandler));
+                module.Register(typeof(AccountLoginHandler));
+                module.Register(typeof(AccountCreateHandler));
+            });
         });
 
         return services;

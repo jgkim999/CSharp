@@ -2,12 +2,13 @@
 
 USE mydb;
 
-
-CREATE TABLE `users` (
-    `id` bigint NOT NULL AUTO_INCREMENT,
-    `name` varchar(255) NOT NULL,
-    `email` varchar(255) NOT NULL,
+CREATE TABLE `Users` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `email` VARCHAR(255) NOT NULL,
+    `password` VARCHAR(64) NOT NULL,
+    `salt` VARCHAR(16) NOT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `users_name_IDX` (`name`) USING BTREE,
     UNIQUE KEY `users_email_IDX` (`email`) USING BTREE
 );
