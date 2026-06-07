@@ -8,11 +8,13 @@ using Microsoft.Extensions.Caching.Redis;
 using Scalar.AspNetCore;
 using Serilog;
 using System.Text;
+using WebApiService.PrePostProcessor;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
     .WriteTo.Console()
     .WriteTo.OpenTelemetry()
     .CreateLogger();
@@ -23,6 +25,15 @@ try
     builder.AddServiceDefaults();
 
     builder.Services.AddSerilog();
+
+    // 로깅 레벨 설정
+    builder.Logging.ClearProviders();
+    builder.Logging.AddSerilog();
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Logging.AddConsole();
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+    }
 
     builder.Services.AddLiteBusApplication();
 
@@ -79,9 +90,17 @@ try
     app.MapDefaultEndpoints();
 
     // FastEndpoints 먼저 등록
-    app.UseAuthentication() // authentication 먼저 등록
+    app.UseDefaultExceptionHandler()
+        .UseAuthentication() // authentication 먼저 등록
         .UseAuthorization() // authorization 다음 등록
-        .UseFastEndpoints();
+        .UseFastEndpoints(c =>
+        {
+            c.Endpoints.Configurator = ep =>
+            {
+                ep.PreProcessors(Order.Before, typeof(RequestLogger<>));
+                //ep.PostProcessors(Order.After, typeof(ResponseLogger));
+            };
+        });
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
