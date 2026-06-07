@@ -98,7 +98,7 @@ try
             c.Endpoints.Configurator = ep =>
             {
                 ep.PreProcessors(Order.Before, typeof(RequestLogger<>));
-                //ep.PostProcessors(Order.After, typeof(ResponseLogger));
+                ep.PostProcessors(Order.After, typeof(ResponseLogger<,>));
             };
         });
 

@@ -1,11 +1,12 @@
 ﻿using FastEndpoints;
 using System.Diagnostics;
 using System.Text.Json;
-using WebApiService.Endpoints.Account.Login;
 
 namespace WebApiService.PrePostProcessor;
 
-sealed class ResponseLogger : IPostProcessor<Request, Response>
+sealed class ResponseLogger<TRequest, TResponse> : IPostProcessor<TRequest, TResponse>
+    where TRequest : notnull
+    where TResponse : notnull
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -14,32 +15,40 @@ sealed class ResponseLogger : IPostProcessor<Request, Response>
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
     };
 
-    public Task PostProcessAsync(IPostProcessorContext<Request, Response> ctx, CancellationToken ct)
+    private static readonly string RequestTypeName = typeof(TRequest).Name;
+    private static readonly string ResponseTypeName = typeof(TResponse).Name;
+
+    public Task PostProcessAsync(IPostProcessorContext<TRequest, TResponse> ctx, CancellationToken ct)
     {
-        var logger = ctx.HttpContext.Resolve<ILogger<Response>>();
+        var logger = ctx.HttpContext.Resolve<ILogger<TResponse>>();
         if (!logger.IsEnabled(LogLevel.Debug))
             return Task.CompletedTask;
 
-        var otelTraceId = Activity.Current?.TraceId;
+        var activity = Activity.Current;
+        var otelTraceId = activity?.TraceId ?? default;
         var httpTraceId = ctx.HttpContext.TraceIdentifier;
 
         try
         {
             var requestJson = JsonSerializer.Serialize(ctx.Request, JsonOptions);
             var responseJson = JsonSerializer.Serialize(ctx.Response, JsonOptions);
-            logger.LogDebug("TraceId: {OtelTraceId} | HttpTraceId: {HttpTraceId} | Request: {RequestData}, Response: {ResponseData}", 
+            logger.LogDebug("TraceId: {OtelTraceId} | HttpTraceId: {HttpTraceId} | Request: {RequestType} = {RequestData}, Response: {ResponseType} = {ResponseData}", 
                 otelTraceId,
                 httpTraceId,
-                requestJson, 
+                RequestTypeName,
+                requestJson,
+                ResponseTypeName, 
                 responseJson);
         }
         catch (Exception ex)
         {
             // 파싱 실패 시 원본 데이터 출력
-            logger.LogDebug("TraceId: {OtelTraceId} | HttpTraceId: {HttpTraceId} | Request: {RequestData}, Response: {ResponseData} (Serialization failed: {Error})", 
+            logger.LogDebug("TraceId: {OtelTraceId} | HttpTraceId: {HttpTraceId} | Request: {RequestType} = {RequestData}, Response: {ResponseType} = {ResponseData} (Serialization failed: {Error})", 
                 otelTraceId,
                 httpTraceId,
-                ctx.Request?.ToString() ?? "null", 
+                RequestTypeName,
+                ctx.Request?.ToString() ?? "null",
+                ResponseTypeName, 
                 ctx.Response?.ToString() ?? "null", 
                 ex.Message);
         }
